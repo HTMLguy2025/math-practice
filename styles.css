@@ -2,3 +2,27 @@
 {
     font-size: 4rem;
 }
+
+.numberbuttons {
+    margin: 5px;
+}
+
+.numButtons {
+    margin: 5px;
+    padding: 15px;
+    font-size: 2rem;
+}
+
+.previousQuestionNums {
+    font-size: 2rem;
+}
+
+.displayedAnswerHolder {
+    background-color: rgb(26, 26, 26);
+    font-size: 2.5rem;
+    padding: 2px;
+}
+
+.displayedAnswer {
+    background-color: white;
+}

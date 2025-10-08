@@ -8,10 +8,58 @@
     <title>Math Practice</title>
 </head>
 <body>
-    <h1 class = "title1">Click the link</h1>
+    <h1 class = "title1">Practice Multiplication Facts!</h1>
+    <div class = "previousQuestionNums">
+        <span id = "previousQuestionNum1">5</span>
+        <span>x</span>
+        <span id = "previousQuestionNum2">5</span>
+        <span>=</span>
+        <span id = "previousQuestionAnswer">25</span>
+    </div>
+    <br>
+    <br>
+    <br>
+    <div class = "numbers">
+        <span id = "factNum1">4</span>
+        <span id = "operator">x</span>
+        <span id = "factNum2">4</span>
+    </div>
+    <br>
+    <br>
+    <div class = "numberbuttons">
+        <div class = "TopRow">
+            <button id = "button1" class = "numButtons">1</button>
+            <button id = "button2" class = "numButtons">2</button>
+            <button id = "button3" class = "numButtons">3</button>
+        </div>
+        <div class = "MiddleRow">
+            <button id = "button4" class = "numButtons">4</button>
+            <button id = "button5" class = "numButtons">5</button>
+            <button id = "button6" class = "numButtons">6</button>
+        </div>
+        <div class = "LowerRow">
+            <button id = "button7" class = "numButtons">7</button>
+            <button id = "button8" class = "numButtons">8</button>
+            <button id = "button9" class = "numButtons">9</button>
+        </div>
+        <div class = "bottomRow">
+            <button id = "checkmark" class = "numButtons"><img src = "checkmark.png"></button>
+            <button id = "button0" class = "numButtons">0</button>
+        </div>
+    </div>
+    <br>
+    <div class = "displayedAnswerHolder">
+        <div id = "displayedSelectedAnswer" class = "displayedAnswer">|</div>
+    </div>
+    <br>
+    <button id = "deleteButton">Delete</button>
+    <br>
     <br>
     <br>
     <br>
     <a href = "learn.html">Click me to learn multiplication facts!</a>
+
+
+    <script src = "practice.js"></script>
 </body>
 </html>

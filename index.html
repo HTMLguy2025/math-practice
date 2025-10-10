@@ -12,9 +12,10 @@
 </head>
 <body>
     <h1 class = "title1">Practice Multiplication Facts!</h1>
+    <div class = "textOnTheRight">Check the console to see your scores</div>
     <div>
         <span id = "previousQuestionNum1" class = "previousQuestionNums">5</span>
-        <span class = "previousQuestionNums">x</span>
+        <span class = "previousQuestionNums" id = "previousQuestionOperator">x</span>
         <span id = "previousQuestionNum2" class = "previousQuestionNums">5</span>
         <span class = "previousQuestionNums">=</span>
         <span id = "previousQuestionAnswer" class = "previousQuestionNums">25</span>
@@ -48,6 +49,8 @@
         <div class = "bottomRow">
             <button id = "checkmark" class = "checkButton"><img src = "checkmark.png"></button>
             <button id = "button0" class = "numButtons">0</button>
+            <button id = "negativeButton" class = "numButtons">-a</button>
+        </div>
         </div>
     </div>
     <br>
@@ -55,9 +58,18 @@
         <div id = "displayedSelectedAnswer" class = "displayedAnswer">|</div>
     </div>
     <br>
-    <button id = "deleteButton">Delete</button>
+    <button id = "deleteButton" class = "deleteButton">Delete</button>
     <br>
     <br>
+    <span>
+        <button id = "multiplyButton" class = "modeButtons">Multiplication</button>
+    </span>
+    <span>
+        <button id = "addButton" class = "modeButtons">Addition</button>
+    </span>
+    <span>
+        <button id = "subtractButton" class = "modeButtons">Subtraction with negatives</button>
+    </span>
     <br>
     <br>
     <a href = "learn.html">Click me to learn multiplication facts!</a>

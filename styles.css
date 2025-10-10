@@ -57,5 +57,42 @@
 }
 
 .displayedAnswer {
-    background-color: white;
+    background-color: rgb(255, 255, 255);
+}
+
+.modeButtons {
+    background-color: rgb(221, 221, 221);
+    padding: 5px;
+    font-size: 1.4rem;
+    transition-duration: 0.25s;
+}
+
+.modeButtons:hover {
+    background-color: rgb(175, 175, 175);
+    padding-bottom: 12px;
+}
+
+.modeButtons:active {
+    background-color: rgb(118, 123, 128);
+    padding: 0px;
+}
+
+.textOnTheRight {
+    text-align: right;
+}
+
+.deleteButton {
+    background-color: rgb(211, 65, 65);
+    padding: 3px;
+    font-size: 1.2rem;
+    transition-duration: 0.25s;
+}
+
+.deleteButton:hover {
+    background-color: rgb(175, 56, 56);
+}
+
+.deleteButton:active {
+    background-color: rgb(146, 44, 44);
+    padding: 0px;
 }

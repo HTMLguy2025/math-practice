@@ -11,6 +11,14 @@
     margin: 5px;
 }
 
+.numberbuttons:hover {
+    cursor: pointer;
+}
+
+.pointer:hover {
+    cursor: pointer
+}
+
 .checkButton {
     margin: 5px;
     padding-left: 8px;
@@ -20,14 +28,17 @@
     font-size: 2rem;
     transition-duration: 0.3s;
     background-color: rgb(79, 117, 63);
+    box-shadow: 2px 2px 4px 0px #535353;
 }
 
 .checkButton:hover {
     background-color: rgb(67, 99, 54);
+    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .checkButton:active {
     background-color: rgb(45, 82, 31);
+    box-shadow: none;
 }
 
 .numButtons {
@@ -36,14 +47,18 @@
     font-size: 2rem;
     transition-duration: 0.2s;
     background-color: rgb(221, 221, 221);
+    box-shadow: 2px 2px 4px 0px #535353;
 }
 
 .numButtons:hover {
     background-color: rgb(175, 175, 175);
+    cursor: pointer;
+    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .numButtons:active {
     background-color: rgb(118, 123, 128);
+    box-shadow: none;
 }
 
 .previousQuestionNums {
@@ -65,16 +80,17 @@
     padding: 5px;
     font-size: 1.4rem;
     transition-duration: 0.25s;
+    box-shadow: 2px 2px 4px 0px #535353;
 }
 
 .modeButtons:hover {
     background-color: rgb(175, 175, 175);
-    padding-bottom: 12px;
+    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .modeButtons:active {
     background-color: rgb(118, 123, 128);
-    padding: 0px;
+    box-shadow: none;
 }
 
 .textOnTheRight {
@@ -86,13 +102,14 @@
     padding: 3px;
     font-size: 1.2rem;
     transition-duration: 0.25s;
+    box-shadow: 2px 2px 4px 0px #535353;
 }
 
 .deleteButton:hover {
-    background-color: rgb(175, 56, 56);
+    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .deleteButton:active {
-    background-color: rgb(146, 44, 44);
-    padding: 0px;
+    background-color: rgb(189, 58, 58);
+    box-shadow: none;
 }

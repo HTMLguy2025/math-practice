@@ -11,8 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const registerEventListeners = () => {
     answerButton.addEventListener('click', () => {
-        console.log("clicked")
-        
         const input1 = Math.round(Math.random() * 10);
         const input2 = Math.round(Math.random() * 10);
         const answer =  input1 * input2;
@@ -20,5 +18,6 @@ const registerEventListeners = () => {
         inputOne.innerHTML = input1;
         inputTwo.innerHTML = input2;
         answerSpan.innerHTML = answer;
+        console.log(input1 + " x " + input2 + " = " + answer);
     });
 }

@@ -41,6 +41,8 @@ var answer = "16"
 
 var currentQuestionOperator = "times"
 
+var switchOperatorCheckPressed = 0
+
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -242,7 +244,16 @@ const registerEventListeners = () => {
             LastQuesAnswer.innerHTML = previousQuestionAnswer
             factNumberOne.innerHTML = currentQuestionNum1
             factNumberTwo.innerHTML = currentQuestionNum2
-            console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
+
+
+            if (switchOperatorCheckPressed < 1) {
+                console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
+            };
+
+            if (switchOperatorCheckPressed > 0) {
+                switchOperatorCheckPressed = (switchOperatorCheckPressed - 1);
+            };
+            
             selectedAnswer = ("|");
             DisplayedSelectedAnswer.innerHTML = selectedAnswer
         }
@@ -251,22 +262,27 @@ const registerEventListeners = () => {
     DeleteButton.addEventListener('click', () => {
         selectedAnswer = ("|");
         DisplayedSelectedAnswer.innerHTML = selectedAnswer
-        console.log("deleted text");
     });
 
     multiplyButton.addEventListener('click', () => {
         currentQuestionOperator = "times"
+        switchOperatorCheckPressed = 2
         DisplayedSelectedAnswer.innerHTML = "Click checkmark twice"
+        console.log("Mode changed to multiplication");
     });
 
     addButton.addEventListener('click', () => {
         currentQuestionOperator = "plus"
+        switchOperatorCheckPressed = 2
         DisplayedSelectedAnswer.innerHTML = "Click checkmark twice"
+        console.log("Mode changed to addition");
     });
 
     subtractButton.addEventListener('click', () => {
         currentQuestionOperator = "minus"
+        switchOperatorCheckPressed = 2
         DisplayedSelectedAnswer.innerHTML = "Click checkmark twice"
+        console.log("Mode changed to subtraction");
     });
 
     NegativeButton.addEventListener('click', () => {

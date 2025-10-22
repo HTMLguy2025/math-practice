@@ -11,68 +11,69 @@
     <title>Math Practice</title>
 </head>
 <body>
-    <h1 class = "title1">Practice Multiplication Facts!</h1>
-    <div class = "textOnTheRight">Check the console to see your scores</div>
-    <div>
-        <span id = "previousQuestionNum1" class = "previousQuestionNums">5</span>
-        <span class = "previousQuestionNums" id = "previousQuestionOperator">x</span>
-        <span id = "previousQuestionNum2" class = "previousQuestionNums">5</span>
-        <span class = "previousQuestionNums">=</span>
-        <span id = "previousQuestionAnswer" class = "previousQuestionNums">25</span>
+    <div style = "z-index: 1;">
+        <span class = "title1">Practice Multiplication Facts!</span><span class = "questionsCorrect" id = "questionscorrect">0</span><span class = "questionsCorrect">/</span><span class = "questionsCorrect" id = "questionsAnswered">0</span><span class = "questionsCorrect"> correct</span>
+        <div class = "textOnTheRight">Check the console to see your scores</div>
+        <div>
+            <span id = "previousQuestionNum1" class = "previousQuestionNums">5</span>
+            <span class = "previousQuestionNums" id = "previousQuestionOperator">x</span>
+            <span id = "previousQuestionNum2" class = "previousQuestionNums">5</span>
+            <span class = "previousQuestionNums">=</span>
+            <span id = "previousQuestionAnswer" class = "previousQuestionNums">25</span>
+        </div>
+        <br>
+        <br>
+        <div class = "numbers">
+            <span id = "factNum1">4</span>
+            <span id = "operator">x</span>
+            <span id = "factNum2">4</span>
+        </div>
+        <br>
+        <br>
+        <div class = "numberbuttons">
+            <div class = "TopRow">
+                <button id = "button1" class = "numButtons">1</button>
+                <button id = "button2" class = "numButtons">2</button>
+                <button id = "button3" class = "numButtons">3</button>
+            </div>
+            <div class = "MiddleRow">
+                <button id = "button4" class = "numButtons">4</button>
+                <button id = "button5" class = "numButtons">5</button>
+                <button id = "button6" class = "numButtons">6</button>
+            </div>
+            <div class = "LowerRow">
+                <button id = "button7" class = "numButtons">7</button>
+                <button id = "button8" class = "numButtons">8</button>
+                <button id = "button9" class = "numButtons">9</button>
+            </div>
+            <div class = "bottomRow">
+                <button id = "checkmark" class = "checkButton"><img src = "checkmark.png"></button>
+                <button id = "button0" class = "numButtons">0</button>
+                <button id = "negativeButton" class = "numButtons">-a</button>
+            </div>
+            </div>
+        </div>
+        <br>
+        <div class = "displayedAnswerHolder">
+            <div id = "displayedSelectedAnswer" class = "displayedAnswer">|</div>
+        </div>
+        <br>
+        <button id = "deleteButton" class = "deleteButton">Delete</button>
+        <br>
+        <br>
+        <span>
+            <button id = "multiplyButton" class = "modeButtons">Multiplication</button>
+        </span>
+        <span>
+            <button id = "addButton" class = "modeButtons">Addition</button>
+        </span>
+        <span>
+            <button id = "subtractButton" class = "modeButtons">Subtraction with negatives</button>
+        </span>
+        <div class = "textOnTheRight">Math Practice 1.2.0</div>
+        <br>
+        <a href = "learn.html">Click me to learn multiplication facts!</a>
     </div>
-    <br>
-    <br>
-    <div class = "numbers">
-        <span id = "factNum1">4</span>
-        <span id = "operator">x</span>
-        <span id = "factNum2">4</span>
-    </div>
-    <br>
-    <br>
-    <div class = "numberbuttons">
-        <div class = "TopRow">
-            <button id = "button1" class = "numButtons">1</button>
-            <button id = "button2" class = "numButtons">2</button>
-            <button id = "button3" class = "numButtons">3</button>
-        </div>
-        <div class = "MiddleRow">
-            <button id = "button4" class = "numButtons">4</button>
-            <button id = "button5" class = "numButtons">5</button>
-            <button id = "button6" class = "numButtons">6</button>
-        </div>
-        <div class = "LowerRow">
-            <button id = "button7" class = "numButtons">7</button>
-            <button id = "button8" class = "numButtons">8</button>
-            <button id = "button9" class = "numButtons">9</button>
-        </div>
-        <div class = "bottomRow">
-            <button id = "checkmark" class = "checkButton"><img src = "checkmark.png"></button>
-            <button id = "button0" class = "numButtons">0</button>
-            <button id = "negativeButton" class = "numButtons">-a</button>
-        </div>
-        </div>
-    </div>
-    <br>
-    <div class = "displayedAnswerHolder">
-        <div id = "displayedSelectedAnswer" class = "displayedAnswer">|</div>
-    </div>
-    <br>
-    <button id = "deleteButton" class = "deleteButton">Delete</button>
-    <br>
-    <br>
-    <span>
-        <button id = "multiplyButton" class = "modeButtons">Multiplication</button>
-    </span>
-    <span>
-        <button id = "addButton" class = "modeButtons">Addition</button>
-    </span>
-    <span>
-        <button id = "subtractButton" class = "modeButtons">Subtraction with negatives</button>
-    </span>
-    <div class = "textOnTheRight">Math Practice 1.1.0</div>
-    <br>
-    <a href = "learn.html">Click me to learn multiplication facts!</a>
-
 
     <script src = "practice.js"></script>
 

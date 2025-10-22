@@ -22,6 +22,8 @@ const checkButton = document.querySelector("#checkmark");
 const DisplayedSelectedAnswer = document.querySelector("#displayedSelectedAnswer");
 const DeleteButton = document.querySelector("#deleteButton");
 const NegativeButton = document.querySelector("#negativeButton");
+const QuestionsAnswered = document.querySelector("#questionsAnswered");
+const QuestionsCorrect = document.querySelector("#questionscorrect");
 
 var selectedAnswer = ""
 
@@ -42,6 +44,10 @@ var answer = "16"
 var currentQuestionOperator = "times"
 
 var switchOperatorCheckPressed = 0
+
+var questionsCorrect = 0
+
+var questionsAnswered = 0
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -198,6 +204,10 @@ const registerEventListeners = () => {
             
             console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - correct");
             selectedAnswer = ("|");
+            questionsCorrect = (questionsCorrect + 1);
+            questionsAnswered = (questionsAnswered + 1);
+            QuestionsAnswered.innerHTML = questionsAnswered;
+            QuestionsCorrect.innerHTML = questionsCorrect;
             DisplayedSelectedAnswer.innerHTML = selectedAnswer
         }
 
@@ -248,7 +258,11 @@ const registerEventListeners = () => {
 
             if (switchOperatorCheckPressed < 1) {
                 console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
+                questionsAnswered = (questionsAnswered + 1);
             };
+            
+            QuestionsAnswered.innerHTML = questionsAnswered;
+            QuestionsCorrect.innerHTML = questionsCorrect;
 
             if (switchOperatorCheckPressed > 0) {
                 switchOperatorCheckPressed = (switchOperatorCheckPressed - 1);

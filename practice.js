@@ -308,4 +308,29 @@ const registerEventListeners = () => {
             DisplayedSelectedAnswer.innerHTML = selectedAnswer
         }
     });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key >= '0' && e.key <= '9') {
+            if (selectedAnswer.length < 25) {
+                if (selectedAnswer.includes("|")) {
+                    selectedAnswer = ""
+                }
+                selectedAnswer = selectedAnswer + e.key;
+                DisplayedSelectedAnswer.innerHTML = selectedAnswer
+            }
+        } else if (e.key === '-') {
+            if (selectedAnswer.length < 25) {
+                if (selectedAnswer.includes("|")) {
+                    selectedAnswer = ""
+                }
+                selectedAnswer = selectedAnswer + "-";
+                DisplayedSelectedAnswer.innerHTML = selectedAnswer
+            }
+        } else if (e.key === 'Backspace' || e.key === 'Delete') {
+            selectedAnswer = "|";
+            DisplayedSelectedAnswer.innerHTML = selectedAnswer
+        } else if (e.key === 'Enter') {
+            checkButton.click();
+        }
+    });
 }

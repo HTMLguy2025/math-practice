@@ -309,7 +309,7 @@ const registerEventListeners = () => {
         }
     });
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keyup', (e) => {
         if (e.key >= '0' && e.key <= '9') {
             if (selectedAnswer.length < 25) {
                 if (selectedAnswer.includes("|")) {

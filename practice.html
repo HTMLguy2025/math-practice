@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "styles.css">
+    <link rel = "icon" href = "icon.png" type = "image/x-icon">
+    <title>Math Practice 1.4.0</title>
+</head>
+<body class = "darkTheme">
+    <div style = "z-index: 1;">
+        <div class = "header">
+            <span class = "title1">Math Practice</span>
+            <div class = "scoreDisplay">
+                <div><span class = "questionsCorrect" id = "questionscorrect">0</span><span class = "questionsCorrect">/</span><span class = "questionsCorrect" id = "questionsAnswered">0</span><span class = "questionsCorrect"> correct</span></div>
+                <div><span class = "questionsCorrect">Top score: </span><span class = "questionsCorrect" id = "topScore">null</span></div>
+            </div>
+        </div>
+        <div>
+            <span id = "previousQuestionNum1" class = "previousQuestionNums">5</span>
+            <span class = "previousQuestionNums" id = "previousQuestionOperator">x</span>
+            <span id = "previousQuestionNum2" class = "previousQuestionNums">5</span>
+            <span class = "previousQuestionNums">=</span>
+            <span id = "previousQuestionAnswer" class = "previousQuestionNums">25</span>
+        </div>
+        <br>
+        <br>
+        <div class = "numbers">
+            <span id = "factNum1">4</span>
+            <span id = "operator">x</span>
+            <span id = "factNum2">4</span>
+        </div>
+        <br>
+        <br>
+        <div class = "numberbuttons">
+            <div class = "TopRow">
+                <button id = "button1" class = "numButtons">1</button>
+                <button id = "button2" class = "numButtons">2</button>
+                <button id = "button3" class = "numButtons">3</button>
+            </div>
+            <div class = "MiddleRow">
+                <button id = "button4" class = "numButtons">4</button>
+                <button id = "button5" class = "numButtons">5</button>
+                <button id = "button6" class = "numButtons">6</button>
+            </div>
+            <div class = "LowerRow">
+                <button id = "button7" class = "numButtons">7</button>
+                <button id = "button8" class = "numButtons">8</button>
+                <button id = "button9" class = "numButtons">9</button>
+            </div>
+            <div class = "bottomRow">
+                <button id = "checkmark" class = "checkButton"><img src = "checkmark.png"></button>
+                <button id = "button0" class = "numButtons">0</button>
+                <button id = "negativeButton" class = "numButtons">-a</button>
+            </div>
+            </div>
+        </div>
+        <br>
+        <div class = "displayedAnswerHolder">
+            <div id = "displayedSelectedAnswer" class = "displayedAnswer"><span class = "cursor"></span></div>
+        </div>
+        <br>
+        <button id = "deleteButton" class = "deleteButton">Delete</button>
+        <br>
+        <br>
+        <div class = "modeButtonRow">
+            <span>
+                <button id = "multiplyButton" class = "modeButtons">Multiplication</button>
+            </span>
+            <span>
+                <button id = "addButton" class = "modeButtons">Addition</button>
+            </span>
+            <span>
+                <button id = "subtractButton" class = "modeButtons">Subtraction with negatives</button>
+            </span>
+            <button id = "finishButton" class = "finishButton">Finish</button>
+        </div>
+        
+        <div class = "textOnTheRight">Math Practice 1.4.0</div>
+        <br>
+        <a href = "learn.html">Click me to learn multiplication facts!</a>
+    </div>
+
+    <script src = "practice.js"></script>
+
+    <script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</body>
+</html>

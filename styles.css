@@ -66,13 +66,14 @@
 }
 
 .displayedAnswerHolder {
-    background-color: rgb(26, 26, 26);
+    background-color: rgb(10, 10, 20);
     font-size: 2.5rem;
     padding: 2px;
 }
 
 .displayedAnswer {
-    background-color: rgb(255, 255, 255);
+    background-color: rgb(28, 30, 50);
+    color: #e0e8ff;
 }
 
 .modeButtons {
@@ -114,12 +115,139 @@
     box-shadow: none;
 }
 
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.modeButtonRow {
+    display: flex;
+    align-items: center;
+}
+
+.modeButtonRow .finishButton {
+    margin-left: auto;
+}
+
+.scoreDisplay {
+    text-align: right;
+}
+
 .title1 {
     font-size: 2.5rem;
     font-weight: 600;
-    padding-right: 40%;
 }
 
 .questionsCorrect {
     font-size: 2rem;
+}
+
+.finishButton {
+    background-color: rgb(60, 100, 170);
+    color: rgb(255, 255, 255);
+    padding: 5px 12px;
+    font-size: 1.4rem;
+    transition-duration: 0.25s;
+    box-shadow: 2px 2px 4px 0px #535353;
+    text-align: right;
+}
+
+.finishButton:hover {
+    background-color: rgb(45, 80, 145);
+    box-shadow: 3.5px 3.5px 4px 0px #535353;
+    cursor: pointer;
+}
+
+.finishButton:active {
+    background-color: rgb(30, 58, 110);
+    box-shadow: none;
+}
+
+/* Dark theme */
+
+.darkTheme {
+    background-color: #1a1a2e;
+    color: #b0bcd4;
+}
+
+.darkTheme a {
+    color: rgba(172, 179, 190, 0.9);
+}
+
+.darkTheme .numButtons {
+    background-color: rgb(35, 50, 85);
+    color: rgba(227, 234, 245, 0.9);
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .numButtons:hover {
+    background-color: rgb(52, 75, 120);
+    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .numButtons:active {
+    background-color: rgb(20, 32, 60);
+    box-shadow: none;
+}
+
+.darkTheme .modeButtons {
+    background-color: rgb(35, 50, 85);
+    color: rgba(227, 234, 245, 0.9);
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .modeButtons:hover {
+    background-color: rgb(52, 75, 120);
+    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .modeButtons:active {
+    background-color: rgb(20, 32, 60);
+    box-shadow: none;
+}
+
+.darkTheme .deleteButton {
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .deleteButton:hover {
+    background-color: rgb(230, 80, 80);
+    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .checkButton {
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .checkButton:hover {
+    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .finishButton {
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+.darkTheme .finishButton:hover {
+    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+}
+
+/* Cursor animation */
+
+.cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.3em;
+    background-color: rgba(172, 179, 190, 0.9);
+    vertical-align: middle;
+    margin-right: 3px;
+    transform-origin: center;
+    animation: cursorPulse 0.7s ease-in-out infinite;
+}
+
+@keyframes cursorPulse {
+    0% { transform: scaleY(0); }
+    20% { transform: scaleY(1); }
+    40% { transform: scaleY(1); }
+    60%, 100% { transform: scaleY(0); }
 }

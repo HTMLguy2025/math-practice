@@ -57,6 +57,31 @@ const appendToAnswer = (digit) => {
     }
 }
 
+const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+
+const spawnParticles = (originEl) => {
+    const rect = originEl.getBoundingClientRect();
+    const ox = rect.left + rect.width / 2;
+    const oy = rect.top + rect.height / 2;
+    const count = 28;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.classList.add('particle');
+        const angle = Math.random() * 2 * Math.PI;
+        const dist = 80 + Math.random() * 140;
+        const size = (6 + Math.random() * 8) + 'px';
+        p.style.left = ox + 'px';
+        p.style.top = oy + 'px';
+        p.style.backgroundColor = particleColors[Math.floor(Math.random() * particleColors.length)];
+        p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+        p.style.width = size;
+        p.style.height = size;
+        document.body.appendChild(p);
+        p.addEventListener('animationend', () => p.remove());
+    }
+};
+
 const autoCheck = () => {
     if (selectedAnswer == answer) {
         checkButton.click();
@@ -114,6 +139,7 @@ const registerEventListeners = () => {
         factNumberTwo.innerHTML = currentQuestionNum2;
 
         if (wasCorrect) {
+            spawnParticles(checkButton);
             console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - correct");
             questionsCorrect++;
             questionsAnswered++;
@@ -181,7 +207,8 @@ const registerEventListeners = () => {
                 TopScore.innerHTML = newTopScore;
             }
         }
-        window.close();
+        spawnParticles(FinishButton);
+        
     });
 
     document.addEventListener('keyup', (e) => {

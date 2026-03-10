@@ -232,6 +232,22 @@
     box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
+/* Particle effect */
+
+.particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFly 0.9s ease-out forwards;
+}
+
+@keyframes particleFly {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+}
+
 /* Cursor animation */
 
 .cursor {
@@ -250,4 +266,124 @@
     20% { transform: scaleY(1); }
     40% { transform: scaleY(1); }
     60%, 100% { transform: scaleY(0); }
+}
+
+/* Responsive layout */
+
+.TopRow, .MiddleRow, .LowerRow, .bottomRow {
+    display: flex;
+    justify-content: flex-start;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+
+    .numbers {
+        font-size: 3rem;
+    }
+
+    .title1 {
+        font-size: 2rem;
+    }
+
+    .questionsCorrect {
+        font-size: 1.6rem;
+    }
+
+    .previousQuestionNums {
+        font-size: 1.6rem;
+    }
+
+    .numButtons {
+        padding: 10px;
+        font-size: 1.6rem;
+    }
+
+    .checkButton {
+        padding: 10px 8px 12px;
+        font-size: 1.6rem;
+    }
+
+    .displayedAnswerHolder {
+        font-size: 2rem;
+    }
+
+    .modeButtons {
+        font-size: 1.1rem;
+    }
+
+    .deleteButton {
+        font-size: 1rem;
+    }
+
+    .finishButton {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 8px;
+    }
+
+    .TopRow, .MiddleRow, .LowerRow, .bottomRow {
+        justify-content: center;
+    }
+
+    .numbers {
+        font-size: 2.5rem;
+    }
+
+    .title1 {
+        font-size: 1.5rem;
+    }
+
+    .questionsCorrect {
+        font-size: 1.1rem;
+    }
+
+    .previousQuestionNums {
+        font-size: 1.2rem;
+    }
+
+    .numButtons {
+        padding: 8px;
+        font-size: 1.3rem;
+        margin: 3px;
+    }
+
+    .checkButton {
+        padding: 8px 6px 10px;
+        font-size: 1.3rem;
+        margin: 3px;
+    }
+
+    .displayedAnswerHolder {
+        font-size: 1.6rem;
+    }
+
+    .modeButtonRow {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .modeButtonRow .finishButton {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .modeButtons {
+        font-size: 0.9rem;
+        padding: 4px;
+    }
+
+    .deleteButton {
+        font-size: 0.9rem;
+    }
+
+    .finishButton {
+        font-size: 0.9rem;
+    }
 }

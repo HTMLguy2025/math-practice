@@ -8,11 +8,11 @@
 }
 
 .numberbuttons {
-    margin: 5px;
-}
-
-.numberbuttons:hover {
-    cursor: pointer;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto;
+    gap: 5px;
+    width: 17vw;
+    min-width: 280px;
 }
 
 .pointer:hover {
@@ -20,20 +20,15 @@
 }
 
 .checkButton {
-    margin: 5px;
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-top: 13px;
-    padding-bottom: 15px;
+    grid-column: 4;
+    grid-row: 1 / span 4;
+    margin: 0;
+    padding-left: 16px;
+    padding-right: 16px;
     font-size: 2rem;
     transition-duration: 0.3s;
     background-color: rgb(79, 117, 63);
     box-shadow: 2px 2px 4px 0px #535353;
-}
-
-.checkButton:hover {
-    background-color: rgb(67, 99, 54);
-    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .checkButton:active {
@@ -42,18 +37,12 @@
 }
 
 .numButtons {
-    margin: 5px;
+    margin: 0;
     padding: 15px;
     font-size: 2rem;
     transition-duration: 0.2s;
     background-color: rgb(221, 221, 221);
     box-shadow: 2px 2px 4px 0px #535353;
-}
-
-.numButtons:hover {
-    background-color: rgb(175, 175, 175);
-    cursor: pointer;
-    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .numButtons:active {
@@ -85,11 +74,6 @@
     margin-right: 10px;
 }
 
-.modeButtons:hover {
-    background-color: rgb(175, 175, 175);
-    box-shadow: 3.5px 3.5px 4px 0px #535353;
-}
-
 .modeButtons:active {
     background-color: rgb(118, 123, 128);
     box-shadow: none;
@@ -105,10 +89,6 @@
     font-size: 1.2rem;
     transition-duration: 0.25s;
     box-shadow: 2px 2px 4px 0px #535353;
-}
-
-.deleteButton:hover {
-    box-shadow: 3.5px 3.5px 4px 0px #535353;
 }
 
 .deleteButton:active {
@@ -135,6 +115,12 @@
     text-align: right;
 }
 
+.modeIndicator {
+    font-size: 0.85rem;
+    color: rgba(190, 205, 218, 0.55);
+    margin-top: 2px;
+}
+
 .title1 {
     font-size: 2.5rem;
     font-weight: 600;
@@ -152,12 +138,6 @@
     transition-duration: 0.25s;
     box-shadow: 2px 2px 4px 0px #535353;
     text-align: right;
-}
-
-.finishButton:hover {
-    background-color: rgb(45, 80, 145);
-    box-shadow: 3.5px 3.5px 4px 0px #535353;
-    cursor: pointer;
 }
 
 .finishButton:active {
@@ -182,11 +162,6 @@
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
-.darkTheme .numButtons:hover {
-    background-color: rgb(52, 75, 120);
-    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
-}
-
 .darkTheme .numButtons:active {
     background-color: rgb(20, 32, 60);
     box-shadow: none;
@@ -198,11 +173,6 @@
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
-.darkTheme .modeButtons:hover {
-    background-color: rgb(52, 75, 120);
-    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
-}
-
 .darkTheme .modeButtons:active {
     background-color: rgb(20, 32, 60);
     box-shadow: none;
@@ -212,25 +182,69 @@
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
-.darkTheme .deleteButton:hover {
-    background-color: rgb(230, 80, 80);
-    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
-}
-
 .darkTheme .checkButton {
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
-}
-
-.darkTheme .checkButton:hover {
-    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
 .darkTheme .finishButton {
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
-.darkTheme .finishButton:hover {
-    box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+/* Hover states — desktop/mouse only */
+
+@media (hover: hover) {
+    .numberbuttons:hover {
+        cursor: pointer;
+    }
+
+    .checkButton:hover {
+        background-color: rgb(67, 99, 54);
+        box-shadow: 3.5px 3.5px 4px 0px #535353;
+    }
+
+    .numButtons:hover {
+        background-color: rgb(175, 175, 175);
+        cursor: pointer;
+        box-shadow: 3.5px 3.5px 4px 0px #535353;
+    }
+
+    .modeButtons:hover {
+        background-color: rgb(175, 175, 175);
+        box-shadow: 3.5px 3.5px 4px 0px #535353;
+    }
+
+    .deleteButton:hover {
+        box-shadow: 3.5px 3.5px 4px 0px #535353;
+    }
+
+    .finishButton:hover {
+        background-color: rgb(45, 80, 145);
+        box-shadow: 3.5px 3.5px 4px 0px #535353;
+        cursor: pointer;
+    }
+
+    .darkTheme .numButtons:hover {
+        background-color: rgb(52, 75, 120);
+        box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .darkTheme .modeButtons:hover {
+        background-color: rgb(52, 75, 120);
+        box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .darkTheme .deleteButton:hover {
+        background-color: rgb(230, 80, 80);
+        box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .darkTheme .checkButton:hover {
+        box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .darkTheme .finishButton:hover {
+        box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
+    }
 }
 
 /* Particle effect */
@@ -303,7 +317,6 @@
     }
 
     .checkButton {
-        padding: 10px 8px 12px;
         font-size: 1.6rem;
     }
 
@@ -349,16 +362,24 @@
         font-size: 1.2rem;
     }
 
-    .numButtons {
-        padding: 8px;
-        font-size: 1.3rem;
-        margin: 3px;
+    .numberbuttons {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+        width: 100%;
     }
 
     .checkButton {
-        padding: 8px 6px 10px;
+        grid-column: 1 / span 3;
+        grid-row: 5;
         font-size: 1.3rem;
-        margin: 3px;
+        padding: 12px;
+        margin: 0;
+    }
+
+    .numButtons {
+        padding: 8px;
+        font-size: 1.3rem;
+        margin: 0;
     }
 
     .displayedAnswerHolder {

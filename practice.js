@@ -5,48 +5,61 @@ const LastQuesOperator = document.querySelector("#previousQuestionOperator");
 const factNumberOne = document.querySelector("#factNum1");
 const factNumberTwo = document.querySelector("#factNum2");
 const Operator = document.querySelector("#operator");
-const multiplyButton = document.querySelector("#multiplyButton");
-const addButton = document.querySelector("#addButton");
-const subtractButton = document.querySelector("#subtractButton");
 const checkButton = document.querySelector("#checkmark");
 const DisplayedSelectedAnswer = document.querySelector("#displayedSelectedAnswer");
 const DeleteButton = document.querySelector("#deleteButton");
 const NegativeButton = document.querySelector("#negativeButton");
+const DecimalButton = document.querySelector("#decimalButton");
 const QuestionsAnswered = document.querySelector("#questionsAnswered");
 const QuestionsCorrect = document.querySelector("#questionscorrect");
 const TopScore = document.querySelector("#topScore");
 const FinishButton = document.querySelector("#finishButton");
 
 const getTopScore = () => {
-    const value = localStorage.getItem('topScore');
+    const value = localStorage.getItem('topScore_' + urlMode + '_' + urlDigits);
     console.log('[TopScore] Loaded from storage:', value);
     return value;
 }
 
 const setTopScore = (value) => {
-    localStorage.setItem('topScore', value);
-    console.log('[TopScore] Saved to storage:', value, '| Verify read-back:', localStorage.getItem('topScore'));
+    localStorage.setItem('topScore_' + urlMode + '_' + urlDigits, value);
+    console.log('[TopScore] Saved to storage:', value, '| Verify read-back:', localStorage.getItem('topScore_' + urlMode + '_' + urlDigits));
 }
 
-var selectedAnswer = ""
-var previousQuestionNum1 = "5"
-var previousQuestionNum2 = "5"
-var previousQuestionAnswer = "25"
-var previousQuestionOperator = "times"
-var currentQuestionNum1 = "4"
-var currentQuestionNum2 = "4"
-var answer = "16"
-var currentQuestionOperator = "times"
-var switchOperatorCheckPressed = 0
-var questionsCorrect = 0
-var questionsAnswered = 0
+const params = new URLSearchParams(window.location.search);
+const urlMode = params.get('mode') || 'multiply';
+const urlDigits = parseInt(params.get('digits')) || 1;
+
+const getNum = () => {
+    if (urlDigits === 1) return Math.ceil(Math.random() * 10);
+    if (urlDigits === 2) return Math.floor(Math.random() * 90) + 10;
+    return Math.floor(Math.random() * 900) + 100;
+};
+
+const computeAnswer = (n1, n2, op) => {
+    if (op === 'times') return n1 * n2;
+    if (op === 'plus') return n1 + n2;
+    if (op === 'minus') return n1 - n2;
+    return Math.round((n1 / n2) * 100) / 100;
+};
+
+const opSymbol = { times: 'x', plus: '+', minus: '-', divide: '÷' };
+const modeToOperator = { multiply: 'times', add: 'plus', subtract: 'minus', divide: 'divide' };
+
+var selectedAnswer = "";
+var currentQuestionOperator = modeToOperator[urlMode] || 'times';
+var currentQuestionNum1 = getNum();
+var currentQuestionNum2 = getNum();
+var answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
+var previousQuestionNum1 = getNum();
+var previousQuestionNum2 = getNum();
+var previousQuestionOperator = currentQuestionOperator;
+var previousQuestionAnswer = computeAnswer(previousQuestionNum1, previousQuestionNum2, previousQuestionOperator);
+var questionsCorrect = 0;
+var questionsAnswered = 0;
 
 const renderAnswer = () => {
     DisplayedSelectedAnswer.innerHTML = selectedAnswer + '<span class="cursor"></span>';
-}
-
-const showMessage = (msg) => {
-    DisplayedSelectedAnswer.innerHTML = msg;
 }
 
 const appendToAnswer = (digit) => {
@@ -93,6 +106,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (saved) {
         TopScore.innerHTML = saved;
     }
+
+    const modeNames = { multiply: 'Multiplication', add: 'Addition', subtract: 'Subtraction' };
+    const digitLabels = { 1: '1-Digit', 2: '2-Digit', 3: '3-Digit' };
+    const modeIndicator = document.getElementById('modeIndicator');
+    if (modeIndicator) {
+        modeIndicator.textContent = (modeNames[urlMode] || 'Multiplication') + ' · ' + (digitLabels[urlDigits] || '1-Digit');
+    }
+
+    Operator.innerHTML = opSymbol[currentQuestionOperator];
+    LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
+    factNumberOne.innerHTML = currentQuestionNum1;
+    factNumberTwo.innerHTML = currentQuestionNum2;
+    LastQuesNum1.innerHTML = previousQuestionNum1;
+    LastQuesNum2.innerHTML = previousQuestionNum2;
+    LastQuesAnswer.innerHTML = previousQuestionAnswer;
+
     registerEventListeners();
 });
 
@@ -111,27 +140,11 @@ const registerEventListeners = () => {
         previousQuestionAnswer = answer;
         previousQuestionOperator = currentQuestionOperator;
 
-        if (currentQuestionOperator == "times") {
-            Operator.innerHTML = "x";
-            currentQuestionNum1 = Math.ceil(Math.random() * 10);
-            currentQuestionNum2 = Math.ceil(Math.random() * 10);
-            answer = currentQuestionNum1 * currentQuestionNum2;
-        } else if (currentQuestionOperator == "plus") {
-            Operator.innerHTML = "+";
-            currentQuestionNum1 = Math.ceil(Math.random() * 10);
-            currentQuestionNum2 = Math.ceil(Math.random() * 10);
-            answer = currentQuestionNum1 + currentQuestionNum2;
-        } else if (currentQuestionOperator == "minus") {
-            Operator.innerHTML = "-";
-            currentQuestionNum1 = Math.ceil(Math.random() * 10);
-            currentQuestionNum2 = Math.ceil(Math.random() * 10);
-            answer = currentQuestionNum1 - currentQuestionNum2;
-        }
+        currentQuestionNum1 = getNum();
+        currentQuestionNum2 = getNum();
+        answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
 
-        if (previousQuestionOperator == "times") LastQuesOperator.innerHTML = "x";
-        else if (previousQuestionOperator == "plus") LastQuesOperator.innerHTML = "+";
-        else if (previousQuestionOperator == "minus") LastQuesOperator.innerHTML = "-";
-
+        LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
         LastQuesNum1.innerHTML = previousQuestionNum1;
         LastQuesNum2.innerHTML = previousQuestionNum2;
         LastQuesAnswer.innerHTML = previousQuestionAnswer;
@@ -144,13 +157,8 @@ const registerEventListeners = () => {
             questionsCorrect++;
             questionsAnswered++;
         } else {
-            if (switchOperatorCheckPressed < 1) {
-                console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
-                questionsAnswered++;
-            }
-            if (switchOperatorCheckPressed > 0) {
-                switchOperatorCheckPressed--;
-            }
+            console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
+            questionsAnswered++;
         }
 
         QuestionsAnswered.innerHTML = questionsAnswered;
@@ -164,29 +172,14 @@ const registerEventListeners = () => {
         renderAnswer();
     });
 
-    multiplyButton.addEventListener('click', () => {
-        currentQuestionOperator = "times";
-        switchOperatorCheckPressed = 2;
-        showMessage("Click checkmark twice");
-        console.log("Mode changed to multiplication");
-    });
-
-    addButton.addEventListener('click', () => {
-        currentQuestionOperator = "plus";
-        switchOperatorCheckPressed = 2;
-        showMessage("Click checkmark twice");
-        console.log("Mode changed to addition");
-    });
-
-    subtractButton.addEventListener('click', () => {
-        currentQuestionOperator = "minus";
-        switchOperatorCheckPressed = 2;
-        showMessage("Click checkmark twice");
-        console.log("Mode changed to subtraction");
-    });
-
     NegativeButton.addEventListener('click', () => {
         appendToAnswer("-");
+    });
+
+    DecimalButton.addEventListener('click', () => {
+        if (!selectedAnswer.includes('.')) {
+            appendToAnswer('.');
+        }
     });
 
     FinishButton.addEventListener('click', () => {
@@ -208,12 +201,14 @@ const registerEventListeners = () => {
             }
         }
         spawnParticles(FinishButton);
-        
+        setTimeout(() => { window.location.href = 'index.html'; }, 1000);
     });
 
     document.addEventListener('keyup', (e) => {
         if (e.key >= '0' && e.key <= '9') {
             appendToAnswer(e.key);
+        } else if (e.key === '.') {
+            if (!selectedAnswer.includes('.')) appendToAnswer('.');
         } else if (e.key === '-') {
             appendToAnswer('-');
         } else if (e.key === 'Backspace' || e.key === 'Delete') {

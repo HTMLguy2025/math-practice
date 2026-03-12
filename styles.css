@@ -82,6 +82,7 @@
     font-size: 1.4rem;
     transition-duration: 0.25s;
     box-shadow: 2px 2px 4px 0px #535353;
+    margin-right: 10px;
 }
 
 .modeButtons:hover {

@@ -2,9 +2,32 @@
     font-family: Roboto Mono;
 }
 
-.numbers
-{
+.problem {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    column-gap: 0.15em;
     font-size: 4rem;
+}
+
+.problem-top {
+    grid-column: 1 / span 2;
+    text-align: right;
+}
+
+.problem-operator {
+    grid-column: 1;
+    text-align: left;
+}
+
+.problem-bottom-num {
+    grid-column: 2;
+    text-align: right;
+}
+
+.problem-line {
+    grid-column: 1 / span 2;
+    border-top: 3px solid rgba(190, 205, 218, 0.55);
+    margin-top: 0.1em;
 }
 
 .numberbuttons {
@@ -295,7 +318,7 @@
         padding: 12px;
     }
 
-    .numbers {
+    .problem {
         font-size: 3rem;
     }
 
@@ -346,7 +369,7 @@
         justify-content: center;
     }
 
-    .numbers {
+    .problem {
         font-size: 2.5rem;
     }
 

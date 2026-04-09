@@ -1,13 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
+    <!-- Change const CURRENT_VERSION when pushing new changes to repository -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="icon" href="newicon.png" type="image/x-icon">
-    <title>MP Launcher 1.5.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>MP Launcher 1.5.1</title>
     <style>
         * {
             font-family: 'Roboto Mono', monospace;
@@ -57,12 +60,69 @@
             animation: fadeIn 0.5s ease 0.1s forwards;
         }
 
+        #levelGrid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.2s forwards;
+        }
+
+        .level-btn {
+            width: 180px;
+            padding: 11px 16px;
+            font-size: 1rem;
+            font-family: 'Roboto Mono', monospace;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .level-btn:not([data-level="simple"]) {
+            opacity: 0.45;
+        }
+
+        .level-btn:hover {
+            background-color: rgb(52, 75, 120);
+            box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-btn:active {
+            background-color: rgb(20, 32, 60);
+            box-shadow: none;
+        }
+
+        #subOptions {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .back-btn {
+            font-size: 0.9rem;
+            font-family: 'Roboto Mono', monospace;
+            background: none;
+            border: none;
+            color: rgba(190, 205, 218, 0.45);
+            cursor: pointer;
+            align-self: flex-start;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: rgba(190, 205, 218, 0.9);
+        }
+
         .mode-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 2rem;
-            opacity: 0;
-            animation: fadeIn 0.5s ease 0.2s forwards;
         }
 
         .mode-section {
@@ -103,6 +163,12 @@
         .launch-btn:active {
             background-color: rgb(20, 32, 60);
             box-shadow: none;
+        }
+
+        .launch-btn.coming-soon {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
         }
 
         .fade-out-down {
@@ -176,11 +242,87 @@
             to { opacity: 0; transform: translateY(30px); }
         }
 
+        @keyframes bannerFadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
+        /* Update banner */
+
+        #updateOverlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #updateOverlay.show {
+            animation: fadeInOpacity 0.5s ease 0.3s forwards;
+            pointer-events: auto;
+        }
+
+        #updateBanner {
+            position: fixed;
+            inset: 2rem;
+            background-color: #1a1a2e;
+            color: rgb(190, 205, 218);
+            padding: 2rem 2.5rem;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #updateBanner.show {
+            animation: fadeInOpacity 0.5s ease 0.3s forwards;
+            pointer-events: auto;
+        }
+
+        #updateBanner .banner-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: rgba(227, 234, 245, 0.95);
+            margin-bottom: 0.3rem;
+        }
+
+        #updateBanner .banner-text {
+            font-size: 0.85rem;
+            color: rgba(190, 205, 218, 0.6);
+        }
+
+        #updateBanner .banner-close {
+            position: absolute;
+            top: 0.6rem;
+            right: 0.85rem;
+            font-size: 1.2rem;
+            color: rgba(190, 205, 218, 0.5);
+            cursor: pointer;
+            background: none;
+            border: none;
+            line-height: 1;
+            padding: 0.4rem 0.5rem;
+            transition: color 0.2s;
+        }
+
+        #updateBanner .banner-close:hover {
+            color: rgba(190, 205, 218, 0.95);
+        }
+
         @media (max-width: 600px) {
+            #levelGrid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .level-btn {
+                width: 100%;
+            }
+
             .mode-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
@@ -208,32 +350,28 @@
     <h1 class="title">Math Practice</h1>
 
     <div id="selectionArea">
-        <p class="subtitle">Select a mode to begin</p>
-        <div class="mode-grid">
-            <div class="mode-section">
-                <span class="mode-label">Multiplication</span>
-                <a class="launch-btn" href="practice.html?mode=multiply&digits=1">1-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=multiply&digits=2">2-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=multiply&digits=3">3-Digit</a>
-            </div>
-            <div class="mode-section">
-                <span class="mode-label">Addition</span>
-                <a class="launch-btn" href="practice.html?mode=add&digits=1">1-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=add&digits=2">2-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=add&digits=3">3-Digit</a>
-            </div>
-            <div class="mode-section">
-                <span class="mode-label">Subtraction</span>
-                <a class="launch-btn" href="practice.html?mode=subtract&digits=1">1-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=subtract&digits=2">2-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=subtract&digits=3">3-Digit</a>
-            </div>
-            <div class="mode-section">
-                <span class="mode-label">Division</span>
-                <a class="launch-btn" href="practice.html?mode=divide&digits=2">2-Digit</a>
-                <a class="launch-btn" href="practice.html?mode=divide&digits=3">3-Digit</a>
-            </div>
+        <p class="subtitle" id="subtitle">Select a level to begin</p>
+
+        <div id="levelGrid">
+            <button class="level-btn" data-level="1">Level 1</button>
+            <button class="level-btn" data-level="2">Level 2</button>
+            <button class="level-btn" data-level="3">Level 3</button>
+            <button class="level-btn" data-level="4">Level 4</button>
+            <button class="level-btn" data-level="5">Level 5</button>
+            <button class="level-btn" data-level="simple">Simple Operations</button>
         </div>
+
+        <div id="subOptions">
+            <button class="back-btn" id="backBtn">&#x2190; Back</button>
+            <div class="mode-grid" id="subGrid"></div>
+        </div>
+    </div>
+
+    <div id="updateOverlay"></div>
+    <div id="updateBanner">
+        <button class="banner-close" id="bannerClose">&#x2715;</button>
+        <div class="banner-title" id="bannerTitle"></div>
+        <div class="banner-text" id="bannerText"></div>
     </div>
 
     <div id="launchArea">
@@ -245,31 +383,245 @@
     </div>
 
     <script>
-        document.querySelectorAll('.launch-btn').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.preventDefault();
-                const href = btn.getAttribute('href');
+        const CURRENT_VERSION = '1.5.1';
 
-                const selectionArea = document.getElementById('selectionArea');
-                selectionArea.classList.add('fade-out-down');
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+            return match ? decodeURIComponent(match[1]) : null;
+        }
 
-                setTimeout(() => {
-                    selectionArea.style.display = 'none';
-                    const launchArea = document.getElementById('launchArea');
-                    launchArea.style.display = 'flex';
-                    setTimeout(() => {
-                        document.getElementById('progressFill').style.width = '100%';
-                    }, 50);
-                }, 400);
+        function setCookie(name, value) {
+            const expires = new Date();
+            expires.setFullYear(expires.getFullYear() + 1);
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires.toUTCString() + '; path=/';
+        }
 
-                setTimeout(() => {
-                    document.getElementById('spinner').classList.add('done');
-                }, 2200);
+        const lastSeen = getCookie('lastSeenVersion');
+        if (lastSeen !== CURRENT_VERSION) {
+            fetch('release-notes.md')
+                .then(r => r.text())
+                .then(md => {
+                    const tokens = marked.lexer(md);
+                    const heading = tokens.find(t => t.type === 'heading');
+                    const rest = tokens.filter(t => t !== heading);
+                    document.getElementById('bannerTitle').textContent = heading ? heading.text : '';
+                    document.getElementById('bannerText').innerHTML = marked.parser(rest);
+                    document.getElementById('updateOverlay').classList.add('show');
+                    document.getElementById('updateBanner').classList.add('show');
+                });
+            setCookie('lastSeenVersion', CURRENT_VERSION);
+        }
+        document.getElementById('bannerClose').addEventListener('click', () => {
+            const banner = document.getElementById('updateBanner');
+            const overlay = document.getElementById('updateOverlay');
+            banner.style.animation = 'bannerFadeOut 0.4s ease forwards';
+            overlay.style.animation = 'fadeInOpacity 0.4s ease forwards reverse';
+            setTimeout(() => {
+                banner.style.display = 'none';
+                overlay.style.display = 'none';
+            }, 400);
+        });
 
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 2500);
+        const LEVELS = {
+            1: {
+                label: 'Level 1',
+                sections: [
+                    { label: 'Counting & Number Sense', options: [
+                        { text: 'Forward / Backward', href: null },
+                        { text: 'Count From Any Number', href: null },
+                        { text: 'Number Line', href: null },
+                        { text: 'Odd & Even', href: null },
+                    ]},
+                    { label: 'Place Value', options: [
+                        { text: 'Tens & Ones', href: null },
+                        { text: 'Multiples of 10', href: null },
+                    ]},
+                    { label: 'Comparison', options: [
+                        { text: 'Two-Digit Numbers', href: null },
+                    ]},
+                    { label: 'Measurement & Time', options: [
+                        { text: 'Time to Hour / Half Hour', href: null },
+                    ]},
+                ]
+            },
+            2: {
+                label: 'Level 2',
+                sections: [
+                    { label: 'Counting & Number Sense', options: [
+                        { text: 'Skip Counting', href: null },
+                        { text: 'Odd & Even', href: null },
+                        { text: 'Compare 3-Digit Numbers', href: null },
+                    ]},
+                    { label: 'Place Value', options: [
+                        { text: 'Hundreds, Tens, Ones', href: null },
+                    ]},
+                    { label: 'Early Multiplication', options: [
+                        { text: 'Arrays', href: null },
+                    ]},
+                    { label: 'Measurement & Time', options: [
+                        { text: 'Time to 5 Minutes', href: null },
+                        { text: 'Counting Money', href: null },
+                    ]},
+                    { label: 'Data', options: [
+                        { text: 'Bar Graphs', href: null },
+                        { text: 'Picture Graphs', href: null },
+                    ]},
+                ]
+            },
+            3: {
+                label: 'Level 3',
+                sections: [
+                    { label: 'Fractions', options: [
+                        { text: 'Halves / Thirds / Fourths', href: null },
+                        { text: 'Sixths & Eighths', href: null },
+                        { text: 'On a Number Line', href: null },
+                    ]},
+                    { label: 'Rounding', options: [
+                        { text: 'To Nearest 10', href: null },
+                        { text: 'To Nearest 100', href: null },
+                    ]},
+                    { label: 'Measurement & Time', options: [
+                        { text: 'Elapsed Time', href: null },
+                        { text: 'Mass & Liquid Volume', href: null },
+                        { text: 'Area & Perimeter', href: null },
+                    ]},
+                    { label: 'Data', options: [
+                        { text: 'Scaled Bar Graphs', href: null },
+                        { text: 'Scaled Picture Graphs', href: null },
+                    ]},
+                ]
+            },
+            4: {
+                label: 'Level 4',
+                sections: [
+                    { label: 'Fractions', options: [
+                        { text: 'Equivalent', href: null },
+                        { text: 'Comparing', href: null },
+                        { text: 'Add / Subtract (Like)', href: null },
+                        { text: 'Mixed Numbers', href: null },
+                    ]},
+                    { label: 'Decimals', options: [
+                        { text: 'Tenths & Hundredths', href: null },
+                        { text: 'Comparing Decimals', href: null },
+                    ]},
+                    { label: 'Number Theory', options: [
+                        { text: 'Factors & Multiples', href: null },
+                        { text: 'Prime & Composite', href: null },
+                    ]},
+                    { label: 'Geometry', options: [
+                        { text: 'Angle Measurement', href: null },
+                        { text: 'Lines & Rays', href: null },
+                        { text: 'Symmetry', href: null },
+                        { text: 'Area & Perimeter', href: null },
+                    ]},
+                ]
+            },
+            5: {
+                label: 'Level 5',
+                sections: [
+                    { label: 'Fractions', options: [
+                        { text: 'Add / Subtract (Unlike)', href: null },
+                        { text: 'Multiply', href: null },
+                        { text: 'Divide', href: null },
+                    ]},
+                    { label: 'Decimals', options: [
+                        { text: 'All Operations', href: null },
+                        { text: 'Powers of 10', href: null },
+                    ]},
+                    { label: 'Order of Operations', options: [
+                        { text: 'PEMDAS', href: null },
+                    ]},
+                    { label: 'Number Sense', options: [
+                        { text: 'Negative Numbers', href: null },
+                        { text: 'Numerical Patterns', href: null },
+                    ]},
+                    { label: 'Geometry & Graphing', options: [
+                        { text: 'Coordinate Planes', href: null },
+                        { text: 'Volume', href: null },
+                        { text: 'Classifying 2D Shapes', href: null },
+                    ]},
+                    { label: 'Measurement', options: [
+                        { text: 'Converting Units', href: null },
+                    ]},
+                ]
+            },
+            simple: {
+                label: 'Simple Operations',
+                sections: [
+                    { label: 'Multiplication', options: [{ text: '1-Digit', href: 'practice.html?mode=multiply&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=multiply&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=multiply&digits=3' }] },
+                    { label: 'Addition',       options: [{ text: '1-Digit', href: 'practice.html?mode=add&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=add&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=add&digits=3' }] },
+                    { label: 'Subtraction',    options: [{ text: '1-Digit', href: 'practice.html?mode=subtract&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=subtract&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=subtract&digits=3' }] },
+                    { label: 'Division',       options: [{ text: '2-Digit', href: 'practice.html?mode=divide&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=divide&digits=3' }] },
+                ]
+            }
+        };
+
+        function launchMode(href) {
+            const selectionArea = document.getElementById('selectionArea');
+            selectionArea.classList.add('fade-out-down');
+            setTimeout(() => {
+                selectionArea.style.display = 'none';
+                const launchArea = document.getElementById('launchArea');
+                launchArea.style.display = 'flex';
+                setTimeout(() => { document.getElementById('progressFill').style.width = '100%'; }, 50);
+            }, 400);
+            setTimeout(() => { document.getElementById('spinner').classList.add('done'); }, 2200);
+            setTimeout(() => { window.location.href = href; }, 2500);
+        }
+
+        function fadeSwap(hideEl, showEl, displayType) {
+            hideEl.classList.add('fade-out-down');
+            setTimeout(() => {
+                hideEl.style.display = 'none';
+                hideEl.classList.remove('fade-out-down');
+                showEl.style.animation = 'none';
+                showEl.style.display = displayType;
+                showEl.style.opacity = '0';
+                showEl.style.transform = 'translateY(6px)';
+                showEl.offsetHeight;
+                showEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                showEl.style.opacity = '1';
+                showEl.style.transform = 'translateY(0)';
+                setTimeout(() => { showEl.style.transition = ''; }, 400);
+            }, 400);
+        }
+
+        function buildSubOptions(levelKey) {
+            const subGrid = document.getElementById('subGrid');
+            subGrid.innerHTML = '';
+            LEVELS[levelKey].sections.forEach(section => {
+                const div = document.createElement('div');
+                div.className = 'mode-section';
+                const label = document.createElement('span');
+                label.className = 'mode-label';
+                label.textContent = section.label;
+                div.appendChild(label);
+                section.options.forEach(opt => {
+                    const btn = document.createElement('a');
+                    btn.className = 'launch-btn' + (opt.href ? '' : ' coming-soon');
+                    btn.textContent = opt.text;
+                    btn.href = opt.href || '#';
+                    if (opt.href) {
+                        btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
+                    }
+                    div.appendChild(btn);
+                });
+                subGrid.appendChild(div);
             });
+        }
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const levelKey = btn.dataset.level;
+                document.getElementById('subtitle').textContent = LEVELS[levelKey].label;
+                buildSubOptions(levelKey);
+                fadeSwap(document.getElementById('levelGrid'), document.getElementById('subOptions'), 'flex');
+            });
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            document.getElementById('subtitle').textContent = 'Select a level to begin';
+            fadeSwap(document.getElementById('subOptions'), document.getElementById('levelGrid'), 'grid');
         });
     </script>
 </body>

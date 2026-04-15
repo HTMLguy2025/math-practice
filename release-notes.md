@@ -1,10 +1,9 @@
-# Version 1.5.1
+# Version 2.0.0
 
-## There is a new update!
+## New exercises and improvements
 
-- Buttons reorganized
-- New sections created
-- Various bug fixes
-- 
-### This update will prepare Math Practice for extremely major changes,
-### mainly including new math exercises for every grade!
+- Added numerous exercises, primarily centered around converting, solving, and completing math problems with fractions
+
+- Added optional modifiers for many exercises
+
+- Minor changes to UI and performance

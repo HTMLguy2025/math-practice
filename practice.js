@@ -27,13 +27,30 @@ const setTopScore = (value) => {
 }
 
 const params = new URLSearchParams(window.location.search);
-const urlMode = params.get('mode') || 'multiply';
-const urlDigits = parseInt(params.get('digits')) || 1;
+const urlMode    = params.get('mode') || 'multiply';
+const digitsParam = params.get('digits') || '1';
+const digitsList  = digitsParam.split(',').map(Number).filter(n => [1, 2, 3].includes(n));
+if (digitsList.length === 0) digitsList.push(1);
+const urlDigits  = digitsList[0]; // used for display / score key
 
-const getNum = () => {
-    if (urlDigits === 1) return Math.ceil(Math.random() * 10);
-    if (urlDigits === 2) return Math.floor(Math.random() * 90) + 10;
+const pickDigits = () => digitsList[Math.floor(Math.random() * digitsList.length)];
+
+const getNum = (d) => {
+    const digits = d !== undefined ? d : pickDigits();
+    if (digits === 1) return Math.ceil(Math.random() * 10);
+    if (digits === 2) return Math.floor(Math.random() * 90) + 10;
     return Math.floor(Math.random() * 900) + 100;
+};
+
+// For 1-digit division, generate a 2-digit ÷ 1-digit pair that divides evenly.
+const getPair = () => {
+    const d = pickDigits();
+    if (urlMode === 'divide' && d === 1) {
+        const divisor  = Math.floor(Math.random() * 8) + 2;  // 2–9
+        const quotient = Math.floor(Math.random() * 9) + 2;  // 2–10
+        return { n1: divisor * quotient, n2: divisor };
+    }
+    return { n1: getNum(d), n2: getNum(d) };
 };
 
 const computeAnswer = (n1, n2, op) => {
@@ -48,11 +65,9 @@ const modeToOperator = { multiply: 'times', add: 'plus', subtract: 'minus', divi
 
 var selectedAnswer = "";
 var currentQuestionOperator = modeToOperator[urlMode] || 'times';
-var currentQuestionNum1 = getNum();
-var currentQuestionNum2 = getNum();
+var { n1: currentQuestionNum1, n2: currentQuestionNum2 } = getPair();
 var answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
-var previousQuestionNum1 = getNum();
-var previousQuestionNum2 = getNum();
+var { n1: previousQuestionNum1, n2: previousQuestionNum2 } = getPair();
 var previousQuestionOperator = currentQuestionOperator;
 var previousQuestionAnswer = computeAnswer(previousQuestionNum1, previousQuestionNum2, previousQuestionOperator);
 var questionsCorrect = 0;
@@ -111,7 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const digitLabels = { 1: '1-Digit', 2: '2-Digit', 3: '3-Digit' };
     const modeIndicator = document.getElementById('modeIndicator');
     if (modeIndicator) {
-        modeIndicator.textContent = (modeNames[urlMode] || 'Multiplication') + ' · ' + (digitLabels[urlDigits] || '1-Digit');
+        const digitLabel = digitsList.length > 1
+            ? digitsList.map(d => digitLabels[d] || d).join(', ')
+            : (digitLabels[urlDigits] || '1-Digit');
+        modeIndicator.textContent = (modeNames[urlMode] || 'Multiplication') + ' · ' + digitLabel;
     }
 
     Operator.innerHTML = opSymbol[currentQuestionOperator];
@@ -133,6 +151,15 @@ const registerEventListeners = () => {
     });
 
     checkButton.addEventListener('click', () => {
+        const checkPath = checkButton.querySelector('svg path');
+        const len = checkPath.getTotalLength();
+        checkPath.animate([
+            { offset: 0,    strokeDasharray: `${len} ${len}`, opacity: 1,   easing: 'ease-in' },
+            { offset: 0.38, strokeDasharray: `0.5 ${len}`,    opacity: 0.2, easing: 'linear' },
+            { offset: 0.44, strokeDasharray: `${len} ${len}`, opacity: 0,   easing: 'ease-out' },
+            { offset: 1.0,  strokeDasharray: `${len} ${len}`, opacity: 1 },
+        ], { duration: 325 });
+
         const wasCorrect = selectedAnswer == answer;
 
         previousQuestionNum1 = currentQuestionNum1;
@@ -140,8 +167,7 @@ const registerEventListeners = () => {
         previousQuestionAnswer = answer;
         previousQuestionOperator = currentQuestionOperator;
 
-        currentQuestionNum1 = getNum();
-        currentQuestionNum2 = getNum();
+        ({ n1: currentQuestionNum1, n2: currentQuestionNum2 } = getPair());
         answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
 
         LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
@@ -152,7 +178,7 @@ const registerEventListeners = () => {
         factNumberTwo.innerHTML = currentQuestionNum2;
 
         if (wasCorrect) {
-            spawnParticles(checkButton);
+            setTimeout(() => spawnParticles(checkButton), 325);
             console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - correct");
             questionsCorrect++;
             questionsAnswered++;

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body {
+            padding: 16px;
+        }
+
+        /* Previous question */
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1.1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+            opacity: 0;
+            animation: prevFadeIn 0.4s ease forwards;
+        }
+
+        .prev-area.correct-result {
+            color: rgba(100, 190, 100, 0.65);
+        }
+
+        .prev-area.wrong-result {
+            color: rgba(210, 80, 80, 0.65);
+        }
+
+        @keyframes prevFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Question */
+
+        .question-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2.5rem 0 2rem;
+        }
+
+        .question-sub {
+            font-size: 0.9rem;
+            color: rgba(190, 205, 218, 0.4);
+            margin-bottom: 0.6rem;
+        }
+
+        .question-text {
+            font-size: 2.8rem;
+            text-align: center;
+            line-height: 1.3;
+            color: rgba(220, 230, 245, 0.92);
+        }
+
+        .question-text strong {
+            font-weight: 700;
+            color: rgba(220, 230, 245, 1);
+        }
+
+        /* Answer buttons */
+
+        .choices-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .choice-btn {
+            padding: 18px 32px;
+            font-size: 1.6rem;
+            font-family: 'Roboto Mono', monospace;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.15s, box-shadow 0.15s;
+            min-width: 130px;
+            text-align: center;
+        }
+
+        .choice-btn:hover {
+            background-color: rgb(52, 75, 120);
+            box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .choice-btn:active {
+            background-color: rgb(20, 32, 60);
+            box-shadow: none;
+        }
+
+        .choice-btn.flash-correct {
+            background-color: rgb(79, 117, 63) !important;
+            box-shadow: none;
+        }
+
+        .choice-btn.flash-wrong {
+            background-color: rgb(150, 45, 45) !important;
+            box-shadow: none;
+        }
+
+        .choice-btn.flash-reveal {
+            background-color: rgb(60, 100, 55) !important;
+            box-shadow: none;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 480px) {
+            .question-text {
+                font-size: 2rem;
+            }
+
+            .choice-btn {
+                padding: 14px 20px;
+                font-size: 1.3rem;
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body class="darkTheme">
+
+    <div style="z-index: 1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <div>
+                    <span class="questionsCorrect" id="questionscorrect">0</span>
+                    <span class="questionsCorrect">/</span>
+                    <span class="questionsCorrect" id="questionsAnswered">0</span>
+                    <span class="questionsCorrect"> correct</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="questionArea" class="question-area">
+            <div id="questionSub" class="question-sub"></div>
+            <div id="questionText" class="question-text"></div>
+        </div>
+
+        <div id="choicesContainer"></div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const exercise = params.get('exercise') || 'oddeven';
+
+        // --- Score ---
+        let questionsCorrect = 0;
+        let questionsAnswered = 0;
+
+        // --- Helpers ---
+        function isPrime(n) {
+            if (n < 2) return false;
+            if (n === 2) return true;
+            if (n % 2 === 0) return false;
+            for (let i = 3; i <= Math.sqrt(n); i += 2) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // --- Particle effect ---
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+
+        function spawnParticles(originEl) {
+            const rect = originEl.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2;
+            const oy = rect.top + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                const angle = Math.random() * 2 * Math.PI;
+                const dist = 80 + Math.random() * 140;
+                const size = (6 + Math.random() * 8) + 'px';
+                p.style.left = ox + 'px';
+                p.style.top = oy + 'px';
+                p.style.backgroundColor = particleColors[Math.floor(Math.random() * particleColors.length)];
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                p.style.width = size;
+                p.style.height = size;
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Exercise definitions ---
+        const EXERCISES = {
+            oddeven: {
+                label: 'Odd & Even',
+                generate() {
+                    const n = randInt(1, 100);
+                    const answer = n % 2 === 0 ? 'Even' : 'Odd';
+                    return {
+                        sub: '',
+                        questionHTML: `Is <strong>${n}</strong> odd or even?`,
+                        choices: ['Odd', 'Even'],
+                        correct: answer,
+                        summary: `${n} → ${answer}`
+                    };
+                }
+            },
+
+            prime: {
+                label: 'Prime & Composite',
+                generate() {
+                    const n = randInt(2, 49);
+                    const answer = isPrime(n) ? 'Prime' : 'Composite';
+                    return {
+                        sub: '',
+                        questionHTML: `Is <strong>${n}</strong> prime or composite?`,
+                        choices: ['Prime', 'Composite'],
+                        correct: answer,
+                        summary: `${n} → ${answer}`
+                    };
+                }
+            },
+
+            compare: {
+                label: 'Comparing Numbers',
+                generate() {
+                    const digits = parseInt(params.get('digits')) || 2;
+                    const ranges = { 1: [1, 9], 2: [10, 99], 3: [100, 999] };
+                    const [min, max] = ranges[digits] || ranges[2];
+                    const a = randInt(min, max);
+                    const b = randInt(min, max);
+                    const sym = a > b ? '>' : a < b ? '<' : '=';
+                    return {
+                        sub: 'Choose the correct symbol',
+                        questionHTML: `<strong>${a}</strong> &nbsp;?&nbsp; <strong>${b}</strong>`,
+                        choices: ['>', '<', '='],
+                        correct: sym,
+                        summary: `${a} ${sym} ${b}`
+                    };
+                }
+            },
+
+            skipcount: {
+                label: 'Skip Counting',
+                generate() {
+                    const increments = [2, 5, 10, 100];
+                    const inc = increments[Math.floor(Math.random() * increments.length)];
+                    const start = randInt(1, 10) * inc;
+                    const seq = [start, start + inc, start + 2 * inc, start + 3 * inc];
+                    const correct = start + 4 * inc;
+                    const wrongCandidates = [
+                        correct - 1, correct + 1,
+                        correct + inc, correct - inc,
+                        correct + 2, correct - 2
+                    ].filter(w => w !== correct && w > 0);
+                    const wrongs = [...new Set(wrongCandidates)].slice(0, 3);
+                    const choices = shuffle([correct, ...wrongs]).map(String);
+                    return {
+                        sub: `Counting by ${inc}s`,
+                        questionHTML: `${seq.join(', ')}, <strong>?</strong>`,
+                        choices,
+                        correct: String(correct),
+                        summary: `${seq.join(', ')}, ${correct}`
+                    };
+                }
+            }
+        };
+
+        // --- State ---
+        let currentQuestion = null;
+        let locked = false;
+
+        // --- Render question ---
+        function loadQuestion() {
+            const def = EXERCISES[exercise] || EXERCISES.oddeven;
+            currentQuestion = def.generate();
+
+            document.getElementById('questionSub').textContent = currentQuestion.sub;
+            document.getElementById('questionText').innerHTML = currentQuestion.questionHTML;
+
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+
+            const use4Grid = currentQuestion.choices.length === 4;
+            const wrapper = document.createElement('div');
+            wrapper.className = use4Grid ? 'choices-grid' : 'choices-row';
+
+            currentQuestion.choices.forEach((choice, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice;
+                btn.dataset.choice = choice;
+                btn.addEventListener('click', () => handleChoice(choice, btn));
+                wrapper.appendChild(btn);
+            });
+
+            container.appendChild(wrapper);
+            locked = false;
+        }
+
+        // --- Handle answer ---
+        function handleChoice(choice, btn) {
+            if (locked) return;
+            locked = true;
+
+            const allBtns = document.querySelectorAll('.choice-btn');
+            const wasCorrect = choice === currentQuestion.correct;
+
+            questionsAnswered++;
+            if (wasCorrect) questionsCorrect++;
+
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+
+            if (wasCorrect) {
+                btn.classList.add('flash-correct');
+                spawnParticles(btn);
+            } else {
+                btn.classList.add('flash-wrong');
+                // reveal correct answer after short delay
+                setTimeout(() => {
+                    allBtns.forEach(b => {
+                        if (b.dataset.choice === currentQuestion.correct) {
+                            b.classList.add('flash-reveal');
+                        }
+                    });
+                }, 350);
+            }
+
+            // update previous question display
+            const summary = currentQuestion.summary;
+            setTimeout(() => {
+                showPrev(summary, wasCorrect);
+                transitionToNext();
+            }, wasCorrect ? 700 : 1300);
+        }
+
+        // --- Previous question display ---
+        function showPrev(summary, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent = summary + (wasCorrect ? '  ✓' : '  ✗');
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = '';
+        }
+
+        // --- Question transition ---
+        function transitionToNext() {
+            const qArea = document.getElementById('questionArea');
+            const cArea = document.getElementById('choicesContainer');
+
+            [qArea, cArea].forEach(el => {
+                el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(10px)';
+            });
+
+            setTimeout(() => {
+                loadQuestion();
+                [qArea, cArea].forEach(el => {
+                    el.style.transform = 'translateY(-6px)';
+                    el.offsetHeight;
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                    setTimeout(() => { el.style.transition = ''; }, 300);
+                });
+            }, 280);
+        }
+
+        // --- Keyboard shortcuts ---
+        document.addEventListener('keydown', e => {
+            if (locked) return;
+            const n = parseInt(e.key);
+            if (n >= 1 && n <= 4) {
+                const btns = document.querySelectorAll('.choice-btn');
+                if (btns[n - 1]) btns[n - 1].click();
+            }
+        });
+
+        // --- Finish button ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const def = EXERCISES[exercise] || EXERCISES.oddeven;
+            document.getElementById('modeIndicator').textContent = def.label;
+
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

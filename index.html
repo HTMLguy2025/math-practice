@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <title>MP Launcher 1.5.1</title>
+    <title>MP Launcher</title>
     <style>
         * {
             font-family: 'Roboto Mono', monospace;
@@ -52,20 +53,35 @@
             align-items: center;
         }
 
-        .subtitle {
-            font-size: 1rem;
-            color: rgba(190, 205, 218, 0.55);
-            margin-bottom: 2.5rem;
+        .section-label {
+            font-size: 0.85rem;
+            color: rgba(190, 205, 218, 0.45);
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        .levels-label {
+            margin-top: 2rem;
+        }
+
+        #mainView {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             opacity: 0;
-            animation: fadeIn 0.5s ease 0.1s forwards;
+            animation: fadeIn 0.5s ease 0.2s forwards;
+        }
+
+        #simpleGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
         }
 
         #levelGrid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
-            opacity: 0;
-            animation: fadeIn 0.5s ease 0.2s forwards;
         }
 
         .level-btn {
@@ -82,10 +98,6 @@
             transition: background-color 0.2s, box-shadow 0.2s;
         }
 
-        .level-btn:not([data-level="simple"]) {
-            opacity: 0.45;
-        }
-
         .level-btn:hover {
             background-color: rgb(52, 75, 120);
             box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
@@ -99,8 +111,14 @@
         #subOptions {
             display: none;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             gap: 1.5rem;
+        }
+
+        .sub-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(190, 205, 218, 0.8);
         }
 
         .back-btn {
@@ -169,6 +187,188 @@
             opacity: 0.3;
             cursor: default;
             pointer-events: none;
+        }
+
+        /* Group buttons */
+
+        .group-btn {
+            width: 180px;
+            padding: 11px 16px;
+            font-size: 1rem;
+            font-family: 'Roboto Mono', monospace;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-align: left;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .group-btn:hover {
+            background-color: rgb(52, 75, 120);
+            box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .group-btn:active {
+            background-color: rgb(20, 32, 60);
+            box-shadow: none;
+        }
+
+        .group-btn.coming-soon {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* Checkbox panel */
+
+        .check-panel {
+            flex-direction: column;
+            gap: 0.65rem;
+            max-width: 340px;
+        }
+
+        .check-panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: rgba(190, 205, 218, 0.8);
+            margin-bottom: 0.15rem;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .check-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 2px solid rgba(190, 205, 218, 0.35);
+            background: transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .check-item input[type="checkbox"]:checked {
+            background-color: rgb(52, 75, 120);
+            border-color: rgb(90, 130, 200);
+        }
+
+        .check-item input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 3px;
+            width: 5px;
+            height: 8px;
+            border: 2px solid rgba(200, 220, 255, 0.9);
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg);
+        }
+
+        .check-item span {
+            font-size: 0.95rem;
+            color: rgba(227, 234, 245, 0.9);
+        }
+
+        .check-item.disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .check-item.disabled span {
+            opacity: 0.3;
+        }
+
+        .panel-back-btn {
+            font-size: 0.9rem;
+            font-family: 'Roboto Mono', monospace;
+            background: none;
+            border: none;
+            color: rgba(190, 205, 218, 0.45);
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+            text-align: left;
+            margin-bottom: 0.3rem;
+        }
+
+        .panel-back-btn:hover {
+            color: rgba(190, 205, 218, 0.9);
+        }
+
+        .panel-sublabel {
+            font-size: 0.8rem;
+            color: rgba(190, 205, 218, 0.45);
+            letter-spacing: 0.04em;
+            margin-top: 0.2rem;
+        }
+
+        .check-item input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 2px solid rgba(190, 205, 218, 0.35);
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+
+        .check-item input[type="radio"]:checked {
+            border-color: rgb(90, 130, 200);
+        }
+
+        .check-item input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 7px;
+            height: 7px;
+            background: rgb(90, 130, 200);
+            border-radius: 50%;
+        }
+
+        .start-btn {
+            margin-top: 0.4rem;
+            width: 120px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            font-family: 'Roboto Mono', monospace;
+            background-color: rgb(35, 68, 45);
+            color: rgba(200, 230, 210, 0.9);
+            border: none;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .start-btn:hover:not(:disabled) {
+            background-color: rgb(48, 90, 60);
+            box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-btn:active:not(:disabled) {
+            background-color: rgb(25, 48, 32);
+            box-shadow: none;
+        }
+
+        .start-btn:disabled {
+            opacity: 0.35;
+            cursor: default;
         }
 
         .fade-out-down {
@@ -295,6 +495,25 @@
             color: rgba(190, 205, 218, 0.6);
         }
 
+        #updateBanner .banner-text > * + * {
+            margin-top: 0.55rem;
+        }
+
+        #updateBanner .banner-text ul,
+        #updateBanner .banner-text ol {
+            padding-left: 1.4rem;
+        }
+
+        #updateBanner .banner-text li + li {
+            margin-top: 0.25rem;
+        }
+
+        #updateBanner .banner-text h2,
+        #updateBanner .banner-text h3 {
+            color: rgba(227, 234, 245, 0.8);
+            font-size: 0.9rem;
+        }
+
         #updateBanner .banner-close {
             position: absolute;
             top: 0.6rem;
@@ -313,17 +532,14 @@
             color: rgba(190, 205, 218, 0.95);
         }
 
+        @media (max-width: 900px) {
+            #simpleGrid, .mode-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 600px) {
-            #levelGrid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-
-            .level-btn {
-                width: 100%;
-            }
-
-            .mode-grid {
+            #simpleGrid, .mode-grid {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
             }
@@ -343,6 +559,14 @@
                 min-width: 100px;
                 text-align: center;
             }
+
+            .level-btn {
+                width: 100%;
+            }
+
+            #levelGrid {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -350,20 +574,24 @@
     <h1 class="title">Math Practice</h1>
 
     <div id="selectionArea">
-        <p class="subtitle" id="subtitle">Select a level to begin</p>
-
-        <div id="levelGrid">
-            <button class="level-btn" data-level="1">Level 1</button>
-            <button class="level-btn" data-level="2">Level 2</button>
-            <button class="level-btn" data-level="3">Level 3</button>
-            <button class="level-btn" data-level="4">Level 4</button>
-            <button class="level-btn" data-level="5">Level 5</button>
-            <button class="level-btn" data-level="simple">Simple Operations</button>
+        <div id="mainView">
+            <p class="section-label">Simple Operations</p>
+            <div id="simpleGrid"></div>
+            <p class="section-label levels-label">Levels</p>
+            <div id="levelGrid">
+                <button class="level-btn" data-level="1">Level 1</button>
+                <button class="level-btn" data-level="2">Level 2</button>
+                <button class="level-btn" data-level="3">Level 3</button>
+                <button class="level-btn" data-level="4">Level 4</button>
+                <button class="level-btn" data-level="5">Level 5</button>
+            </div>
         </div>
 
         <div id="subOptions">
             <button class="back-btn" id="backBtn">&#x2190; Back</button>
+            <p class="sub-title" id="subtitle"></p>
             <div class="mode-grid" id="subGrid"></div>
+            <div id="subCheckPanel" class="check-panel" style="display:none;"></div>
         </div>
     </div>
 
@@ -383,8 +611,6 @@
     </div>
 
     <script>
-        const CURRENT_VERSION = '1.5.1';
-
         function getCookie(name) {
             const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
             return match ? decodeURIComponent(match[1]) : null;
@@ -408,8 +634,9 @@
                     document.getElementById('bannerText').innerHTML = marked.parser(rest);
                     document.getElementById('updateOverlay').classList.add('show');
                     document.getElementById('updateBanner').classList.add('show');
-                });
-            setCookie('lastSeenVersion', CURRENT_VERSION);
+                    setCookie('lastSeenVersion', CURRENT_VERSION);
+                })
+                .catch(err => console.error('Release notes failed to load:', err));
         }
         document.getElementById('bannerClose').addEventListener('click', () => {
             const banner = document.getElementById('updateBanner');
@@ -430,14 +657,15 @@
                         { text: 'Forward / Backward', href: null },
                         { text: 'Count From Any Number', href: null },
                         { text: 'Number Line', href: null },
-                        { text: 'Odd & Even', href: null },
+                        { text: '2D Shapes', href: null },
+                        { text: 'Odd & Even', href: 'choice.html?exercise=oddeven' },
                     ]},
                     { label: 'Place Value', options: [
                         { text: 'Tens & Ones', href: null },
                         { text: 'Multiples of 10', href: null },
                     ]},
                     { label: 'Comparison', options: [
-                        { text: 'Two-Digit Numbers', href: null },
+                        { text: 'Two-Digit Numbers', href: 'choice.html?exercise=compare&digits=2' },
                     ]},
                     { label: 'Measurement & Time', options: [
                         { text: 'Time to Hour / Half Hour', href: null },
@@ -448,9 +676,9 @@
                 label: 'Level 2',
                 sections: [
                     { label: 'Counting & Number Sense', options: [
-                        { text: 'Skip Counting', href: null },
-                        { text: 'Odd & Even', href: null },
-                        { text: 'Compare 3-Digit Numbers', href: null },
+                        { text: 'Skip Counting', href: 'choice.html?exercise=skipcount' },
+                        { text: 'Odd & Even', href: 'choice.html?exercise=oddeven' },
+                        { text: 'Compare 3-Digit Numbers', href: 'choice.html?exercise=compare&digits=3' },
                     ]},
                     { label: 'Place Value', options: [
                         { text: 'Hundreds, Tens, Ones', href: null },
@@ -471,9 +699,20 @@
             3: {
                 label: 'Level 3',
                 sections: [
-                    { label: 'Fractions', options: [
-                        { text: 'Halves / Thirds / Fourths', href: null },
-                        { text: 'Sixths & Eighths', href: null },
+                    { label: 'Fractions', type: 'operation-group', operations: [
+                        { text: 'Add', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
+                        ]},
+                        { text: 'Subtract', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
+                        ]},
+                    ]},
+                    { label: 'Fraction Skills', options: [
+                        { text: 'Simplify', href: 'fractions.html?exercise=simplify' },
                         { text: 'On a Number Line', href: null },
                     ]},
                     { label: 'Rounding', options: [
@@ -494,11 +733,30 @@
             4: {
                 label: 'Level 4',
                 sections: [
-                    { label: 'Fractions', options: [
+                    { label: 'Fractions', type: 'operation-group', operations: [
+                        { text: 'Add', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
+                        ]},
+                        { text: 'Subtract', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
+                        ]},
+                    ]},
+                    { label: 'Fraction Skills', options: [
                         { text: 'Equivalent', href: null },
                         { text: 'Comparing', href: null },
-                        { text: 'Add / Subtract (Like)', href: null },
-                        { text: 'Mixed Numbers', href: null },
+                        { text: 'Simplify', href: 'fractions.html?exercise=simplify' },
+                        { text: 'Converting Fractions', href: 'fractions.html?exercise=convert' },
+                    ]},
+                    { label: 'Solving Fractions', type: 'operation-group', operations: [
+                        { text: 'Simple Fractions', options: [
+                            { text: 'Standard', href: 'fractions.html?exercise=simple-fractions' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=simple-fractions-negative' },
+                            { text: 'Exponents', href: 'fractions.html?exercise=simple-fractions-exponent' },
+                        ]},
                     ]},
                     { label: 'Decimals', options: [
                         { text: 'Tenths & Hundredths', href: null },
@@ -506,7 +764,7 @@
                     ]},
                     { label: 'Number Theory', options: [
                         { text: 'Factors & Multiples', href: null },
-                        { text: 'Prime & Composite', href: null },
+                        { text: 'Prime & Composite', href: 'choice.html?exercise=prime' },
                     ]},
                     { label: 'Geometry', options: [
                         { text: 'Angle Measurement', href: null },
@@ -519,17 +777,43 @@
             5: {
                 label: 'Level 5',
                 sections: [
-                    { label: 'Fractions', options: [
-                        { text: 'Add / Subtract (Unlike)', href: null },
-                        { text: 'Multiply', href: null },
-                        { text: 'Divide', href: null },
+                    { label: 'Fractions', type: 'operation-group', operations: [
+                        { text: 'Add', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
+                            { text: 'Unlike Denominators', href: 'fractions.html?exercise=add-unlike' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
+                        ]},
+                        { text: 'Subtract', options: [
+                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
+                            { text: 'Unlike Denominators', href: 'fractions.html?exercise=subtract-unlike' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
+                        ]},
+                        { text: 'Multiply', options: [
+                            { text: 'Standard', href: 'fractions.html?exercise=multiply' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=multiply-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=multiply-equation' },
+                        ]},
+                        { text: 'Divide', options: [
+                            { text: 'Standard', href: 'fractions.html?exercise=divide' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=divide-negative' },
+                            { text: 'Equations', href: 'fractions.html?exercise=divide-equation' },
+                        ]},
+                    ]},
+                    { label: 'Solving Fractions', type: 'operation-group', operations: [
+                        { text: 'Nested Fractions', options: [
+                            { text: 'Standard', href: 'fractions.html?exercise=nested' },
+                            { text: 'Negatives', href: 'fractions.html?exercise=nested-negative' },
+                            { text: 'Exponents', href: 'fractions.html?exercise=nested-exponent' },
+                        ]},
                     ]},
                     { label: 'Decimals', options: [
                         { text: 'All Operations', href: null },
                         { text: 'Powers of 10', href: null },
                     ]},
                     { label: 'Order of Operations', options: [
-                        { text: 'PEMDAS', href: null },
+                        { text: 'Long Equations', href: null },
                     ]},
                     { label: 'Number Sense', options: [
                         { text: 'Negative Numbers', href: null },
@@ -538,11 +822,22 @@
                     { label: 'Geometry & Graphing', options: [
                         { text: 'Coordinate Planes', href: null },
                         { text: 'Volume', href: null },
-                        { text: 'Classifying 2D Shapes', href: null },
                     ]},
                     { label: 'Measurement', options: [
                         { text: 'Converting Units', href: null },
                     ]},
+                    { label: 'Number Conversion', type: 'conversion',
+                      conversionTypes: [
+                        { text: 'Fractions ↔ Decimals', href: 'conversions.html?exercise=frac-to-decimal,decimal-to-frac' },
+                        { text: 'Fractions ↔ Percents', href: 'conversions.html?exercise=frac-to-percent,percent-to-frac' },
+                        { text: 'Decimals ↔ Percents', href: 'conversions.html?exercise=decimal-to-percent,percent-to-decimal' },
+                      ],
+                      options: [
+                        { text: 'Negatives', href: null },
+                        { text: 'Nested Fractions', href: null },
+                        { text: 'Equations', href: null },
+                      ]
+                    },
                 ]
             },
             simple: {
@@ -551,10 +846,291 @@
                     { label: 'Multiplication', options: [{ text: '1-Digit', href: 'practice.html?mode=multiply&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=multiply&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=multiply&digits=3' }] },
                     { label: 'Addition',       options: [{ text: '1-Digit', href: 'practice.html?mode=add&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=add&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=add&digits=3' }] },
                     { label: 'Subtraction',    options: [{ text: '1-Digit', href: 'practice.html?mode=subtract&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=subtract&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=subtract&digits=3' }] },
-                    { label: 'Division',       options: [{ text: '2-Digit', href: 'practice.html?mode=divide&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=divide&digits=3' }] },
+                    { label: 'Division',       options: [{ text: '1-Digit', href: 'practice.html?mode=divide&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=divide&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=divide&digits=3' }] },
                 ]
             }
         };
+
+        function buildSimpleGrid(containerEl, levelKey) {
+            containerEl.innerHTML = '';
+            LEVELS[levelKey].sections.forEach(section => {
+                const div = document.createElement('div');
+                div.className = 'mode-section';
+                const label = document.createElement('span');
+                label.className = 'mode-label';
+                label.textContent = section.label;
+                div.appendChild(label);
+                section.options.forEach(opt => {
+                    const btn = document.createElement('a');
+                    btn.className = 'launch-btn' + (opt.href ? '' : ' coming-soon');
+                    btn.textContent = opt.text;
+                    btn.href = opt.href || '#';
+                    if (opt.href) {
+                        btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
+                    }
+                    div.appendChild(btn);
+                });
+                containerEl.appendChild(div);
+            });
+        }
+
+        function buildGrid(containerEl, levelKey, checkPanelEl) {
+            containerEl.innerHTML = '';
+            containerEl.style.display = '';
+            checkPanelEl.style.display = 'none';
+            LEVELS[levelKey].sections.forEach(section => {
+                const div = document.createElement('div');
+                div.className = 'mode-section';
+
+                const label = document.createElement('span');
+                label.className = 'mode-label';
+                label.textContent = section.label;
+                div.appendChild(label);
+
+                if (section.type === 'operation-group') {
+                    section.operations.forEach(op => {
+                        const hasLink = op.options.some(o => o.href);
+                        const btn = document.createElement('button');
+                        btn.className = 'group-btn' + (hasLink ? '' : ' coming-soon');
+                        btn.textContent = op.text;
+                        if (hasLink) {
+                            btn.addEventListener('click', () =>
+                                showGroupPanel({ label: op.text, options: op.options }, containerEl, checkPanelEl)
+                            );
+                        }
+                        div.appendChild(btn);
+                    });
+                } else if (section.type === 'conversion') {
+                    const btn = document.createElement('button');
+                    btn.className = 'group-btn';
+                    btn.textContent = 'Convert';
+                    btn.addEventListener('click', () => showConversionPanel(section, containerEl, checkPanelEl));
+                    div.appendChild(btn);
+                } else {
+                    section.options.forEach(opt => {
+                        const btn = document.createElement('a');
+                        btn.className = 'launch-btn' + (opt.href ? '' : ' coming-soon');
+                        btn.textContent = opt.text;
+                        btn.href = opt.href || '#';
+                        if (opt.href) {
+                            btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
+                        }
+                        div.appendChild(btn);
+                    });
+                }
+
+                containerEl.appendChild(div);
+            });
+        }
+
+        function showGroupPanel(section, gridEl, panelEl) {
+            gridEl.classList.add('fade-out-down');
+            setTimeout(() => {
+                gridEl.style.display = 'none';
+                gridEl.classList.remove('fade-out-down');
+                document.getElementById('backBtn').style.display = 'none';
+                buildCheckPanel(section, gridEl, panelEl);
+            }, 400);
+        }
+
+        function buildCheckPanel(section, gridEl, panelEl) {
+            panelEl.innerHTML = '';
+
+            const backBtn = document.createElement('button');
+            backBtn.className = 'panel-back-btn';
+            backBtn.textContent = '\u2190 Back';
+            backBtn.addEventListener('click', () => closeGroupPanel(gridEl, panelEl));
+            panelEl.appendChild(backBtn);
+
+            const title = document.createElement('p');
+            title.className = 'check-panel-title';
+            title.textContent = section.label;
+            panelEl.appendChild(title);
+
+            // First option is the always-included base exercise
+            const baseOpt = section.options[0];
+            const modifierOpts = section.options.slice(1);
+
+            if (modifierOpts.some(o => o.href)) {
+                const sublabel = document.createElement('p');
+                sublabel.className = 'panel-sublabel';
+                sublabel.textContent = 'Modifiers (optional)';
+                panelEl.appendChild(sublabel);
+            }
+
+            const checkboxes = [];
+            modifierOpts.forEach((opt) => {
+                const label = document.createElement('label');
+                label.className = 'check-item' + (opt.href ? '' : ' disabled');
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                if (!opt.href) cb.disabled = true;
+
+                const span = document.createElement('span');
+                span.textContent = opt.text;
+
+                label.appendChild(cb);
+                label.appendChild(span);
+                panelEl.appendChild(label);
+
+                if (opt.href) checkboxes.push({ cb, href: opt.href });
+            });
+
+            const startBtn = document.createElement('button');
+            startBtn.className = 'start-btn';
+            startBtn.textContent = 'Start';
+
+            startBtn.addEventListener('click', () => {
+                const base = baseOpt && baseOpt.href ? [baseOpt.href] : [];
+                const selected = checkboxes.filter(c => c.cb.checked).map(c => c.href);
+                launchMode(combineHrefs([...base, ...selected]));
+            });
+
+            panelEl.appendChild(startBtn);
+
+            panelEl.style.opacity = '0';
+            panelEl.style.transform = 'translateY(6px)';
+            panelEl.style.display = 'flex';
+            panelEl.offsetHeight;
+            panelEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            panelEl.style.opacity = '1';
+            panelEl.style.transform = 'translateY(0)';
+            setTimeout(() => { panelEl.style.transition = ''; }, 400);
+        }
+
+        function showConversionPanel(section, gridEl, panelEl) {
+            gridEl.classList.add('fade-out-down');
+            setTimeout(() => {
+                gridEl.style.display = 'none';
+                gridEl.classList.remove('fade-out-down');
+                document.getElementById('backBtn').style.display = 'none';
+                buildConversionPanel(section, gridEl, panelEl);
+            }, 400);
+        }
+
+        function buildConversionPanel(section, gridEl, panelEl) {
+            panelEl.innerHTML = '';
+
+            const backBtn = document.createElement('button');
+            backBtn.className = 'panel-back-btn';
+            backBtn.textContent = '\u2190 Back';
+            backBtn.addEventListener('click', () => closeGroupPanel(gridEl, panelEl));
+            panelEl.appendChild(backBtn);
+
+            const title = document.createElement('p');
+            title.className = 'check-panel-title';
+            title.textContent = section.label;
+            panelEl.appendChild(title);
+
+            const typeSubLabel = document.createElement('p');
+            typeSubLabel.className = 'panel-sublabel';
+            typeSubLabel.textContent = 'Conversion type';
+            panelEl.appendChild(typeSubLabel);
+
+            const radios = [];
+            section.conversionTypes.forEach((ct) => {
+                const lbl = document.createElement('label');
+                lbl.className = 'check-item' + (ct.href ? '' : ' disabled');
+                const rb = document.createElement('input');
+                rb.type = 'radio';
+                rb.name = 'conversionType';
+                if (!ct.href) rb.disabled = true;
+                const span = document.createElement('span');
+                span.textContent = ct.text;
+                lbl.appendChild(rb);
+                lbl.appendChild(span);
+                panelEl.appendChild(lbl);
+                if (ct.href) radios.push({ rb, href: ct.href });
+            });
+
+            const optSubLabel = document.createElement('p');
+            optSubLabel.className = 'panel-sublabel';
+            optSubLabel.style.marginTop = '0.6rem';
+            optSubLabel.textContent = 'Options';
+            panelEl.appendChild(optSubLabel);
+
+            section.options.forEach(opt => {
+                const lbl = document.createElement('label');
+                lbl.className = 'check-item' + (opt.href ? '' : ' disabled');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                if (!opt.href) cb.disabled = true;
+                const span = document.createElement('span');
+                span.textContent = opt.text;
+                lbl.appendChild(cb);
+                lbl.appendChild(span);
+                panelEl.appendChild(lbl);
+            });
+
+            const startBtn = document.createElement('button');
+            startBtn.className = 'start-btn';
+            startBtn.textContent = 'Start';
+            startBtn.disabled = true;
+
+            radios.forEach(({ rb }) => {
+                rb.addEventListener('change', () => {
+                    startBtn.disabled = !radios.some(r => r.rb.checked);
+                });
+            });
+
+            startBtn.addEventListener('click', () => {
+                const selected = radios.find(r => r.rb.checked);
+                if (selected) launchMode(selected.href);
+            });
+
+            panelEl.appendChild(startBtn);
+
+            panelEl.style.opacity = '0';
+            panelEl.style.transform = 'translateY(6px)';
+            panelEl.style.display = 'flex';
+            panelEl.offsetHeight;
+            panelEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            panelEl.style.opacity = '1';
+            panelEl.style.transform = 'translateY(0)';
+            setTimeout(() => { panelEl.style.transition = ''; }, 400);
+        }
+
+        function closeGroupPanel(gridEl, panelEl) {
+            panelEl.classList.add('fade-out-down');
+            setTimeout(() => {
+                panelEl.style.display = 'none';
+                panelEl.classList.remove('fade-out-down');
+                document.getElementById('backBtn').style.display = '';
+                gridEl.style.display = 'grid';
+                gridEl.style.opacity = '0';
+                gridEl.style.transform = 'translateY(6px)';
+                gridEl.offsetHeight;
+                gridEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                gridEl.style.opacity = '1';
+                gridEl.style.transform = 'translateY(0)';
+                setTimeout(() => { gridEl.style.transition = ''; }, 400);
+            }, 400);
+        }
+
+        function combineHrefs(hrefs) {
+            if (hrefs.length === 1) return hrefs[0];
+            try {
+                const parsed = hrefs.map(h => new URL(h, window.location.href));
+                const firstPath = parsed[0].pathname;
+                if (!parsed.every(u => u.pathname === firstPath)) return hrefs[0];
+                // Combine 'exercise' params (fractions/choice pages)
+                if (parsed.every(u => u.searchParams.has('exercise'))) {
+                    const exercises = parsed.map(u => u.searchParams.get('exercise')).join(',');
+                    const base = new URL(hrefs[0], window.location.href);
+                    base.searchParams.set('exercise', exercises);
+                    return base.pathname + base.search;
+                }
+                // Combine 'digits' params (practice page)
+                if (parsed.every(u => u.searchParams.has('digits'))) {
+                    const digits = parsed.map(u => u.searchParams.get('digits')).join(',');
+                    const base = new URL(hrefs[0], window.location.href);
+                    base.searchParams.set('digits', digits);
+                    return base.pathname + base.search;
+                }
+            } catch(e) {}
+            return hrefs[0];
+        }
 
         function launchMode(href) {
             const selectionArea = document.getElementById('selectionArea');
@@ -586,42 +1162,21 @@
             }, 400);
         }
 
-        function buildSubOptions(levelKey) {
-            const subGrid = document.getElementById('subGrid');
-            subGrid.innerHTML = '';
-            LEVELS[levelKey].sections.forEach(section => {
-                const div = document.createElement('div');
-                div.className = 'mode-section';
-                const label = document.createElement('span');
-                label.className = 'mode-label';
-                label.textContent = section.label;
-                div.appendChild(label);
-                section.options.forEach(opt => {
-                    const btn = document.createElement('a');
-                    btn.className = 'launch-btn' + (opt.href ? '' : ' coming-soon');
-                    btn.textContent = opt.text;
-                    btn.href = opt.href || '#';
-                    if (opt.href) {
-                        btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
-                    }
-                    div.appendChild(btn);
+        document.addEventListener('DOMContentLoaded', () => {
+            buildSimpleGrid(document.getElementById('simpleGrid'), 'simple');
+
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const levelKey = btn.dataset.level;
+                    document.getElementById('subtitle').textContent = LEVELS[levelKey].label;
+                    buildGrid(document.getElementById('subGrid'), levelKey, document.getElementById('subCheckPanel'));
+                    fadeSwap(document.getElementById('mainView'), document.getElementById('subOptions'), 'flex');
                 });
-                subGrid.appendChild(div);
             });
-        }
 
-        document.querySelectorAll('.level-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const levelKey = btn.dataset.level;
-                document.getElementById('subtitle').textContent = LEVELS[levelKey].label;
-                buildSubOptions(levelKey);
-                fadeSwap(document.getElementById('levelGrid'), document.getElementById('subOptions'), 'flex');
+            document.getElementById('backBtn').addEventListener('click', () => {
+                fadeSwap(document.getElementById('subOptions'), document.getElementById('mainView'), 'flex');
             });
-        });
-
-        document.getElementById('backBtn').addEventListener('click', () => {
-            document.getElementById('subtitle').textContent = 'Select a level to begin';
-            fadeSwap(document.getElementById('subOptions'), document.getElementById('levelGrid'), 'grid');
         });
     </script>
 </body>

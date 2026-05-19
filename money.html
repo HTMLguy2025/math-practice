@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        /* Coin display */
+
+        .coins-area {
+            margin: 1.5rem 0 0.5rem;
+        }
+
+        .coins-prompt {
+            font-size: 0.9rem;
+            color: rgba(190, 205, 218, 0.4);
+            margin-bottom: 1rem;
+        }
+
+        .coins-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            min-height: 60px;
+        }
+
+        /* Answer display */
+
+        .money-answer-row {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 1.25rem 0 1rem;
+        }
+
+        .dollar-sign {
+            font-size: 2.5rem;
+            color: rgba(190, 205, 218, 0.7);
+            padding: 2px 4px 2px 2px;
+            background-color: rgb(10, 10, 20);
+            line-height: 1;
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+        }
+
+        .money-sep {
+            font-size: 2.5rem;
+            color: rgba(190, 205, 218, 0.7);
+            background-color: rgb(10, 10, 20);
+            padding: 2px 2px;
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+        }
+
+        .money-box {
+            min-width: 2.4em;
+            cursor: pointer;
+            outline: 2px solid transparent;
+            transition: outline-color 0.15s;
+        }
+
+        .money-box.active {
+            outline-color: rgba(90, 130, 200, 0.6);
+        }
+
+        /* Previous question */
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1.1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+            opacity: 0;
+            animation: prevFadeIn 0.4s ease forwards;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+        @keyframes prevFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Arithmetic problem display */
+
+        .money-problem {
+            display: inline-flex;
+            flex-direction: column;
+            font-size: 3rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem;
+            min-width: 12rem;
+        }
+        .money-problem-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: 0.3em;
+        }
+        .money-problem-op { color: rgba(190,205,218,0.6); min-width: 0.8em; }
+        .money-problem-amount { color: rgba(220,230,245,0.95); }
+        .money-problem-line { border-top: 3px solid rgba(190,205,218,0.55); margin-top: 0.15em; }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index: 1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <div>
+                    <span class="questionsCorrect" id="questionscorrect">0</span>
+                    <span class="questionsCorrect">/</span>
+                    <span class="questionsCorrect" id="questionsAnswered">0</span>
+                    <span class="questionsCorrect"> correct</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="coinsArea" class="coins-area">
+            <div class="coins-prompt">Count the money</div>
+            <div id="coinsDisplay" class="coins-display"></div>
+        </div>
+
+        <div id="arithmeticArea" style="display:none;">
+            <div class="money-problem">
+                <div class="money-problem-row">
+                    <span class="money-problem-op" style="visibility:hidden;">+</span>
+                    <span id="moneyTop" class="money-problem-amount"></span>
+                </div>
+                <div class="money-problem-row">
+                    <span id="moneyOp" class="money-problem-op"></span>
+                    <span id="moneyBottom" class="money-problem-amount"></span>
+                </div>
+                <div class="money-problem-line"></div>
+            </div>
+        </div>
+
+        <div class="money-answer-row">
+            <div class="dollar-sign">$</div>
+            <div class="displayedAnswerHolder money-box active" id="dollarsBox" onclick="focusBox('dollars')">
+                <div id="dollarsDisplay" class="displayedAnswer"><span class="cursor"></span></div>
+            </div>
+            <div class="money-sep">.</div>
+            <div class="displayedAnswerHolder money-box" id="centsBox" onclick="focusBox('cents')">
+                <div id="centsDisplay" class="displayedAnswer"></div>
+            </div>
+        </div>
+
+        <div class="numberbuttons">
+            <button id="button1" class="numButtons">1</button>
+            <button id="button2" class="numButtons">2</button>
+            <button id="button3" class="numButtons">3</button>
+            <button id="checkmark" class="checkButton">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:block;">
+                    <path d="M 4 13 C 6 15 7 17 9 19 C 11 14 14 9 19 4"/>
+                </svg>
+            </button>
+            <button id="button4" class="numButtons">4</button>
+            <button id="button5" class="numButtons">5</button>
+            <button id="button6" class="numButtons">6</button>
+            <button id="button7" class="numButtons">7</button>
+            <button id="button8" class="numButtons">8</button>
+            <button id="button9" class="numButtons">9</button>
+            <button id="decimalButton" class="numButtons">→</button>
+            <button id="button0" class="numButtons">0</button>
+            <button id="deleteButton" class="numButtons deleteButton">⌫</button>
+        </div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- Coin definitions ---
+        // All sizes are chosen to reflect real relative sizes: dime smallest, quarter largest.
+        const DENOMINATIONS = {
+            1:   { type: 'coin', cents: 1,   d: 40,  fill: '#b87333', stroke: '#9a6520', innerFill: '#ca8c3c', innerStroke: '#a06e1e', textFill: 'rgba(55,22,0,0.85)',    textSize: 13, label: '1¢'  },
+            5:   { type: 'coin', cents: 5,   d: 46,  fill: '#a5a6aa', stroke: '#878888', innerFill: '#bebfc3', innerStroke: '#979899', textFill: 'rgba(35,35,35,0.85)',   textSize: 15, label: '5¢'  },
+            10:  { type: 'coin', cents: 10,  d: 36,  fill: '#a5a6aa', stroke: '#878888', innerFill: '#bebfc3', innerStroke: '#979899', textFill: 'rgba(35,35,35,0.85)',   textSize: 11, label: '10¢' },
+            25:  { type: 'coin', cents: 25,  d: 54,  fill: '#a5a6aa', stroke: '#878888', innerFill: '#bebfc3', innerStroke: '#979899', textFill: 'rgba(35,35,35,0.85)',   textSize: 15, label: '25¢' },
+            100:  { type: 'bill', cents: 100,  w: 82, h: 40, fill: '#4a7c4e', stroke: '#2d5e32', textFill: 'rgba(205,230,205,0.95)', textSize: 17, label: '$1'  },
+            500:  { type: 'bill', cents: 500,  w: 88, h: 43, fill: '#3e6b43', stroke: '#274530', textFill: 'rgba(205,230,205,0.95)', textSize: 17, label: '$5'  },
+            1000: { type: 'bill', cents: 1000, w: 94, h: 46, fill: '#38613d', stroke: '#223d27', textFill: 'rgba(205,230,205,0.95)', textSize: 17, label: '$10' },
+            2000: { type: 'bill', cents: 2000, w: 100, h: 49, fill: '#325836', stroke: '#1e3622', textFill: 'rgba(205,230,205,0.95)', textSize: 17, label: '$20' },
+        };
+
+        function buildCoinSVG(denom) {
+            const d = DENOMINATIONS[denom];
+            if (d.type === 'coin') {
+                const r  = d.d / 2;
+                const ir = r * 0.75;
+                return `<svg width="${d.d}" height="${d.d}" viewBox="0 0 ${d.d} ${d.d}" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="${r}" cy="${r}" r="${r - 1}" fill="${d.fill}" stroke="${d.stroke}" stroke-width="1.5"/>
+  <circle cx="${r}" cy="${r}" r="${ir}"    fill="${d.innerFill}" stroke="${d.innerStroke}" stroke-width="1"/>
+  <text x="${r}" y="${r}" text-anchor="middle" dominant-baseline="central" font-size="${d.textSize}" font-family="Roboto Mono,monospace" font-weight="bold" fill="${d.textFill}">${d.label}</text>
+</svg>`;
+            } else {
+                return `<svg width="${d.w}" height="${d.h}" viewBox="0 0 ${d.w} ${d.h}" xmlns="http://www.w3.org/2000/svg">
+  <rect x="1" y="1" width="${d.w - 2}" height="${d.h - 2}" rx="3" fill="${d.fill}" stroke="${d.stroke}" stroke-width="1.5"/>
+  <rect x="4" y="4" width="${d.w - 8}" height="${d.h - 8}" rx="2" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="0.75"/>
+  <text x="${d.w / 2}" y="${d.h / 2}" text-anchor="middle" dominant-baseline="central" font-size="${d.textSize}" font-family="Roboto Mono,monospace" font-weight="bold" fill="${d.textFill}">${d.label}</text>
+</svg>`;
+            }
+        }
+
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const exerciseParam = params.get('exercise') || 'standard';
+        const ALL_TYPES = ['standard','bills','large','add-small','add-medium','add-large','subtract-small','subtract-medium','subtract-large'];
+        const exerciseList  = exerciseParam.split(',').filter(e => ALL_TYPES.includes(e));
+        if (exerciseList.length === 0) exerciseList.push('standard');
+
+        const EXERCISE_CONFIGS = {
+            standard: { pool: [1, 5, 10, 25],                       maxCents: 300  },
+            bills:    { pool: [1, 5, 10, 25, 100, 500],              maxCents: 1000 },
+            large:    { pool: [1, 5, 10, 25, 100, 500, 1000, 2000],  maxCents: 2000 },
+        };
+
+        const ARITHMETIC_CONFIGS = {
+            'add-small':       { op: '+', maxCents: 999   },
+            'add-medium':      { op: '+', maxCents: 9999  },
+            'add-large':       { op: '+', maxCents: 99999 },
+            'subtract-small':  { op: '-', maxCents: 999   },
+            'subtract-medium': { op: '-', maxCents: 9999  },
+            'subtract-large':  { op: '-', maxCents: 99999 },
+        };
+
+        // --- State ---
+        let dollarsInput  = '';
+        let centsInput    = '';
+        let activeBox     = 'dollars';   // 'dollars' | 'cents'
+        let currentCents  = 0;
+        let currentPrevSummary = '';
+        let currentMode   = 'counting';  // 'counting' | 'arithmetic'
+        let questionsCorrect  = 0;
+        let questionsAnswered = 0;
+
+        // --- Helpers ---
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function formatDollarAmount(cents) {
+            const d = Math.floor(cents / 100);
+            const c = cents % 100;
+            return '$' + d + '.' + String(c).padStart(2, '0');
+        }
+
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2;
+            const oy = rect.top  + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p     = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist  = 80 + Math.random() * 140;
+                const size  = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[randInt(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Question generation ---
+        function loadCountingQuestion(exType) {
+            const config = EXERCISE_CONFIGS[exType];
+            let pieces = [];
+            let totalCents = 0;
+            const target = randInt(3, 7);
+            let attempts = 0;
+
+            while (pieces.length < target && attempts < 30) {
+                attempts++;
+                const d = config.pool[randInt(0, config.pool.length - 1)];
+                if (totalCents + d <= config.maxCents) {
+                    pieces.push(d);
+                    totalCents += d;
+                }
+            }
+
+            if (pieces.length === 0) {
+                pieces = [25, 10, 5, 1];
+                totalCents = 41;
+            }
+
+            currentCents = totalCents;
+            currentPrevSummary = formatDollarAmount(totalCents);
+
+            document.getElementById('coinsArea').style.display = '';
+            document.getElementById('arithmeticArea').style.display = 'none';
+
+            const display = document.getElementById('coinsDisplay');
+            display.innerHTML = '';
+            shuffle(pieces).forEach(d => {
+                const wrap = document.createElement('span');
+                wrap.innerHTML = buildCoinSVG(d);
+                display.appendChild(wrap);
+            });
+        }
+
+        function loadArithmeticQuestion(exType) {
+            const cfg = ARITHMETIC_CONFIGS[exType];
+            let a, b, answer;
+
+            if (cfg.op === '+') {
+                a = randInt(1, cfg.maxCents - 1);
+                b = randInt(1, cfg.maxCents - a);
+                answer = a + b;
+            } else {
+                a = randInt(2, cfg.maxCents);
+                b = randInt(1, a - 1);
+                answer = a - b;
+            }
+
+            currentCents = answer;
+            currentPrevSummary = formatDollarAmount(a) + ' ' + cfg.op + ' ' + formatDollarAmount(b) + ' = ' + formatDollarAmount(answer);
+
+            document.getElementById('coinsArea').style.display = 'none';
+            document.getElementById('arithmeticArea').style.display = '';
+            document.getElementById('moneyTop').textContent = formatDollarAmount(a);
+            document.getElementById('moneyOp').textContent = cfg.op;
+            document.getElementById('moneyBottom').textContent = formatDollarAmount(b);
+        }
+
+        function loadQuestion() {
+            const exType = exerciseList[randInt(0, exerciseList.length - 1)];
+
+            if (ARITHMETIC_CONFIGS[exType]) {
+                currentMode = 'arithmetic';
+                loadArithmeticQuestion(exType);
+            } else {
+                currentMode = 'counting';
+                loadCountingQuestion(exType);
+            }
+
+            dollarsInput = '';
+            centsInput   = '';
+            activeBox    = 'dollars';
+            renderAnswer();
+        }
+
+        // --- Answer display ---
+        function renderAnswer() {
+            const dEl = document.getElementById('dollarsDisplay');
+            const cEl = document.getElementById('centsDisplay');
+            const dBox = document.getElementById('dollarsBox');
+            const cBox = document.getElementById('centsBox');
+
+            if (activeBox === 'dollars') {
+                dEl.innerHTML = dollarsInput + '<span class="cursor"></span>';
+                cEl.innerHTML = centsInput;
+                dBox.classList.add('active');
+                cBox.classList.remove('active');
+            } else {
+                dEl.innerHTML = dollarsInput;
+                cEl.innerHTML = centsInput + '<span class="cursor"></span>';
+                dBox.classList.remove('active');
+                cBox.classList.add('active');
+            }
+        }
+
+        function focusBox(box) {
+            activeBox = box;
+            renderAnswer();
+        }
+
+        function appendDigit(d) {
+            if (activeBox === 'dollars') {
+                const maxDollarDigits = currentMode === 'arithmetic' ? 3 : 2;
+                if (dollarsInput.length >= maxDollarDigits) return;
+                dollarsInput += d;
+                if (currentMode !== 'arithmetic' && dollarsInput.length === maxDollarDigits) activeBox = 'cents';
+            } else {
+                if (centsInput.length >= 2) return;
+                centsInput += d;
+            }
+            renderAnswer();
+            autoCheck();
+        }
+
+        function autoCheck() {
+            const dollars = parseInt(dollarsInput || '0');
+            const cents   = parseInt(centsInput   || '0');
+            if (!isNaN(dollars) && !isNaN(cents) && dollars * 100 + cents === currentCents) {
+                document.getElementById('checkmark').click();
+            }
+        }
+
+        // --- Check ---
+        document.getElementById('checkmark').addEventListener('click', () => {
+            const checkBtn  = document.getElementById('checkmark');
+            const checkPath = checkBtn.querySelector('svg path');
+            const len = checkPath.getTotalLength();
+            checkPath.animate([
+                { offset: 0,    strokeDasharray: `${len} ${len}`, opacity: 1,   easing: 'ease-in' },
+                { offset: 0.38, strokeDasharray: `0.5 ${len}`,    opacity: 0.2, easing: 'linear'  },
+                { offset: 0.44, strokeDasharray: `${len} ${len}`, opacity: 0,   easing: 'ease-out' },
+                { offset: 1.0,  strokeDasharray: `${len} ${len}`, opacity: 1 },
+            ], { duration: 325 });
+
+            const dollars    = parseInt(dollarsInput || '0');
+            const cents      = parseInt(centsInput   || '0');
+            const wasCorrect = !isNaN(dollars) && !isNaN(cents) && dollars * 100 + cents === currentCents;
+
+            if (wasCorrect) {
+                setTimeout(() => spawnParticles(checkBtn), 325);
+                questionsCorrect++;
+            }
+            questionsAnswered++;
+
+            document.getElementById('questionscorrect').textContent  = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent  = questionsAnswered;
+
+            showPrev(currentPrevSummary, wasCorrect);
+            loadQuestion();
+        });
+
+        function showPrev(summary, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent     = summary + (wasCorrect ? '  ✓' : '  ✗');
+            el.className       = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = '';
+        }
+
+        // --- Digit buttons ---
+        ['1','2','3','4','5','6','7','8','9','0'].forEach(d => {
+            document.getElementById('button' + d).addEventListener('click', () => appendDigit(d));
+        });
+        document.getElementById('decimalButton').addEventListener('click', () => focusBox('cents'));
+        document.getElementById('deleteButton').addEventListener('click', () => {
+            if (activeBox === 'dollars') dollarsInput = '';
+            else centsInput = '';
+            renderAnswer();
+        });
+
+        // --- Keyboard ---
+        document.addEventListener('keyup', e => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendDigit(e.key);
+            } else if (e.key === 'Tab' || e.key === 'ArrowRight' || e.key === '.') {
+                e.preventDefault();
+                focusBox('cents');
+            } else if (e.key === 'ArrowLeft') {
+                focusBox('dollars');
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                if (activeBox === 'dollars') dollarsInput = '';
+                else centsInput = '';
+                renderAnswer();
+            } else if (e.key === 'Enter') {
+                document.getElementById('checkmark').click();
+            }
+        });
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const labels = {
+                standard:           'Counting Money · Coins',
+                bills:              'Counting Money · With Bills',
+                large:              'Counting Money · Large Bills',
+                'add-small':        'Money · Add (up to $9.99)',
+                'add-medium':       'Money · Add (up to $99.99)',
+                'add-large':        'Money · Add (up to $999.99)',
+                'subtract-small':   'Money · Subtract (up to $9.99)',
+                'subtract-medium':  'Money · Subtract (up to $99.99)',
+                'subtract-large':   'Money · Subtract (up to $999.99)',
+            };
+            const label = exerciseList.length === 1
+                ? (labels[exerciseList[0]] || 'Counting Money')
+                : 'Money';
+            document.getElementById('modeIndicator').textContent = label;
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

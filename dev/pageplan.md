@@ -8,11 +8,30 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
+## Status Summary
+
+| Page             | Status        |
+|------------------|---------------|
+| `practice.html`  | ✅ Complete   |
+| `choice.html`    | ✅ Complete   |
+| `fractions.html` | ✅ Complete   |
+| `conversions.html` | ✅ Complete (not in original plan) |
+| `clock.html`     | ✅ Complete   |
+| `money.html`     | ✅ Complete (count mode only; make mode not started) |
+| `numberline.html`| ⬜ Not started |
+| `rounding.html`  | ✅ Complete   |
+| `placevalue.html`| ⬜ Not started |
+| `geometry.html`  | ⬜ Not started |
+| `graphs.html`    | ⬜ Not started |
+| `pemdas.html`    | ⬜ Not started |
+
+---
+
 ## Page Templates
 
 ---
 
-### 1. `practice.html` — Numeric Answer (already exists)
+### 1. `practice.html` — Numeric Answer ✅ Complete
 
 **Interaction:** Student enters a number using on-screen or keyboard input.
 
@@ -30,7 +49,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 2. `choice.html` — Multiple Choice
+### 2. `choice.html` — Multiple Choice ✅ Complete
 
 **Interaction:** Student reads a question and picks from 2–4 answer buttons.
 
@@ -56,7 +75,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 3. `numberline.html` — Number Line
+### 3. `numberline.html` — Number Line ⬜ Not started
 
 **Interaction:** A number line is displayed. Student drags a marker or clicks a position to place an answer, or types a number to identify what the marker points to.
 
@@ -82,7 +101,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 4. `clock.html` — Clock Face
+### 4. `clock.html` — Clock Face ✅ Complete
 
 **Interaction:** A clock face is shown. Student answers what time it shows, or the student is told a time and drags hands to set it.
 
@@ -101,7 +120,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 5. `money.html` — Counting Money
+### 5. `money.html` — Counting Money ✅ Complete
 
 **Interaction:** Coins and bills displayed. Student enters total value or selects correct amount.
 
@@ -121,7 +140,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 6. `fractions.html` — Fraction Input / Fraction Problems
+### 6. `fractions.html` — Fraction Input / Fraction Problems ✅ Complete
 
 **Interaction:** Student enters a fraction (numerator and denominator separately), or selects from choices.
 
@@ -148,7 +167,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 7. `rounding.html` — Rounding
+### 7. `rounding.html` — Rounding ✅ Complete
 
 **Interaction:** Student sees a number and must round it to the nearest 10 or 100. Enters answer with number pad.
 
@@ -168,7 +187,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 8. `placevalue.html` — Place Value
+### 8. `placevalue.html` — Place Value ⬜ Not started
 
 **Interaction:** A number is shown. Student identifies a specific digit's place value, or fills in a place value chart.
 
@@ -187,7 +206,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 9. `geometry.html` — Geometry / Visual
+### 9. `geometry.html` — Geometry / Visual ⬜ Not started
 
 **Interaction:** A shape or diagram is shown. Student identifies, measures, or classifies it.
 
@@ -217,7 +236,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 10. `graphs.html` — Data / Graphs
+### 10. `graphs.html` — Data / Graphs ⬜ Not started
 
 **Interaction:** A bar graph or picture graph is displayed. Student answers questions about the data.
 
@@ -236,7 +255,7 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 11. `pemdas.html` — Order of Operations
+### 11. `pemdas.html` — Order of Operations ⬜ Not started
 
 **Interaction:** Student is shown a multi-step equation and enters the answer.
 

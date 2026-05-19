@@ -668,7 +668,7 @@
                         { text: 'Two-Digit Numbers', href: 'choice.html?exercise=compare&digits=2' },
                     ]},
                     { label: 'Measurement & Time', options: [
-                        { text: 'Time to Hour / Half Hour', href: null },
+                        { text: 'Time to Hour / Half Hour', href: 'clock.html?mode=read&precision=hour' },
                     ]},
                 ]
             },
@@ -687,8 +687,24 @@
                         { text: 'Arrays', href: null },
                     ]},
                     { label: 'Measurement & Time', options: [
-                        { text: 'Time to 5 Minutes', href: null },
-                        { text: 'Counting Money', href: null },
+                        { text: 'Time to 5 Minutes', href: 'clock.html?mode=read&precision=5min' },
+                    ]},
+                    { label: 'Counting Money', type: 'operation-group', operations: [
+                        { text: 'Count', options: [
+                            { text: 'Coins Only', href: 'money.html?exercise=standard' },
+                            { text: 'Include Bills ($1, $5)', href: 'money.html?exercise=bills' },
+                            { text: 'Large Bills ($10, $20)', href: 'money.html?exercise=large' },
+                        ]},
+                        { text: 'Add', radio: true, options: [
+                            { text: 'Up to $9.99', href: 'money.html?exercise=add-small' },
+                            { text: 'Up to $99.99', href: 'money.html?exercise=add-medium' },
+                            { text: 'Up to $999.99', href: 'money.html?exercise=add-large' },
+                        ]},
+                        { text: 'Subtract', radio: true, options: [
+                            { text: 'Up to $9.99', href: 'money.html?exercise=subtract-small' },
+                            { text: 'Up to $99.99', href: 'money.html?exercise=subtract-medium' },
+                            { text: 'Up to $999.99', href: 'money.html?exercise=subtract-large' },
+                        ]},
                     ]},
                     { label: 'Data', options: [
                         { text: 'Bar Graphs', href: null },
@@ -716,11 +732,11 @@
                         { text: 'On a Number Line', href: null },
                     ]},
                     { label: 'Rounding', options: [
-                        { text: 'To Nearest 10', href: null },
-                        { text: 'To Nearest 100', href: null },
+                        { text: 'To Nearest 10', href: 'rounding.html?precision=10' },
+                        { text: 'To Nearest 100', href: 'rounding.html?precision=100' },
                     ]},
                     { label: 'Measurement & Time', options: [
-                        { text: 'Elapsed Time', href: null },
+                        { text: 'Elapsed Time', href: 'clock.html?mode=elapsed' },
                         { text: 'Mass & Liquid Volume', href: null },
                         { text: 'Area & Perimeter', href: null },
                     ]},
@@ -895,7 +911,7 @@
                         btn.textContent = op.text;
                         if (hasLink) {
                             btn.addEventListener('click', () =>
-                                showGroupPanel({ label: op.text, options: op.options }, containerEl, checkPanelEl)
+                                showGroupPanel({ label: op.text, options: op.options, radio: op.radio }, containerEl, checkPanelEl)
                             );
                         }
                         div.appendChild(btn);
@@ -947,47 +963,93 @@
             title.textContent = section.label;
             panelEl.appendChild(title);
 
-            // First option is the always-included base exercise
-            const baseOpt = section.options[0];
-            const modifierOpts = section.options.slice(1);
-
-            if (modifierOpts.some(o => o.href)) {
+            if (section.radio) {
+                // Required single-choice (radio buttons) — no base, all options exclusive
                 const sublabel = document.createElement('p');
                 sublabel.className = 'panel-sublabel';
-                sublabel.textContent = 'Modifiers (optional)';
+                sublabel.textContent = 'Choose one';
                 panelEl.appendChild(sublabel);
+
+                const radios = [];
+                section.options.forEach((opt) => {
+                    const label = document.createElement('label');
+                    label.className = 'check-item' + (opt.href ? '' : ' disabled');
+
+                    const rb = document.createElement('input');
+                    rb.type = 'radio';
+                    rb.name = 'panelRadio';
+                    if (!opt.href) rb.disabled = true;
+
+                    const span = document.createElement('span');
+                    span.textContent = opt.text;
+
+                    label.appendChild(rb);
+                    label.appendChild(span);
+                    panelEl.appendChild(label);
+
+                    if (opt.href) radios.push({ rb, href: opt.href });
+                });
+
+                const startBtn = document.createElement('button');
+                startBtn.className = 'start-btn';
+                startBtn.textContent = 'Start';
+                startBtn.disabled = true;
+
+                radios.forEach(({ rb }) => {
+                    rb.addEventListener('change', () => {
+                        startBtn.disabled = !radios.some(r => r.rb.checked);
+                    });
+                });
+
+                startBtn.addEventListener('click', () => {
+                    const selected = radios.find(r => r.rb.checked);
+                    if (selected) launchMode(selected.href);
+                });
+
+                panelEl.appendChild(startBtn);
+            } else {
+                // Optional modifiers (checkboxes) — first option is always-included base
+                const baseOpt = section.options[0];
+                const modifierOpts = section.options.slice(1);
+
+                if (modifierOpts.some(o => o.href)) {
+                    const sublabel = document.createElement('p');
+                    sublabel.className = 'panel-sublabel';
+                    sublabel.textContent = 'Modifiers (optional)';
+                    panelEl.appendChild(sublabel);
+                }
+
+                const checkboxes = [];
+                modifierOpts.forEach((opt) => {
+                    const label = document.createElement('label');
+                    label.className = 'check-item' + (opt.href ? '' : ' disabled');
+
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    if (!opt.href) cb.disabled = true;
+
+                    const span = document.createElement('span');
+                    span.textContent = opt.text;
+
+                    label.appendChild(cb);
+                    label.appendChild(span);
+                    panelEl.appendChild(label);
+
+                    if (opt.href) checkboxes.push({ cb, href: opt.href });
+                });
+
+                const startBtn = document.createElement('button');
+                startBtn.className = 'start-btn';
+                startBtn.textContent = 'Start';
+
+                startBtn.addEventListener('click', () => {
+                    const base = baseOpt && baseOpt.href ? [baseOpt.href] : [];
+                    const selected = checkboxes.filter(c => c.cb.checked).map(c => c.href);
+                    launchMode(combineHrefs([...base, ...selected]));
+                });
+
+                panelEl.appendChild(startBtn);
             }
-
-            const checkboxes = [];
-            modifierOpts.forEach((opt) => {
-                const label = document.createElement('label');
-                label.className = 'check-item' + (opt.href ? '' : ' disabled');
-
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                if (!opt.href) cb.disabled = true;
-
-                const span = document.createElement('span');
-                span.textContent = opt.text;
-
-                label.appendChild(cb);
-                label.appendChild(span);
-                panelEl.appendChild(label);
-
-                if (opt.href) checkboxes.push({ cb, href: opt.href });
-            });
-
-            const startBtn = document.createElement('button');
-            startBtn.className = 'start-btn';
-            startBtn.textContent = 'Start';
-
-            startBtn.addEventListener('click', () => {
-                const base = baseOpt && baseOpt.href ? [baseOpt.href] : [];
-                const selected = checkboxes.filter(c => c.cb.checked).map(c => c.href);
-                launchMode(combineHrefs([...base, ...selected]));
-            });
-
-            panelEl.appendChild(startBtn);
 
             panelEl.style.opacity = '0';
             panelEl.style.transform = 'translateY(6px)';

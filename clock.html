@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1.1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+            opacity: 0;
+            animation: prevFadeIn 0.4s ease forwards;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+        @keyframes prevFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .clock-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2rem 0 1.5rem;
+        }
+
+        .question-sub {
+            font-size: 0.9rem;
+            color: rgba(190, 205, 218, 0.4);
+            margin-bottom: 1rem;
+        }
+
+        .clocks-row {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .clock-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .clock-label {
+            font-size: 0.75rem;
+            color: rgba(190, 205, 218, 0.4);
+            margin-top: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        svg.clock-face {
+            width: 200px;
+            height: 200px;
+        }
+
+        .elapsed-arrow {
+            font-size: 2rem;
+            color: rgba(190, 205, 218, 0.35);
+        }
+
+        .choices-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .choice-btn {
+            padding: 18px 32px;
+            font-size: 1.6rem;
+            font-family: 'Roboto Mono', monospace;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            cursor: pointer;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.15s, box-shadow 0.15s;
+            text-align: center;
+        }
+        .choice-btn:hover    { background-color: rgb(52, 75, 120);  box-shadow: 3.5px 3.5px 4px rgba(0,0,0,0.5); }
+        .choice-btn:active   { background-color: rgb(20, 32, 60);   box-shadow: none; }
+        .choice-btn.flash-correct { background-color: rgb(79, 117, 63)  !important; box-shadow: none; }
+        .choice-btn.flash-wrong   { background-color: rgb(150, 45, 45)  !important; box-shadow: none; }
+        .choice-btn.flash-reveal  { background-color: rgb(60, 100, 55)  !important; box-shadow: none; }
+
+        @media (max-width: 520px) {
+            svg.clock-face   { width: 150px; height: 150px; }
+            .elapsed-arrow   { font-size: 1.4rem; }
+            .choice-btn      { padding: 14px 16px; font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body class="darkTheme">
+    <div>
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <div>
+                    <span class="questionsCorrect" id="questionscorrect">0</span>
+                    <span class="questionsCorrect">/</span>
+                    <span class="questionsCorrect" id="questionsAnswered">0</span>
+                    <span class="questionsCorrect"> correct</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="clockArea" class="clock-area">
+            <div id="questionSub" class="question-sub"></div>
+            <div id="clocksRow" class="clocks-row"></div>
+        </div>
+
+        <div id="choicesContainer"></div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        const params    = new URLSearchParams(window.location.search);
+        const mode      = params.get('mode')      || 'read';
+        const precision = params.get('precision') || 'hour';
+
+        let questionsCorrect  = 0;
+        let questionsAnswered = 0;
+        let currentQuestion   = null;
+        let locked            = false;
+
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function formatTime(h, m) {
+            return h + ':' + String(m).padStart(2, '0');
+        }
+
+        function formatElapsed(mins) {
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            if (h === 0) return m + ' min';
+            if (m === 0) return h + (h === 1 ? ' hr' : ' hrs');
+            return h + ' hr ' + m + ' min';
+        }
+
+        function buildClockSVG(h, m) {
+            const cx = 100, cy = 100;
+            const hAngle = ((h % 12) * 30 + m * 0.5 - 90) * Math.PI / 180;
+            const mAngle = (m * 6 - 90) * Math.PI / 180;
+            const hx = (cx + 52 * Math.cos(hAngle)).toFixed(2);
+            const hy = (cy + 52 * Math.sin(hAngle)).toFixed(2);
+            const mx = (cx + 72 * Math.cos(mAngle)).toFixed(2);
+            const my = (cy + 72 * Math.sin(mAngle)).toFixed(2);
+
+            let ticks = '';
+            for (let i = 0; i < 60; i++) {
+                const a   = (i * 6 - 90) * Math.PI / 180;
+                const big = i % 5 === 0;
+                const r1  = big ? 76 : 84;
+                ticks += `<line x1="${(cx + r1 * Math.cos(a)).toFixed(2)}" y1="${(cy + r1 * Math.sin(a)).toFixed(2)}" x2="${(cx + 88 * Math.cos(a)).toFixed(2)}" y2="${(cy + 88 * Math.sin(a)).toFixed(2)}" stroke="${big ? 'rgba(190,205,218,0.65)' : 'rgba(190,205,218,0.2)'}" stroke-width="${big ? 2 : 1}"/>`;
+            }
+
+            let nums = '';
+            [12,1,2,3,4,5,6,7,8,9,10,11].forEach((n, i) => {
+                const a  = (i * 30 - 90) * Math.PI / 180;
+                const nx = (cx + 65 * Math.cos(a)).toFixed(2);
+                const ny = (cy + 65 * Math.sin(a)).toFixed(2);
+                nums += `<text x="${nx}" y="${ny}" text-anchor="middle" dominant-baseline="central" font-size="12" font-family="Roboto Mono,monospace" fill="rgba(190,205,218,0.85)">${n}</text>`;
+            });
+
+            return `<svg viewBox="0 0 200 200" class="clock-face" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="88" fill="rgb(28,30,50)" stroke="rgba(190,205,218,0.3)" stroke-width="2"/>
+  ${ticks}${nums}
+  <line x1="100" y1="100" x2="${hx}" y2="${hy}" stroke="rgba(220,230,245,0.95)" stroke-width="5" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="${mx}" y2="${my}" stroke="rgba(220,230,245,0.8)"  stroke-width="3" stroke-linecap="round"/>
+  <circle cx="100" cy="100" r="4" fill="rgba(220,230,245,0.95)"/>
+</svg>`;
+        }
+
+        function generateReadQuestion() {
+            const h = randInt(1, 12);
+            const m = precision === 'hour'
+                ? (Math.random() < 0.5 ? 0 : 30)
+                : randInt(0, 11) * 5;
+            const correct = formatTime(h, m);
+
+            const wrongs = new Set();
+            while (wrongs.size < 3) {
+                const wh = randInt(1, 12);
+                const wm = precision === 'hour'
+                    ? (Math.random() < 0.5 ? 0 : 30)
+                    : randInt(0, 11) * 5;
+                const w = formatTime(wh, wm);
+                if (w !== correct) wrongs.add(w);
+            }
+
+            return { h, m, choices: shuffle([correct, ...[...wrongs]]), correct, summary: correct };
+        }
+
+        function generateElapsedQuestion() {
+            const startH = randInt(1, 10);
+            const startM = randInt(0, 3) * 15;
+            const pool   = [15, 30, 45, 60, 90, 120];
+            const elapsed = pool[randInt(0, pool.length - 1)];
+
+            const totalEnd = startH * 60 + startM + elapsed;
+            const endH = Math.floor(totalEnd / 60) % 12 || 12;
+            const endM = totalEnd % 60;
+            const correct = formatElapsed(elapsed);
+
+            const wrongs = new Set();
+            while (wrongs.size < 3) {
+                const w = formatElapsed(pool[randInt(0, pool.length - 1)]);
+                if (w !== correct) wrongs.add(w);
+            }
+
+            return {
+                startH, startM, endH, endM,
+                choices: shuffle([correct, ...[...wrongs]]),
+                correct,
+                summary: `${formatTime(startH, startM)} → ${formatTime(endH, endM)} = ${correct}`
+            };
+        }
+
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2;
+            const oy = rect.top  + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p     = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist  = 80 + Math.random() * 140;
+                const size  = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[randInt(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        function loadQuestion() {
+            currentQuestion = mode === 'elapsed'
+                ? generateElapsedQuestion()
+                : generateReadQuestion();
+
+            const row = document.getElementById('clocksRow');
+            row.innerHTML = '';
+
+            if (mode === 'elapsed') {
+                document.getElementById('questionSub').textContent = 'How much time has passed?';
+
+                const startWrap = document.createElement('div');
+                startWrap.className = 'clock-wrap';
+                startWrap.innerHTML = buildClockSVG(currentQuestion.startH, currentQuestion.startM)
+                    + '<div class="clock-label">START</div>';
+
+                const arrow = document.createElement('span');
+                arrow.className = 'elapsed-arrow';
+                arrow.textContent = '→';
+
+                const endWrap = document.createElement('div');
+                endWrap.className = 'clock-wrap';
+                endWrap.innerHTML = buildClockSVG(currentQuestion.endH, currentQuestion.endM)
+                    + '<div class="clock-label">END</div>';
+
+                row.appendChild(startWrap);
+                row.appendChild(arrow);
+                row.appendChild(endWrap);
+            } else {
+                document.getElementById('questionSub').textContent = 'What time does the clock show?';
+                const wrap = document.createElement('div');
+                wrap.className = 'clock-wrap';
+                wrap.innerHTML = buildClockSVG(currentQuestion.h, currentQuestion.m);
+                row.appendChild(wrap);
+            }
+
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'choices-grid';
+            currentQuestion.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className     = 'choice-btn';
+                btn.textContent   = choice;
+                btn.dataset.choice = choice;
+                btn.addEventListener('click', () => handleChoice(choice, btn));
+                grid.appendChild(btn);
+            });
+            container.appendChild(grid);
+            locked = false;
+        }
+
+        function handleChoice(choice, btn) {
+            if (locked) return;
+            locked = true;
+
+            const allBtns   = document.querySelectorAll('.choice-btn');
+            const wasCorrect = choice === currentQuestion.correct;
+
+            questionsAnswered++;
+            if (wasCorrect) questionsCorrect++;
+            document.getElementById('questionsAnswered').textContent  = questionsAnswered;
+            document.getElementById('questionscorrect').textContent   = questionsCorrect;
+
+            if (wasCorrect) {
+                btn.classList.add('flash-correct');
+                spawnParticles(btn);
+            } else {
+                btn.classList.add('flash-wrong');
+                setTimeout(() => {
+                    allBtns.forEach(b => {
+                        if (b.dataset.choice === currentQuestion.correct) b.classList.add('flash-reveal');
+                    });
+                }, 350);
+            }
+
+            setTimeout(() => {
+                showPrev(currentQuestion.summary, wasCorrect);
+                transitionToNext();
+            }, wasCorrect ? 700 : 1300);
+        }
+
+        function showPrev(summary, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent  = summary + (wasCorrect ? '  ✓' : '  ✗');
+            el.className    = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+            el.style.animation = 'none';
+            el.offsetHeight;
+            el.style.animation = '';
+        }
+
+        function transitionToNext() {
+            const areas = [document.getElementById('clockArea'), document.getElementById('choicesContainer')];
+            areas.forEach(el => {
+                el.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                el.style.opacity    = '0';
+                el.style.transform  = 'translateY(10px)';
+            });
+            setTimeout(() => {
+                loadQuestion();
+                areas.forEach(el => {
+                    el.style.transform = 'translateY(-6px)';
+                    el.offsetHeight;
+                    el.style.opacity   = '1';
+                    el.style.transform = 'translateY(0)';
+                    setTimeout(() => { el.style.transition = ''; }, 300);
+                });
+            }, 280);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (locked) return;
+            const n = parseInt(e.key);
+            if (n >= 1 && n <= 4) {
+                const btns = document.querySelectorAll('.choice-btn');
+                if (btns[n - 1]) btns[n - 1].click();
+            }
+        });
+
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const labels = {
+                'read-hour':  'Time · Hour & Half Hour',
+                'read-5min':  'Time · To 5 Minutes',
+                'elapsed':    'Elapsed Time',
+            };
+            const key = mode === 'elapsed' ? 'elapsed' : `read-${precision}`;
+            document.getElementById('modeIndicator').textContent = labels[key] || 'Time';
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

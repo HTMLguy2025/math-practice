@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        /* Previous question */
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1.1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+
+        /* Question */
+
+        .question-area {
+            margin: 2rem 0 1.5rem;
+        }
+
+        .question-sub {
+            font-size: 0.9rem;
+            color: rgba(190, 205, 218, 0.4);
+            margin-bottom: 0.75rem;
+        }
+
+        .question-number {
+            font-size: 4rem;
+            font-weight: 600;
+            color: rgba(220, 230, 245, 0.95);
+            line-height: 1;
+        }
+
+        .question-number .hint-digit {
+            color: rgba(255, 200, 80, 0.9);
+        }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index: 1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <div>
+                    <span class="questionsCorrect" id="questionscorrect">0</span>
+                    <span class="questionsCorrect">/</span>
+                    <span class="questionsCorrect" id="questionsAnswered">0</span>
+                    <span class="questionsCorrect"> correct</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div class="question-area">
+            <div id="questionSub" class="question-sub"></div>
+            <div id="questionNumber" class="question-number"></div>
+        </div>
+
+        <div class="displayedAnswerHolder">
+            <div id="displayedSelectedAnswer" class="displayedAnswer"><span class="cursor"></span></div>
+        </div>
+
+        <br>
+
+        <div class="numberbuttons">
+            <button id="button1" class="numButtons">1</button>
+            <button id="button2" class="numButtons">2</button>
+            <button id="button3" class="numButtons">3</button>
+            <button id="checkmark" class="checkButton">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:block;">
+                    <path d="M 4 13 C 6 15 7 17 9 19 C 11 14 14 9 19 4"/>
+                </svg>
+            </button>
+            <button id="button4" class="numButtons">4</button>
+            <button id="button5" class="numButtons">5</button>
+            <button id="button6" class="numButtons">6</button>
+            <button id="button7" class="numButtons">7</button>
+            <button id="button8" class="numButtons">8</button>
+            <button id="button9" class="numButtons">9</button>
+            <button id="button0" class="numButtons">0</button>
+            <button id="button00" class="numButtons">00</button>
+            <button id="deleteButton" class="numButtons deleteButton">⌫</button>
+        </div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params        = new URLSearchParams(window.location.search);
+        const precisionParam = params.get('precision') || '10';
+        const precisionList  = precisionParam.split(',').map(Number).filter(n => [10, 100].includes(n));
+        if (precisionList.length === 0) precisionList.push(10);
+
+        // --- State ---
+        let selectedAnswer    = '';
+        let currentNum        = 0;
+        let currentPrecision  = 10;
+        let currentAnswer     = 0;
+        let questionsCorrect  = 0;
+        let questionsAnswered = 0;
+
+        // --- Helpers ---
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function pickPrecision() {
+            return precisionList[Math.floor(Math.random() * precisionList.length)];
+        }
+
+        function roundTo(num, precision) {
+            return Math.round(num / precision) * precision;
+        }
+
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2;
+            const oy = rect.top  + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p     = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist  = 80 + Math.random() * 140;
+                const size  = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[randInt(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Question generation ---
+        function generateQuestion() {
+            const precision = pickPrecision();
+            let num;
+            if (precision === 10) {
+                // 3-digit numbers, ones digit never 0 (non-trivial)
+                do { num = randInt(100, 999); } while (num % 10 === 0);
+            } else {
+                // 3-digit numbers, tens+ones never both 0 (non-trivial)
+                do { num = randInt(100, 999); } while (num % 100 === 0);
+            }
+            return { num, precision, answer: roundTo(num, precision) };
+        }
+
+        // --- Render number with hint digit highlighted ---
+        function buildNumberHTML(num, precision) {
+            const s = String(num);
+            if (precision === 10) {
+                // highlight ones digit (last character) — it drives the rounding decision
+                return s.slice(0, -1) + '<span class="hint-digit">' + s.slice(-1) + '</span>';
+            } else {
+                // highlight tens+ones digits — they drive the rounding decision
+                return s.slice(0, -2) + '<span class="hint-digit">' + s.slice(-2) + '</span>';
+            }
+        }
+
+        function loadQuestion() {
+            const q = generateQuestion();
+            currentNum       = q.num;
+            currentPrecision = q.precision;
+            currentAnswer    = q.answer;
+
+            document.getElementById('questionSub').textContent =
+                'Round to the nearest ' + (q.precision === 10 ? '10' : '100');
+            document.getElementById('questionNumber').innerHTML = buildNumberHTML(q.num, q.precision);
+
+            selectedAnswer = '';
+            renderAnswer();
+        }
+
+        // --- Answer display ---
+        function renderAnswer() {
+            document.getElementById('displayedSelectedAnswer').innerHTML =
+                selectedAnswer + '<span class="cursor"></span>';
+        }
+
+        function appendToAnswer(str) {
+            if (selectedAnswer.length >= 4) return;
+            selectedAnswer += str;
+            // Trim any leading zeros beyond a single '0'
+            if (selectedAnswer.length > 1 && selectedAnswer[0] === '0') {
+                selectedAnswer = selectedAnswer.replace(/^0+/, '') || '0';
+            }
+            renderAnswer();
+            autoCheck();
+        }
+
+        function autoCheck() {
+            if (parseInt(selectedAnswer) === currentAnswer) {
+                document.getElementById('checkmark').click();
+            }
+        }
+
+        // --- Check ---
+        document.getElementById('checkmark').addEventListener('click', () => {
+            const checkBtn  = document.getElementById('checkmark');
+            const checkPath = checkBtn.querySelector('svg path');
+            const len = checkPath.getTotalLength();
+            checkPath.animate([
+                { offset: 0,    strokeDasharray: `${len} ${len}`, opacity: 1,   easing: 'ease-in'  },
+                { offset: 0.38, strokeDasharray: `0.5 ${len}`,    opacity: 0.2, easing: 'linear'   },
+                { offset: 0.44, strokeDasharray: `${len} ${len}`, opacity: 0,   easing: 'ease-out' },
+                { offset: 1.0,  strokeDasharray: `${len} ${len}`, opacity: 1 },
+            ], { duration: 325 });
+
+            const wasCorrect = parseInt(selectedAnswer) === currentAnswer;
+
+            if (wasCorrect) {
+                setTimeout(() => spawnParticles(checkBtn), 325);
+                questionsCorrect++;
+            }
+            questionsAnswered++;
+
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+
+            showPrev(currentNum + ' → ' + currentAnswer, wasCorrect);
+            loadQuestion();
+        });
+
+        function showPrev(summary, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent  = summary + (wasCorrect ? '  ✓' : '  ✗');
+            el.className    = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+        }
+
+        // --- Buttons ---
+        ['1','2','3','4','5','6','7','8','9','0'].forEach(d => {
+            document.getElementById('button' + d).addEventListener('click', () => appendToAnswer(d));
+        });
+        document.getElementById('button00').addEventListener('click', () => appendToAnswer('00'));
+        document.getElementById('deleteButton').addEventListener('click', () => {
+            selectedAnswer = selectedAnswer.slice(0, -1);
+            renderAnswer();
+        });
+
+        // --- Keyboard ---
+        document.addEventListener('keyup', e => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendToAnswer(e.key);
+            } else if (e.key === 'Backspace' || e.key === 'Delete') {
+                selectedAnswer = selectedAnswer.slice(0, -1);
+                renderAnswer();
+            } else if (e.key === 'Enter') {
+                document.getElementById('checkmark').click();
+            }
+        });
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const labels = { '10': 'Rounding · Nearest 10', '100': 'Rounding · Nearest 100' };
+            const key = precisionList.length === 1 ? String(precisionList[0]) : 'mixed';
+            document.getElementById('modeIndicator').textContent =
+                key === 'mixed' ? 'Rounding · Mixed' : (labels[key] || 'Rounding');
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

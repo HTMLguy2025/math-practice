@@ -203,6 +203,7 @@
         // --- Score ---
         let questionsCorrect = 0;
         let questionsAnswered = 0;
+        let enterCooldown    = false;
 
         // --- Helpers ---
         function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
@@ -1173,6 +1174,9 @@
                 cycleFocus();
                 renderAnswer();
             } else if (e.key === 'Enter') {
+                if (enterCooldown) return;
+                enterCooldown = true;
+                setTimeout(() => { enterCooldown = false; }, 400);
                 handleCheck();
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();

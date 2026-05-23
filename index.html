@@ -654,15 +654,14 @@
                 label: 'Level 1',
                 sections: [
                     { label: 'Counting & Number Sense', options: [
-                        { text: 'Forward / Backward', href: null },
-                        { text: 'Count From Any Number', href: null },
-                        { text: 'Number Line', href: null },
+                        { text: 'Forward / Backward', href: 'numberline.html?exercise=count-forward,count-backward' },
+                        { text: 'Count From Any Number', href: 'numberline.html?exercise=count-from' },
+                        { text: 'Number Line', href: 'numberline.html?exercise=ordering' },
                         { text: '2D Shapes', href: null },
                         { text: 'Odd & Even', href: 'choice.html?exercise=oddeven' },
                     ]},
                     { label: 'Place Value', options: [
-                        { text: 'Tens & Ones', href: null },
-                        { text: 'Multiples of 10', href: null },
+                        { text: 'Tens & Ones', href: 'placevalue.html?exercise=tens-ones' },
                     ]},
                     { label: 'Comparison', options: [
                         { text: 'Two-Digit Numbers', href: 'choice.html?exercise=compare&digits=2' },
@@ -681,7 +680,7 @@
                         { text: 'Compare 3-Digit Numbers', href: 'choice.html?exercise=compare&digits=3' },
                     ]},
                     { label: 'Place Value', options: [
-                        { text: 'Hundreds, Tens, Ones', href: null },
+                        { text: 'Hundreds, Tens, Ones', href: 'placevalue.html?exercise=hundreds-tens-ones' },
                     ]},
                     { label: 'Early Multiplication', options: [
                         { text: 'Arrays', href: null },
@@ -707,8 +706,8 @@
                         ]},
                     ]},
                     { label: 'Data', options: [
-                        { text: 'Bar Graphs', href: null },
-                        { text: 'Picture Graphs', href: null },
+                        { text: 'Bar Graphs', href: 'graphs.html?type=bar' },
+                        { text: 'Picture Graphs', href: 'graphs.html?type=picture' },
                     ]},
                 ]
             },
@@ -729,7 +728,7 @@
                     ]},
                     { label: 'Fraction Skills', options: [
                         { text: 'Simplify', href: 'fractions.html?exercise=simplify' },
-                        { text: 'On a Number Line', href: null },
+                        { text: 'On a Number Line', href: 'numberline.html?exercise=fractions' },
                     ]},
                     { label: 'Rounding', options: [
                         { text: 'To Nearest 10', href: 'rounding.html?precision=10' },
@@ -738,11 +737,10 @@
                     { label: 'Measurement & Time', options: [
                         { text: 'Elapsed Time', href: 'clock.html?mode=elapsed' },
                         { text: 'Mass & Liquid Volume', href: null },
-                        { text: 'Area & Perimeter', href: null },
                     ]},
                     { label: 'Data', options: [
-                        { text: 'Scaled Bar Graphs', href: null },
-                        { text: 'Scaled Picture Graphs', href: null },
+                        { text: 'Scaled Bar Graphs', href: 'graphs.html?type=bar&scaled=true' },
+                        { text: 'Scaled Picture Graphs', href: 'graphs.html?type=picture&scaled=true' },
                     ]},
                 ]
             },
@@ -782,11 +780,26 @@
                         { text: 'Factors & Multiples', href: null },
                         { text: 'Prime & Composite', href: 'choice.html?exercise=prime' },
                     ]},
+                    { label: 'Area & Perimeter', type: 'operation-group', operations: [
+                        { text: 'Area', radio: true, options: [
+                            { text: 'Triangle', href: 'geometry.html?exercise=area-triangle' },
+                            { text: 'Square', href: 'geometry.html?exercise=area-square' },
+                            { text: 'Rectangle', href: 'geometry.html?exercise=area-rectangle' },
+                            { text: 'Circle', href: 'geometry.html?exercise=area-circle' },
+                        ]},
+                        { text: 'Perimeter', radio: true, options: [
+                            { text: 'Triangle', href: 'geometry.html?exercise=perimeter-triangle' },
+                            { text: 'Square', href: 'geometry.html?exercise=perimeter-square' },
+                            { text: 'Rectangle', href: 'geometry.html?exercise=perimeter-rectangle' },
+                            { text: 'Circle (Circumference)', href: 'geometry.html?exercise=perimeter-circle' },
+                        ]},
+                    ]},
                     { label: 'Geometry', options: [
-                        { text: 'Angle Measurement', href: null },
-                        { text: 'Lines & Rays', href: null },
-                        { text: 'Symmetry', href: null },
-                        { text: 'Area & Perimeter', href: null },
+                        { text: 'Angle Measurement', href: 'geometry.html?exercise=angles' },
+                        { text: 'Symmetry', href: 'geometry.html?exercise=symmetry' },
+                    ]},
+                    { label: 'Data', options: [
+                        { text: 'Pie Graphs', href: 'graphs.html?type=pie' },
                     ]},
                 ]
             },
@@ -829,15 +842,15 @@
                         { text: 'Powers of 10', href: null },
                     ]},
                     { label: 'Order of Operations', options: [
-                        { text: 'Long Equations', href: null },
+                        { text: 'Long Equations', href: 'pemdas.html' },
                     ]},
                     { label: 'Number Sense', options: [
-                        { text: 'Negative Numbers', href: null },
+                        { text: 'Negative Numbers', href: 'numberline.html?exercise=negative' },
                         { text: 'Numerical Patterns', href: null },
                     ]},
                     { label: 'Geometry & Graphing', options: [
-                        { text: 'Coordinate Planes', href: null },
-                        { text: 'Volume', href: null },
+                        { text: 'Coordinate Planes', href: 'geometry.html?exercise=coordinates' },
+                        { text: 'Volume', href: 'geometry.html?exercise=volume' },
                     ]},
                     { label: 'Measurement', options: [
                         { text: 'Converting Units', href: null },

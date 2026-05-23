@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+
+        .nl-wrap {
+            margin: 1.5rem 0 0.25rem;
+            line-height: 0;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            color: rgba(190, 205, 218, 0.8);
+            margin: 0.5rem 0 0.9rem;
+            min-height: 1.4rem;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 17vw;
+            min-width: 280px;
+            margin-bottom: 1rem;
+        }
+
+        .choice-btn {
+            padding: 14px 8px;
+            font-size: 1.15rem;
+            font-family: Roboto Mono;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.12s;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover { background-color: rgb(52, 75, 120); }
+        }
+
+        .choice-btn.correct-flash { background-color: rgb(55, 130, 55) !important; color: #fff; }
+        .choice-btn.wrong-flash   { background-color: rgb(150, 45, 45) !important; color: #fff; }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index:1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <span class="questionsCorrect" id="questionscorrect">0</span>
+                <span class="questionsCorrect">/</span>
+                <span class="questionsCorrect" id="questionsAnswered">0</span>
+                <span class="questionsCorrect"> correct</span>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="svgArea" class="nl-wrap"></div>
+        <div id="questionText" class="question-text"></div>
+
+        <!-- Numeric input -->
+        <div id="numericDisplay" class="displayedAnswerHolder" style="display:none;">
+            <div id="numericAnswerEl" class="displayedAnswer"><span class="cursor"></span></div>
+        </div>
+
+        <!-- Choice buttons -->
+        <div id="choiceArea" style="display:none;">
+            <div id="choiceButtons" class="choice-grid"></div>
+        </div>
+
+        <!-- Number pad -->
+        <div id="numberPad" class="numberbuttons" style="display:none;">
+            <button id="nlBtn1" class="numButtons">1</button>
+            <button id="nlBtn2" class="numButtons">2</button>
+            <button id="nlBtn3" class="numButtons">3</button>
+            <button id="nlCheckmark" class="checkButton">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:block;">
+                    <path d="M 4 13 C 6 15 7 17 9 19 C 11 14 14 9 19 4"/>
+                </svg>
+            </button>
+            <button id="nlBtn4" class="numButtons">4</button>
+            <button id="nlBtn5" class="numButtons">5</button>
+            <button id="nlBtn6" class="numButtons">6</button>
+            <button id="nlBtn7" class="numButtons">7</button>
+            <button id="nlBtn8" class="numButtons">8</button>
+            <button id="nlBtn9" class="numButtons">9</button>
+            <button id="nlNegBtn" class="numButtons" style="visibility:hidden;">±</button>
+            <button id="nlBtn0" class="numButtons">0</button>
+            <button id="nlDeleteBtn" class="numButtons deleteButton">⌫</button>
+        </div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const exerciseParam = params.get('exercise') || 'ordering';
+        const ALL_TYPES = ['ordering', 'count-forward', 'count-backward', 'count-from', 'fractions', 'negative'];
+        const exerciseList = exerciseParam.split(',').filter(e => ALL_TYPES.includes(e));
+        if (!exerciseList.length) exerciseList.push('ordering');
+
+        // --- State ---
+        let currentMode = 'numeric';
+        let currentExercise = '';
+        let currentAnswer = 0;
+        let numericInput = '';
+        let questionsCorrect = 0;
+        let questionsAnswered = 0;
+        let prevSummary = '';
+        let choicesLocked = false;
+        let enterCooldown = false;
+
+        // --- Helpers ---
+        function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function pick(arr) { return arr[ri(0, arr.length - 1)]; }
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+        function fracStr(n, d) { const g = gcd(n, d); return `${n/g}/${d/g}`; }
+
+        function makeChoices(correct, pool) {
+            const decoys = shuffle([...new Set(pool)].filter(l => l !== correct)).slice(0, 3);
+            return shuffle([correct, ...decoys]).map(l => ({ label: l, correct: l === correct }));
+        }
+
+        // --- SVG constants ---
+        const NL_W = 320, NL_H = 90, NL_Y = 44;
+        const NL_X1 = 32, NL_X2 = 288;
+        const LINE_C  = 'rgba(190,205,218,0.7)';
+        const LABEL_C = 'rgba(190,205,218,0.65)';
+        const SEQ_C   = 'rgba(220,230,245,0.9)';
+        const PINK    = '#f06292';
+        const GREEN   = '#66bb6a';
+        const HOP_C   = 'rgba(100,180,255,0.85)';
+
+        function nlSVG(inner) {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${NL_W} ${NL_H}" style="width:min(360px,100%);height:auto;display:block;">${inner}</svg>`;
+        }
+
+        function toX(v, min, max) {
+            return NL_X1 + (v - min) / (max - min) * (NL_X2 - NL_X1);
+        }
+
+        function nlBaseLine() {
+            const c = LINE_C, y = NL_Y;
+            // Line body between arrowhead bases; polygons cover the tips
+            return `<line x1="${NL_X1 - 4}" y1="${y}" x2="${NL_X2 + 4}" y2="${y}" stroke="${c}" stroke-width="1.8"/>` +
+                `<polygon points="${NL_X1-14},${y} ${NL_X1-4},${y-4.5} ${NL_X1-4},${y+4.5}" fill="${c}"/>` +
+                `<polygon points="${NL_X2+14},${y} ${NL_X2+4},${y-4.5} ${NL_X2+4},${y+4.5}" fill="${c}"/>`;
+        }
+
+        function nlTick(x, h, sw) {
+            return `<line x1="${x.toFixed(1)}" y1="${NL_Y - h}" x2="${x.toFixed(1)}" y2="${NL_Y + h}" stroke="${LINE_C}" stroke-width="${sw}"/>`;
+        }
+
+        function nlLabel(x, y, txt, fill, size) {
+            return `<text x="${x.toFixed(1)}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-family="Roboto Mono" font-size="${size}" fill="${fill}">${txt}</text>`;
+        }
+
+        function nlDot(x, fill, r) {
+            return `<circle cx="${x.toFixed(1)}" cy="${NL_Y}" r="${r}" fill="${fill}"/>`;
+        }
+
+        // --- SVG builders ---
+
+        function buildOrderingSVG(dotVal) {
+            const tx = v => toX(v, 0, 20);
+            let s = nlBaseLine();
+            for (let v = 0; v <= 20; v++) {
+                const x = tx(v), major = v % 5 === 0;
+                s += nlTick(x, major ? 8 : 5, major ? 1.5 : 1);
+                if (major) s += nlLabel(x, NL_Y + 22, v, LABEL_C, 12);
+            }
+            s += nlDot(tx(dotVal), PINK, 6);
+            return nlSVG(s);
+        }
+
+        function buildSequenceSVG(seq, missingIdx) {
+            const minV = Math.min(...seq), maxV = Math.max(...seq);
+            const min = minV - 2, max = maxV + 2;
+            const tx = v => toX(v, min, max);
+            let s = nlBaseLine();
+            for (let i = 0; i < seq.length; i++) {
+                const x = tx(seq[i]);
+                s += nlTick(x, 10, 2);
+                if (i === missingIdx) {
+                    s += nlDot(x, PINK, 6);
+                    s += nlLabel(x, NL_Y - 22, '?', PINK, 15);
+                } else {
+                    s += nlDot(x, 'rgba(190,205,218,0.4)', 4);
+                    s += nlLabel(x, NL_Y - 22, seq[i], SEQ_C, 14);
+                }
+            }
+            return nlSVG(s);
+        }
+
+        function buildCountFromSVG(start, steps, dir) {
+            const answer = start + steps * dir;
+            const lo = Math.min(start, answer) - 1;
+            const hi = Math.max(start, answer) + 1;
+            const tx = v => toX(v, lo, hi);
+            let s = nlBaseLine();
+            for (let v = lo; v <= hi; v++) {
+                const x = tx(v);
+                s += nlTick(x, 8, 1.5);
+                if (v === start) s += nlLabel(x, NL_Y + 22, v, LABEL_C, 11);
+            }
+            const hopY = NL_Y - 16;
+            for (let i = 0; i < steps; i++) {
+                const x1 = tx(start + i * dir);
+                const x2 = tx(start + (i + 1) * dir);
+                const g = 4 * dir;
+                const ax = x1 + g;
+                const bx = x2 - g;
+                const tipX = bx, baseX = bx - 8 * dir;
+                s += `<line x1="${ax.toFixed(1)}" y1="${hopY}" x2="${baseX.toFixed(1)}" y2="${hopY}" stroke="${HOP_C}" stroke-width="1.8"/>`;
+                s += `<polygon points="${tipX.toFixed(1)},${hopY} ${baseX.toFixed(1)},${hopY - 4} ${baseX.toFixed(1)},${hopY + 4}" fill="${HOP_C}"/>`;
+            }
+            s += nlDot(tx(start), GREEN, 6);
+            s += nlDot(tx(answer), PINK, 6);
+            return nlSVG(s);
+        }
+
+        function buildFractionSVG(denom, numr) {
+            const tx = v => toX(v, 0, 1);
+            const lblSize = denom >= 6 ? 10 : 12;
+            let s = nlBaseLine();
+            for (let i = 0; i <= denom; i++) {
+                const x = tx(i / denom);
+                const isEnd = i === 0 || i === denom;
+                s += nlTick(x, isEnd ? 9 : 7, isEnd ? 2 : 1.5);
+                const lbl = i === 0 ? '0' : i === denom ? '1' : fracStr(i, denom);
+                s += nlLabel(x, NL_Y + 22, lbl, LABEL_C, lblSize);
+            }
+            s += nlDot(tx(numr / denom), PINK, 6);
+            return nlSVG(s);
+        }
+
+        function buildNegativeSVG(dotVal) {
+            const tx = v => toX(v, -10, 10);
+            let s = nlBaseLine();
+            for (let v = -10; v <= 10; v++) {
+                const x = tx(v), major = v % 5 === 0;
+                s += nlTick(x, major ? 8 : 5, major ? 1.5 : 1);
+                if (major) s += nlLabel(x, NL_Y + 22, v, LABEL_C, 11);
+            }
+            s += nlDot(tx(dotVal), PINK, 6);
+            return nlSVG(s);
+        }
+
+        // --- Mode switching ---
+        function switchMode(mode, showNeg) {
+            currentMode = mode;
+            document.getElementById('numericDisplay').style.display = mode === 'numeric' ? '' : 'none';
+            document.getElementById('choiceArea').style.display     = mode === 'choice'  ? '' : 'none';
+            document.getElementById('numberPad').style.display      = mode !== 'choice'  ? '' : 'none';
+            document.getElementById('nlNegBtn').style.visibility    = showNeg ? 'visible' : 'hidden';
+        }
+
+        // --- Render ---
+        function renderNumeric() {
+            document.getElementById('numericAnswerEl').innerHTML = numericInput + '<span class="cursor"></span>';
+        }
+
+        // --- Input ---
+        function appendDigit(d) {
+            if (numericInput === '-' && d === '0') return;
+            if (numericInput.replace('-', '').length >= 4) return;
+            numericInput += d;
+            renderNumeric();
+        }
+
+        function appendNeg() {
+            numericInput = numericInput.startsWith('-')
+                ? numericInput.slice(1)
+                : (numericInput.length ? '-' + numericInput : '-');
+            renderNumeric();
+        }
+
+        function deleteLast() {
+            numericInput = numericInput.slice(0, -1);
+            renderNumeric();
+        }
+
+        // --- Score & prev ---
+        function updateScore() {
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+        }
+
+        function showPrev(text, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent = text;
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+        }
+
+        // --- Particles ---
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2, oy = rect.top + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist = 80 + Math.random() * 140;
+                const size = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[ri(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Check animation ---
+        function animateCheck(btn) {
+            const path = btn.querySelector('svg path');
+            const len = path.getTotalLength();
+            path.animate([
+                { offset: 0,    strokeDasharray: `${len} ${len}`, opacity: 1,   easing: 'ease-in'  },
+                { offset: 0.38, strokeDasharray: `0.5 ${len}`,    opacity: 0.2, easing: 'linear'   },
+                { offset: 0.44, strokeDasharray: `${len} ${len}`, opacity: 0,   easing: 'ease-out' },
+                { offset: 1.0,  strokeDasharray: `${len} ${len}`, opacity: 1 },
+            ], { duration: 325 });
+        }
+
+        document.getElementById('nlCheckmark').addEventListener('click', () => {
+            const btn = document.getElementById('nlCheckmark');
+            animateCheck(btn);
+            const wasCorrect = parseInt(numericInput) === currentAnswer;
+            if (wasCorrect) { setTimeout(() => spawnParticles(btn), 325); questionsCorrect++; }
+            questionsAnswered++;
+            updateScore();
+            showPrev(prevSummary + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+            loadQuestion();
+        });
+
+        // --- Choice buttons ---
+        function buildChoiceButtons(choices) {
+            const container = document.getElementById('choiceButtons');
+            container.innerHTML = '';
+            choicesLocked = false;
+            choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = ch.label;
+                btn.addEventListener('click', () => {
+                    if (choicesLocked) return;
+                    choicesLocked = true;
+                    const wasCorrect = ch.correct;
+                    [...container.children].forEach((b, j) => {
+                        if (choices[j].correct) b.classList.add('correct-flash');
+                        else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
+                    });
+                    if (wasCorrect) { spawnParticles(btn); questionsCorrect++; }
+                    questionsAnswered++;
+                    updateScore();
+                    showPrev(prevSummary + ' → ' + ch.label + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+                    setTimeout(() => loadQuestion(), 900);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Exercises ---
+
+        function loadOrdering() {
+            const dot = ri(1, 19);
+            currentAnswer = dot;
+            prevSummary = `Number line: ${dot}`;
+            switchMode('numeric');
+            document.getElementById('svgArea').innerHTML = buildOrderingSVG(dot);
+            document.getElementById('questionText').textContent = 'What number is marked on the number line?';
+        }
+
+        function loadCountForward() {
+            const start = ri(1, 45);
+            const seq = [0, 1, 2, 3, 4].map(i => start + i);
+            const missingIdx = ri(0, 4);
+            currentAnswer = seq[missingIdx];
+            prevSummary = `Missing: ${currentAnswer}`;
+            switchMode('numeric');
+            document.getElementById('svgArea').innerHTML = buildSequenceSVG(seq, missingIdx);
+            document.getElementById('questionText').textContent = 'What is the missing number in the sequence?';
+        }
+
+        function loadCountBackward() {
+            const start = ri(10, 50);
+            const seq = [0, 1, 2, 3, 4].map(i => start - i);
+            const missingIdx = ri(0, 4);
+            currentAnswer = seq[missingIdx];
+            prevSummary = `Missing: ${currentAnswer}`;
+            switchMode('numeric');
+            document.getElementById('svgArea').innerHTML = buildSequenceSVG(seq, missingIdx);
+            document.getElementById('questionText').textContent = 'What is the missing number in the sequence?';
+        }
+
+        function loadCountFrom() {
+            const start = ri(3, 20);
+            const steps = ri(2, 5);
+            let dir = pick([1, -1]);
+            if (dir === -1 && start - steps < 0) dir = 1;
+            currentAnswer = start + steps * dir;
+            prevSummary = `${start} + ${steps * dir} = ${currentAnswer}`;
+            switchMode('numeric');
+            document.getElementById('svgArea').innerHTML = buildCountFromSVG(start, steps, dir);
+            const dirText = dir === 1 ? 'forward' : 'backward';
+            document.getElementById('questionText').textContent =
+                `Start at ${start}. Count ${dirText} ${steps}. What number do you reach?`;
+        }
+
+        function loadFractions() {
+            const denoms = [2, 3, 4, 6, 8];
+            const denom = pick(denoms);
+            const numr = ri(1, denom - 1);
+            const correct = fracStr(numr, denom);
+            prevSummary = `Fraction: ${correct}`;
+
+            const pool = [];
+            for (let n = 1; n < denom; n++) {
+                if (n !== numr) pool.push(fracStr(n, denom));
+            }
+            for (const od of shuffle(denoms.filter(d => d !== denom))) {
+                for (let on = 1; on < od; on++) {
+                    const cand = fracStr(on, od);
+                    if (!pool.includes(cand) && cand !== correct) pool.push(cand);
+                }
+            }
+
+            switchMode('choice');
+            buildChoiceButtons(makeChoices(correct, pool));
+            document.getElementById('svgArea').innerHTML = buildFractionSVG(denom, numr);
+            document.getElementById('questionText').textContent = 'What fraction is marked on the number line?';
+        }
+
+        function loadNegative() {
+            let dot;
+            do { dot = ri(-10, 10); } while (dot === 0);
+            currentAnswer = dot;
+            prevSummary = `Number line: ${dot}`;
+            switchMode('numeric', true);
+            document.getElementById('svgArea').innerHTML = buildNegativeSVG(dot);
+            document.getElementById('questionText').textContent = 'What number is marked on the number line?';
+        }
+
+        // --- Load question ---
+        function loadQuestion() {
+            numericInput = '';
+            currentExercise = pick(exerciseList);
+            switch (currentExercise) {
+                case 'ordering':        loadOrdering();      break;
+                case 'count-forward':   loadCountForward();  break;
+                case 'count-backward':  loadCountBackward(); break;
+                case 'count-from':      loadCountFrom();     break;
+                case 'fractions':       loadFractions();     break;
+                case 'negative':        loadNegative();      break;
+            }
+            if (currentMode === 'numeric') renderNumeric();
+        }
+
+        // --- Keyboard ---
+        document.addEventListener('keyup', e => {
+            if (currentMode === 'choice') return;
+            if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
+            else if (e.key === '-') appendNeg();
+            else if (e.key === 'Backspace' || e.key === 'Delete') deleteLast();
+            else if (e.key === 'Enter') {
+                if (enterCooldown) return;
+                enterCooldown = true;
+                setTimeout(() => { enterCooldown = false; }, 400);
+                document.getElementById('nlCheckmark').click();
+            }
+        });
+
+        // --- Numpad ---
+        ['1','2','3','4','5','6','7','8','9','0'].forEach(d =>
+            document.getElementById('nlBtn' + d).addEventListener('click', () => appendDigit(d))
+        );
+        document.getElementById('nlNegBtn').addEventListener('click', appendNeg);
+        document.getElementById('nlDeleteBtn').addEventListener('click', deleteLast);
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        const EXERCISE_LABELS = {
+            'ordering':       'Number Line',
+            'count-forward':  'Counting Forward',
+            'count-backward': 'Counting Backward',
+            'count-from':     'Count From',
+            'fractions':      'Fractions: Number Line',
+            'negative':       'Negative Numbers',
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('modeIndicator').textContent =
+                exerciseList.length === 1 ? (EXERCISE_LABELS[exerciseList[0]] || 'Number Line') : 'Number Line';
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

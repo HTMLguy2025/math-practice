@@ -13,38 +13,36 @@
     <style>
         body { padding: 16px; }
 
-        /* Previous question */
-
         .prev-area {
             min-height: 2rem;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: rgba(190, 205, 218, 0.35);
             margin-top: 0.5rem;
         }
         .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
         .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
 
-        /* Question */
-
-        .question-area {
+        .equation-area {
             margin: 2rem 0 1.5rem;
         }
 
-        .question-sub {
+        .equation-label {
             font-size: 0.9rem;
             color: rgba(190, 205, 218, 0.4);
             margin-bottom: 0.75rem;
         }
 
-        .question-number {
-            font-size: 4rem;
+        .equation-display {
+            font-size: 1.8rem;
             font-weight: 600;
             color: rgba(220, 230, 245, 0.95);
-            line-height: 1;
+            line-height: 1.4;
         }
 
-        .question-number .hint-digit {
-            color: rgba(255, 200, 80, 0.9);
+        .equation-display sup {
+            font-size: 1rem;
+            vertical-align: super;
+            line-height: 0;
         }
     </style>
 </head>
@@ -67,9 +65,9 @@
 
         <div id="prevArea" class="prev-area"></div>
 
-        <div class="question-area">
-            <div id="questionSub" class="question-sub"></div>
-            <div id="questionNumber" class="question-number"></div>
+        <div class="equation-area">
+            <div class="equation-label">Solve using order of operations</div>
+            <div id="equationDisplay" class="equation-display"></div>
         </div>
 
         <div class="displayedAnswerHolder">
@@ -93,8 +91,8 @@
             <button id="button7" class="numButtons">7</button>
             <button id="button8" class="numButtons">8</button>
             <button id="button9" class="numButtons">9</button>
+            <button id="negativeButton" class="numButtons">±</button>
             <button id="button0" class="numButtons">0</button>
-            <button id="button00" class="numButtons">00</button>
             <button id="deleteButton" class="numButtons deleteButton">⌫</button>
         </div>
 
@@ -107,32 +105,17 @@
     </div>
 
     <script>
-        // --- URL params ---
-        const params        = new URLSearchParams(window.location.search);
-        const precisionParam = params.get('precision') || '10';
-        const precisionList  = precisionParam.split(',').map(Number).filter(n => [10, 100].includes(n));
-        if (precisionList.length === 0) precisionList.push(10);
-
         // --- State ---
         let selectedAnswer    = '';
-        let currentNum        = 0;
-        let currentPrecision  = 10;
         let currentAnswer     = 0;
+        let currentExprHTML   = '';
         let questionsCorrect  = 0;
         let questionsAnswered = 0;
         let enterCooldown     = false;
 
         // --- Helpers ---
-        function randInt(min, max) {
+        function ri(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function pickPrecision() {
-            return precisionList[Math.floor(Math.random() * precisionList.length)];
-        }
-
-        function roundTo(num, precision) {
-            return Math.round(num / precision) * precision;
         }
 
         const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
@@ -146,7 +129,7 @@
                 const angle = Math.random() * 2 * Math.PI;
                 const dist  = 80 + Math.random() * 140;
                 const size  = (6 + Math.random() * 8) + 'px';
-                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[randInt(0, particleColors.length - 1)]};`;
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[ri(0, particleColors.length - 1)]};`;
                 p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
                 p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
                 document.body.appendChild(p);
@@ -154,42 +137,119 @@
             }
         }
 
-        // --- Question generation ---
-        function generateQuestion() {
-            const precision = pickPrecision();
-            let num;
-            if (precision === 10) {
-                // 3-digit numbers, ones digit never 0 (non-trivial)
-                do { num = randInt(100, 999); } while (num % 10 === 0);
-            } else {
-                // 3-digit numbers, tens+ones never both 0 (non-trivial)
-                do { num = randInt(100, 999); } while (num % 100 === 0);
-            }
-            return { num, precision, answer: roundTo(num, precision) };
-        }
+        // --- Expression templates ---
+        // Each returns { html, ans } or null (if result would be trivial/out of range).
+        // × and − are typographic characters. <sup> used for exponents.
+        const TEMPLATES = [
+            // (a + b) × c
+            () => {
+                const a=ri(2,9), b=ri(2,9), c=ri(2,9);
+                return { html:`(${a} + ${b}) × ${c}`, ans:(a+b)*c };
+            },
+            // (a − b) × c
+            () => {
+                const b=ri(1,8), a=ri(b+1,12), c=ri(2,9);
+                return { html:`(${a} − ${b}) × ${c}`, ans:(a-b)*c };
+            },
+            // a × b + c × d
+            () => {
+                const a=ri(2,9), b=ri(2,9), c=ri(2,9), d=ri(2,9);
+                return { html:`${a} × ${b} + ${c} × ${d}`, ans:a*b+c*d };
+            },
+            // a × b − c × d  (positive result guaranteed)
+            () => {
+                let a, b, c, d;
+                let tries = 0;
+                do { a=ri(2,9); b=ri(2,9); c=ri(2,9); d=ri(2,9); tries++; } while (a*b <= c*d && tries < 20);
+                if (a*b <= c*d) return null;
+                return { html:`${a} × ${b} − ${c} × ${d}`, ans:a*b-c*d };
+            },
+            // a + b × c − d
+            () => {
+                const a=ri(1,12), b=ri(2,9), c=ri(2,9), d=ri(1,15);
+                return { html:`${a} + ${b} × ${c} − ${d}`, ans:a+b*c-d };
+            },
+            // (a + b) × (c + d)
+            () => {
+                const a=ri(1,8), b=ri(1,8), c=ri(1,8), d=ri(1,8);
+                return { html:`(${a} + ${b}) × (${c} + ${d})`, ans:(a+b)*(c+d) };
+            },
+            // (a − b) × (c + d)
+            () => {
+                const b=ri(1,7), a=ri(b+1,12), c=ri(1,8), d=ri(1,8);
+                return { html:`(${a} − ${b}) × (${c} + ${d})`, ans:(a-b)*(c+d) };
+            },
+            // a² + b × c
+            () => {
+                const a=ri(2,9), b=ri(2,9), c=ri(2,9);
+                return { html:`${a}<sup>2</sup> + ${b} × ${c}`, ans:a*a+b*c };
+            },
+            // a × b² − c
+            () => {
+                const a=ri(2,6), b=ri(2,7), c=ri(1,20);
+                return { html:`${a} × (${b}<sup>2</sup>) − ${c}`, ans:a*b*b-c };
+            },
+            // (a + b)² − c × d
+            () => {
+                const a=ri(1,6), b=ri(1,6), c=ri(1,9), d=ri(1,9);
+                return { html:`(${a} + ${b})<sup>2</sup> − ${c} × ${d}`, ans:(a+b)*(a+b)-c*d };
+            },
+            // a² − b × c
+            () => {
+                const a=ri(3,12), b=ri(1,9), c=ri(1,9);
+                const ans = a*a - b*c;
+                if (ans <= 0) return null;
+                return { html:`${a}<sup>2</sup> − ${b} × ${c}`, ans };
+            },
+            // a × (b + c) − d × e
+            () => {
+                const a=ri(2,8), b=ri(1,8), c=ri(1,8), d=ri(2,8), e=ri(2,8);
+                return { html:`${a} × (${b} + ${c}) − ${d} × ${e}`, ans:a*(b+c)-d*e };
+            },
+            // a × (b − c) + d
+            () => {
+                const c=ri(1,7), b=ri(c+1,10), a=ri(2,9), d=ri(1,12);
+                return { html:`${a} × (${b} − ${c}) + ${d}`, ans:a*(b-c)+d };
+            },
+            // a + b × (c − d)
+            () => {
+                const d=ri(1,7), c=ri(d+1,12), a=ri(1,20), b=ri(2,9);
+                return { html:`${a} + ${b} × (${c} − ${d})`, ans:a+b*(c-d) };
+            },
+            // a × b + c − d × e
+            () => {
+                const a=ri(2,9), b=ri(2,9), c=ri(1,20), d=ri(2,9), e=ri(2,9);
+                return { html:`${a} × ${b} + ${c} − ${d} × ${e}`, ans:a*b+c-d*e };
+            },
+            // (a + b)² + c
+            () => {
+                const a=ri(1,5), b=ri(1,5), c=ri(1,20);
+                return { html:`(${a} + ${b})<sup>2</sup> + ${c}`, ans:(a+b)*(a+b)+c };
+            },
+            // a × b² + c × d
+            () => {
+                const a=ri(1,5), b=ri(2,6), c=ri(2,9), d=ri(2,9);
+                return { html:`${a} × (${b}<sup>2</sup>) + ${c} × ${d}`, ans:a*b*b+c*d };
+            },
+        ];
 
-        // --- Render number with hint digit highlighted ---
-        function buildNumberHTML(num, precision) {
-            const s = String(num);
-            if (precision === 10) {
-                // highlight ones digit (last character) — it drives the rounding decision
-                return s.slice(0, -1) + '<span class="hint-digit">' + s.slice(-1) + '</span>';
-            } else {
-                // highlight tens+ones digits — they drive the rounding decision
-                return s.slice(0, -2) + '<span class="hint-digit">' + s.slice(-2) + '</span>';
+        function generateQuestion() {
+            let result = null;
+            let tries = 0;
+            while (tries < 50) {
+                tries++;
+                const tpl = TEMPLATES[ri(0, TEMPLATES.length - 1)];
+                const q = tpl();
+                if (q && q.ans >= -99 && q.ans <= 999) { result = q; break; }
             }
+            return result || { html: '(3 + 4) × 5', ans: 35 };
         }
 
         function loadQuestion() {
             const q = generateQuestion();
-            currentNum       = q.num;
-            currentPrecision = q.precision;
-            currentAnswer    = q.answer;
-
-            document.getElementById('questionSub').textContent =
-                'Round to the nearest ' + (q.precision === 10 ? '10' : '100');
-            document.getElementById('questionNumber').innerHTML = buildNumberHTML(q.num, q.precision);
-
+            currentAnswer  = q.ans;
+            currentExprHTML = q.html;
+            document.getElementById('equationDisplay').innerHTML = q.html + ' =';
             selectedAnswer = '';
             renderAnswer();
         }
@@ -200,13 +260,11 @@
                 selectedAnswer + '<span class="cursor"></span>';
         }
 
-        function appendToAnswer(str) {
-            if (selectedAnswer.length >= 4) return;
-            selectedAnswer += str;
-            // Trim any leading zeros beyond a single '0'
-            if (selectedAnswer.length > 1 && selectedAnswer[0] === '0') {
-                selectedAnswer = selectedAnswer.replace(/^0+/, '') || '0';
-            }
+        function appendDigit(d) {
+            if (selectedAnswer === '0') selectedAnswer = '';
+            if (selectedAnswer === '-') { if (d === '0') return; }
+            if (selectedAnswer.replace('-', '').length >= 3) return;
+            selectedAnswer += d;
             renderAnswer();
         }
 
@@ -233,21 +291,32 @@
             document.getElementById('questionscorrect').textContent = questionsCorrect;
             document.getElementById('questionsAnswered').textContent = questionsAnswered;
 
-            showPrev(currentNum + ' → ' + currentAnswer, wasCorrect);
+            showPrev(currentExprHTML + ' = ' + currentAnswer, wasCorrect);
             loadQuestion();
         });
 
-        function showPrev(summary, wasCorrect) {
+        function showPrev(summaryHTML, wasCorrect) {
             const el = document.getElementById('prevArea');
-            el.textContent  = summary + (wasCorrect ? '  ✓' : '  ✗');
-            el.className    = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+            el.innerHTML = summaryHTML + (wasCorrect ? '  ✓' : '  ✗');
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
         }
 
         // --- Buttons ---
         ['1','2','3','4','5','6','7','8','9','0'].forEach(d => {
-            document.getElementById('button' + d).addEventListener('click', () => appendToAnswer(d));
+            document.getElementById('button' + d).addEventListener('click', () => appendDigit(d));
         });
-        document.getElementById('button00').addEventListener('click', () => appendToAnswer('00'));
+
+        document.getElementById('negativeButton').addEventListener('click', () => {
+            if (selectedAnswer.startsWith('-')) {
+                selectedAnswer = selectedAnswer.slice(1);
+            } else if (selectedAnswer.length > 0) {
+                selectedAnswer = '-' + selectedAnswer;
+            } else {
+                selectedAnswer = '-';
+            }
+            renderAnswer();
+        });
+
         document.getElementById('deleteButton').addEventListener('click', () => {
             selectedAnswer = selectedAnswer.slice(0, -1);
             renderAnswer();
@@ -256,7 +325,9 @@
         // --- Keyboard ---
         document.addEventListener('keyup', e => {
             if (e.key >= '0' && e.key <= '9') {
-                appendToAnswer(e.key);
+                appendDigit(e.key);
+            } else if (e.key === '-') {
+                document.getElementById('negativeButton').click();
             } else if (e.key === 'Backspace' || e.key === 'Delete') {
                 selectedAnswer = selectedAnswer.slice(0, -1);
                 renderAnswer();
@@ -276,10 +347,7 @@
 
         // --- Init ---
         document.addEventListener('DOMContentLoaded', () => {
-            const labels = { '10': 'Rounding · Nearest 10', '100': 'Rounding · Nearest 100' };
-            const key = precisionList.length === 1 ? String(precisionList[0]) : 'mixed';
-            document.getElementById('modeIndicator').textContent =
-                key === 'mixed' ? 'Rounding · Mixed' : (labels[key] || 'Rounding');
+            document.getElementById('modeIndicator').textContent = 'Order of Operations';
             loadQuestion();
         });
     </script>

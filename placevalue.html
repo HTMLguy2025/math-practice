@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+
+        /* Place value chart */
+        .pv-display {
+            display: inline-flex;
+            margin: 2rem 0 0.75rem;
+        }
+
+        .pv-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0.65rem;
+            border-left: 1px solid rgba(190, 205, 218, 0.15);
+            border-bottom: 2px solid rgba(190, 205, 218, 0.2);
+        }
+        .pv-cell:last-child { border-right: 1px solid rgba(190, 205, 218, 0.15); }
+
+        .pv-digit {
+            font-size: 3.5rem;
+            font-weight: 700;
+            font-family: Roboto Mono;
+            color: rgba(220, 230, 245, 0.9);
+            line-height: 1.1;
+            padding-bottom: 3px;
+            border-bottom: 3px solid transparent;
+        }
+
+        .pv-cell.highlight .pv-digit {
+            color: #f06292;
+            border-bottom-color: #f06292;
+        }
+
+        .pv-place-label {
+            font-size: 0.66rem;
+            font-family: Roboto Mono;
+            color: rgba(190, 205, 218, 0.4);
+            padding: 0.2rem 0 0.3rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .pv-cell.highlight .pv-place-label {
+            color: rgba(240, 98, 146, 0.6);
+        }
+
+        /* Plain number display for tens-ones and hundreds-tens-ones */
+        .pv-number {
+            font-size: 4rem;
+            font-weight: 700;
+            font-family: Roboto Mono;
+            color: rgba(220, 230, 245, 0.95);
+            margin: 2rem 0 1rem;
+            line-height: 1;
+        }
+
+        /* Multiples-of-10 big prompt */
+        .mult10-prompt {
+            font-size: 1.4rem;
+            font-family: Roboto Mono;
+            color: rgba(190, 205, 218, 0.7);
+            margin: 2.25rem 0 0.25rem;
+        }
+        .mult10-prompt span {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: rgba(220, 230, 245, 0.95);
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            color: rgba(190, 205, 218, 0.8);
+            margin: 0.5rem 0 1rem;
+            min-height: 1.4rem;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 17vw;
+            min-width: 280px;
+            margin-bottom: 1rem;
+        }
+
+        .choice-btn {
+            padding: 14px 8px;
+            font-size: 1.15rem;
+            font-family: Roboto Mono;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.12s;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover { background-color: rgb(52, 75, 120); }
+        }
+
+        .choice-btn.correct-flash { background-color: rgb(55, 130, 55) !important; color: #fff; }
+        .choice-btn.wrong-flash   { background-color: rgb(150, 45, 45) !important; color: #fff; }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index:1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <span class="questionsCorrect" id="questionscorrect">0</span>
+                <span class="questionsCorrect">/</span>
+                <span class="questionsCorrect" id="questionsAnswered">0</span>
+                <span class="questionsCorrect"> correct</span>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="pvDisplay"></div>
+        <div id="questionText" class="question-text"></div>
+
+        <div id="choiceButtons" class="choice-grid"></div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const exerciseParam = params.get('exercise') || 'tens-ones';
+        const ALL_TYPES = ['tens-ones', 'multiples-of-10', 'hundreds-tens-ones'];
+        const exerciseList = exerciseParam.split(',').filter(e => ALL_TYPES.includes(e));
+        if (!exerciseList.length) exerciseList.push('tens-ones');
+
+        // --- State ---
+        let currentExercise = '';
+        let questionsCorrect = 0;
+        let questionsAnswered = 0;
+        let prevSummary = '';
+        let choicesLocked = false;
+
+        // --- Helpers ---
+        function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function pick(arr) { return arr[ri(0, arr.length - 1)]; }
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function makeChoices(correct, pool) {
+            const decoys = shuffle([...new Set(pool)].filter(l => l !== correct)).slice(0, 3);
+            return shuffle([correct, ...decoys]).map(l => ({ label: l, correct: l === correct }));
+        }
+
+        // --- Display builders ---
+
+        // Place value chart: digits and labels, one cell highlighted
+        function buildChart(digits, labels, highlightIdx) {
+            const cells = digits.map((d, i) =>
+                `<div class="pv-cell${i === highlightIdx ? ' highlight' : ''}">` +
+                `<div class="pv-digit">${d}</div>` +
+                `<div class="pv-place-label">${labels[i]}</div>` +
+                `</div>`
+            ).join('');
+            return `<div class="pv-display">${cells}</div>`;
+        }
+
+        // Multiples-of-10 display: "N tens = ?" style prompt
+        function buildMult10Display(n) {
+            return `<div class="mult10-prompt"><span>${n}</span> &nbsp;tens = ?</div>`;
+        }
+
+        // --- Score & prev ---
+        function updateScore() {
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+        }
+
+        function showPrev(text, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent = text;
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+        }
+
+        // --- Particles ---
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2, oy = rect.top + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist = 80 + Math.random() * 140;
+                const size = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[ri(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Choice buttons ---
+        function buildChoiceButtons(choices) {
+            const container = document.getElementById('choiceButtons');
+            container.innerHTML = '';
+            choicesLocked = false;
+            choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = ch.label;
+                btn.addEventListener('click', () => {
+                    if (choicesLocked) return;
+                    choicesLocked = true;
+                    const wasCorrect = ch.correct;
+                    [...container.children].forEach((b, j) => {
+                        if (choices[j].correct) b.classList.add('correct-flash');
+                        else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
+                    });
+                    if (wasCorrect) { spawnParticles(btn); questionsCorrect++; }
+                    questionsAnswered++;
+                    updateScore();
+                    showPrev(prevSummary + ' → ' + ch.label + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+                    setTimeout(() => loadQuestion(), 900);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Decoy pools ---
+        const ALL_PLACES = ['Ones', 'Tens', 'Hundreds', 'Thousands'];
+
+        // Build a pool of numeric decoys for a value question
+        function valuePool(correct, ...candidates) {
+            // candidates: various numeric values that might be plausible wrong answers
+            // Filter 0 unless correct is 0, and deduplicate
+            const filtered = candidates
+                .map(String)
+                .filter(v => v !== correct && (v !== '0' || correct === '0'));
+            // Always pad with some generic fallbacks so makeChoices has enough
+            const fallbacks = ['1', '5', '10', '20', '100', '200'].filter(v => v !== correct && !filtered.includes(v));
+            return [...new Set([...filtered, ...fallbacks])];
+        }
+
+        // --- Exercises ---
+
+        function loadTensOnes() {
+            const num = ri(10, 99);
+            const T = Math.floor(num / 10), O = num % 10;
+            const placeIdx = ri(0, 1); // 0 = tens, 1 = ones
+            const place = ['tens', 'ones'][placeIdx];
+            const digit = [T, O][placeIdx];
+            const correct = String(digit);
+            const pool = '0123456789'.split('').filter(v => v !== correct);
+
+            document.getElementById('pvDisplay').innerHTML =
+                `<div class="pv-number">${num}</div>`;
+
+            prevSummary = `${num} — ${place}: ${correct}`;
+            document.getElementById('questionText').textContent =
+                `What digit is in the ${place} place?`;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        function loadMultiplesOf10() {
+            const tensCount = ri(1, 9);
+
+            if (Math.random() < 0.5) {
+                // Show a multiple of 10 in the chart — ask how many tens
+                const num = tensCount * 10;
+                document.getElementById('pvDisplay').innerHTML =
+                    buildChart([String(tensCount), '0'], ['Tens', 'Ones'], 0);
+                const correct = String(tensCount);
+                const pool = [1,2,3,4,5,6,7,8,9].map(String).filter(v => v !== correct);
+                prevSummary = `${num} = ${tensCount} tens`;
+                document.getElementById('questionText').textContent =
+                    `How many tens are in ${num}?`;
+                buildChoiceButtons(makeChoices(correct, pool));
+            } else {
+                // Show "N tens = ?" — ask what the number is
+                document.getElementById('pvDisplay').innerHTML = buildMult10Display(tensCount);
+                const correct = String(tensCount * 10);
+                const decoys = [tensCount, tensCount * 10 + 10, tensCount * 10 - 10, tensCount * 100]
+                    .map(String).filter(v => v !== correct && parseInt(v) > 0);
+                prevSummary = `${tensCount} tens = ${correct}`;
+                document.getElementById('questionText').textContent =
+                    `What number is equal to ${tensCount} tens?`;
+                buildChoiceButtons(makeChoices(correct, decoys));
+            }
+        }
+
+        function loadHundredsTensOnes() {
+            const num = ri(100, 999);
+            const H = Math.floor(num / 100), T = Math.floor(num / 10) % 10, O = num % 10;
+            const placeIdx = ri(0, 2);
+            const place = ['hundreds', 'tens', 'ones'][placeIdx];
+            const digit = [H, T, O][placeIdx];
+            const correct = String(digit);
+            const pool = '0123456789'.split('').filter(v => v !== correct);
+
+            document.getElementById('pvDisplay').innerHTML =
+                `<div class="pv-number">${num}</div>`;
+
+            prevSummary = `${num} — ${place}: ${correct}`;
+            document.getElementById('questionText').textContent =
+                `What digit is in the ${place} place?`;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        // --- Load question ---
+        function loadQuestion() {
+            currentExercise = pick(exerciseList);
+            switch (currentExercise) {
+                case 'tens-ones':          loadTensOnes();         break;
+                case 'multiples-of-10':    loadMultiplesOf10();    break;
+                case 'hundreds-tens-ones': loadHundredsTensOnes(); break;
+            }
+        }
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        const EXERCISE_LABELS = {
+            'tens-ones':          'Tens & Ones',
+            'multiples-of-10':    'Multiples of 10',
+            'hundreds-tens-ones': 'Hundreds, Tens & Ones',
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('modeIndicator').textContent =
+                exerciseList.length === 1
+                    ? (EXERCISE_LABELS[exerciseList[0]] || 'Place Value')
+                    : 'Place Value';
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

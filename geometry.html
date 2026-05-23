@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+
+        .svg-area {
+            margin: 1.25rem 0 0.5rem;
+            line-height: 0;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            color: rgba(190, 205, 218, 0.8);
+            margin: 0.6rem 0 0.9rem;
+            min-height: 1.4rem;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 17vw;
+            min-width: 280px;
+            margin-bottom: 1rem;
+        }
+
+        .choice-btn {
+            padding: 14px 8px;
+            font-size: 1.15rem;
+            font-family: Roboto Mono;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.12s;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover { background-color: rgb(52, 75, 120); }
+        }
+
+        .choice-btn.correct-flash { background-color: rgb(55, 130, 55) !important; color: #fff; }
+        .choice-btn.wrong-flash   { background-color: rgb(150, 45, 45) !important; color: #fff; }
+
+        .coord-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 0.9rem;
+            font-size: 2rem;
+            color: rgba(190, 205, 218, 0.65);
+        }
+
+        .coord-box { display: inline-block; min-width: 3.2rem; }
+        .coord-box.active-box .displayedAnswer { outline: 2px solid rgba(100, 150, 220, 0.7); }
+
+        #mainContent {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 600px) {
+            body.coord-active #mainContent {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 2rem;
+            }
+            body.coord-active #svgArea {
+                flex-shrink: 0;
+                width: 280px;
+            }
+        }
+
+        body.coord-active #svgArea {
+            margin: 0.5rem 0;
+            max-width: min(280px, 78vw);
+        }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index:1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <span class="questionsCorrect" id="questionscorrect">0</span>
+                <span class="questionsCorrect">/</span>
+                <span class="questionsCorrect" id="questionsAnswered">0</span>
+                <span class="questionsCorrect"> correct</span>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="mainContent">
+        <div id="svgArea" class="svg-area"></div>
+        <div id="rightCol">
+        <div id="questionText" class="question-text"></div>
+
+        <!-- Numeric input -->
+        <div id="numericDisplay" class="displayedAnswerHolder" style="display:none;">
+            <div id="numericAnswerEl" class="displayedAnswer"><span class="cursor"></span></div>
+        </div>
+
+        <!-- Coordinate input -->
+        <div id="coordDisplay" style="display:none;">
+            <div class="coord-row">
+                <span>(</span>
+                <div class="displayedAnswerHolder coord-box active-box" id="xBox" onclick="focusCoord('x')">
+                    <div id="xAnswerEl" class="displayedAnswer"><span class="cursor"></span></div>
+                </div>
+                <span>,</span>
+                <div class="displayedAnswerHolder coord-box" id="yBox" onclick="focusCoord('y')">
+                    <div id="yAnswerEl" class="displayedAnswer"></div>
+                </div>
+                <span>)</span>
+            </div>
+        </div>
+
+        <!-- Choice buttons -->
+        <div id="choiceArea" style="display:none;">
+            <div id="choiceButtons" class="choice-grid"></div>
+        </div>
+
+        <!-- Number pad (numeric & coord modes) -->
+        <div id="numberPad" class="numberbuttons" style="display:none;">
+            <button id="geoBtn1" class="numButtons">1</button>
+            <button id="geoBtn2" class="numButtons">2</button>
+            <button id="geoBtn3" class="numButtons">3</button>
+            <button id="geoCheckmark" class="checkButton">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;display:block;">
+                    <path d="M 4 13 C 6 15 7 17 9 19 C 11 14 14 9 19 4"/>
+                </svg>
+            </button>
+            <button id="geoBtn4" class="numButtons">4</button>
+            <button id="geoBtn5" class="numButtons">5</button>
+            <button id="geoBtn6" class="numButtons">6</button>
+            <button id="geoBtn7" class="numButtons">7</button>
+            <button id="geoBtn8" class="numButtons">8</button>
+            <button id="geoBtn9" class="numButtons">9</button>
+            <button id="geoNegBtn" class="numButtons" style="visibility:hidden;">±</button>
+            <button id="geoBtn0" class="numButtons">0</button>
+            <button id="geoDeleteBtn" class="numButtons deleteButton">⌫</button>
+        </div>
+
+        </div><!-- rightCol -->
+        </div><!-- mainContent -->
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const exerciseParam = params.get('exercise') || 'area-triangle';
+        const ALL_TYPES = [
+            'area-triangle','area-square','area-rectangle','area-circle',
+            'perimeter-triangle','perimeter-square','perimeter-rectangle','perimeter-circle',
+            'volume','symmetry','classify-shapes','angles','coordinates'
+        ];
+        const exerciseList = exerciseParam.split(',').filter(e => ALL_TYPES.includes(e));
+        if (!exerciseList.length) exerciseList.push('area-triangle');
+
+        // --- State ---
+        let currentMode    = 'numeric';
+        let currentExercise = '';
+        let currentAnswer  = 0;
+        let coordAnswer    = { x: 0, y: 0 };
+        let numericInput   = '';
+        let xInput = '', yInput = '';
+        let activeCoord    = 'x';
+        let questionsCorrect  = 0;
+        let questionsAnswered = 0;
+        let prevSummary    = '';
+        let choicesLocked  = false;
+        let enterCooldown  = false;
+
+        // --- Helpers ---
+        function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function pick(arr) { return arr[ri(0, arr.length - 1)]; }
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2, oy = rect.top + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist  = 80 + Math.random() * 140;
+                const size  = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[ri(0,particleColors.length-1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- SVG helpers ---
+        const SVG_W = 240, SVG_H = 200;
+
+        function makeSVG() {
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SVG_W} ${SVG_H}" width="${SVG_W}" height="${SVG_H}">`;
+        }
+
+        function svgText(x, y, txt, opts) {
+            const fill   = opts?.fill   || 'rgba(190,205,218,0.9)';
+            const size   = opts?.size   || 14;
+            const anchor = opts?.anchor || 'middle';
+            const weight = opts?.weight || 'normal';
+            return `<text x="${x}" y="${y}" fill="${fill}" font-size="${size}" font-family="Roboto Mono" text-anchor="${anchor}" dominant-baseline="middle" font-weight="${weight}">${txt}</text>`;
+        }
+
+        function dot(x, y, fill) {
+            return `<circle cx="${x}" cy="${y}" r="4" fill="${fill || 'rgba(190,205,218,0.85)'}"/>`;
+        }
+
+        function arrowHead(fromX, fromY, toX, toY, fill) {
+            const f = fill || 'rgba(190,205,218,0.85)';
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const len = 11, spread = 0.42;
+            const ax = toX - len * Math.cos(angle - spread);
+            const ay = toY - len * Math.sin(angle - spread);
+            const bx = toX - len * Math.cos(angle + spread);
+            const by = toY - len * Math.sin(angle + spread);
+            return `<polygon points="${toX},${toY} ${ax},${ay} ${bx},${by}" fill="${f}"/>`;
+        }
+
+        // --- Mode switching ---
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('numericDisplay').style.display = mode === 'numeric' ? '' : 'none';
+            document.getElementById('coordDisplay').style.display   = mode === 'coord'   ? '' : 'none';
+            document.getElementById('choiceArea').style.display     = mode === 'choice'  ? '' : 'none';
+            document.getElementById('numberPad').style.display      = mode !== 'choice'  ? '' : 'none';
+            document.getElementById('geoNegBtn').style.visibility   = mode === 'coord'   ? 'visible' : 'hidden';
+            document.body.classList.toggle('coord-active', mode === 'coord');
+        }
+
+        // --- Render ---
+        function renderNumeric() {
+            document.getElementById('numericAnswerEl').innerHTML = numericInput + '<span class="cursor"></span>';
+        }
+
+        function renderCoord() {
+            document.getElementById('xAnswerEl').innerHTML = xInput + (activeCoord === 'x' ? '<span class="cursor"></span>' : '');
+            document.getElementById('yAnswerEl').innerHTML = yInput + (activeCoord === 'y' ? '<span class="cursor"></span>' : '');
+            document.getElementById('xBox').classList.toggle('active-box', activeCoord === 'x');
+            document.getElementById('yBox').classList.toggle('active-box', activeCoord === 'y');
+        }
+
+        function focusCoord(axis) { activeCoord = axis; renderCoord(); }
+
+        // --- Digit input ---
+        function appendDigit(d) {
+            if (currentMode === 'numeric') {
+                if (numericInput === '-' && d === '0') return;
+                const maxLen = currentExercise === 'area-circle' ? 6 : 4;
+                if (numericInput.replace('-','').length >= maxLen) return;
+                numericInput += d;
+                renderNumeric();
+            } else if (currentMode === 'coord') {
+                if (activeCoord === 'x') {
+                    if (xInput.replace('-','').length >= 2) { focusCoord('y'); return; }
+                    xInput += d;
+                } else {
+                    if (yInput.replace('-','').length >= 2) return;
+                    yInput += d;
+                }
+                renderCoord();
+            }
+        }
+
+        function appendNeg() {
+            if (currentMode === 'numeric' && currentExercise === 'area-circle') {
+                if (!numericInput.includes('.')) { numericInput += '.'; renderNumeric(); }
+                return;
+            }
+            if (currentMode !== 'coord') return;
+            if (activeCoord === 'x') {
+                xInput = xInput.startsWith('-') ? xInput.slice(1) : (xInput.length ? '-' + xInput : '-');
+            } else {
+                yInput = yInput.startsWith('-') ? yInput.slice(1) : (yInput.length ? '-' + yInput : '-');
+            }
+            renderCoord();
+        }
+
+        function deleteLast() {
+            if (currentMode === 'numeric') {
+                numericInput = numericInput.slice(0, -1);
+                renderNumeric();
+            } else if (currentMode === 'coord') {
+                if (activeCoord === 'x') xInput = xInput.slice(0, -1);
+                else yInput = yInput.slice(0, -1);
+                renderCoord();
+            }
+        }
+
+        // --- Score & prev ---
+        function updateScore() {
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+        }
+
+        function showPrev(text, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent = text;
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+        }
+
+        // --- Check (numeric & coord) ---
+        document.getElementById('geoCheckmark').addEventListener('click', () => {
+            const btn = document.getElementById('geoCheckmark');
+            animateCheck(btn);
+
+            let wasCorrect = false;
+            if (currentMode === 'numeric') {
+                wasCorrect = parseFloat(numericInput) === currentAnswer;
+            } else if (currentMode === 'coord') {
+                wasCorrect = parseInt(xInput) === coordAnswer.x && parseInt(yInput) === coordAnswer.y;
+            }
+
+            if (wasCorrect) { setTimeout(() => spawnParticles(btn), 325); questionsCorrect++; }
+            questionsAnswered++;
+            updateScore();
+            showPrev(prevSummary + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+
+            loadQuestion();
+        });
+
+        function animateCheck(btn) {
+            const path = btn.querySelector('svg path');
+            const len = path.getTotalLength();
+            path.animate([
+                { offset: 0,    strokeDasharray: `${len} ${len}`, opacity: 1,   easing: 'ease-in'  },
+                { offset: 0.38, strokeDasharray: `0.5 ${len}`,    opacity: 0.2, easing: 'linear'   },
+                { offset: 0.44, strokeDasharray: `${len} ${len}`, opacity: 0,   easing: 'ease-out' },
+                { offset: 1.0,  strokeDasharray: `${len} ${len}`, opacity: 1 },
+            ], { duration: 325 });
+        }
+
+        // --- Choice buttons ---
+        function buildChoiceButtons(choices) {
+            const container = document.getElementById('choiceButtons');
+            container.innerHTML = '';
+            choicesLocked = false;
+            choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = ch.label;
+                btn.addEventListener('click', () => {
+                    if (choicesLocked) return;
+                    choicesLocked = true;
+                    const wasCorrect = ch.correct;
+                    [...container.children].forEach((b, j) => {
+                        if (choices[j].correct) b.classList.add('correct-flash');
+                        else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
+                    });
+                    if (wasCorrect) { spawnParticles(btn); questionsCorrect++; }
+                    questionsAnswered++;
+                    updateScore();
+                    const qText = document.getElementById('questionText').textContent;
+                    showPrev(qText + ' → ' + ch.label + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+                    setTimeout(() => loadQuestion(), 900);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // Builds 4 shuffled choices from pool + extras, with exactly one correct
+        function makeChoices(correct, pool, extras) {
+            const all = [...new Set([...extras, ...pool])];
+            const decoys = shuffle(all.filter(l => l !== correct)).slice(0, 3);
+            return shuffle([correct, ...decoys]).map(l => ({ label: l, correct: l === correct }));
+        }
+
+        // ===========================
+        // EXERCISE LOADERS
+        // ===========================
+
+        function loadQuestion() {
+            currentExercise = pick(exerciseList);
+            numericInput = ''; xInput = ''; yInput = ''; activeCoord = 'x';
+            const negBtn = document.getElementById('geoNegBtn');
+            negBtn.style.visibility = 'hidden';
+            negBtn.textContent = '±';
+
+            switch (currentExercise) {
+                case 'area-triangle':      loadAreaTriangle();     break;
+                case 'area-square':        loadAreaSquare();       break;
+                case 'area-rectangle':     loadAreaRectangle();    break;
+                case 'area-circle':        loadAreaCircle();       break;
+                case 'perimeter-triangle': loadPerimeterTriangle(); break;
+                case 'perimeter-square':   loadPerimeterSquare();  break;
+                case 'perimeter-rectangle': loadPerimeterRectangle(); break;
+                case 'perimeter-circle':   loadPerimeterCircle();  break;
+                case 'volume':             loadVolume();           break;
+                case 'symmetry':           loadSymmetry();         break;
+                case 'classify-shapes':    loadClassifyShapes();   break;
+                case 'angles':             loadAngles();           break;
+                case 'coordinates':        loadCoordinates();      break;
+            }
+        }
+
+        // --- Area exercises ---
+        function loadAreaTriangle() {
+            switchMode('numeric');
+            renderNumeric();
+            if (Math.random() < 0.5) {
+                const b = 2 * ri(3, 7);
+                const h = ri(5, 14);
+                currentAnswer = (b * h) / 2;
+                prevSummary = `Area of triangle b=${b}, h=${h} = ${currentAnswer}`;
+                document.getElementById('svgArea').innerHTML = buildTriangleAreaSVG(b, h);
+                document.getElementById('questionText').textContent = 'What is the area of this triangle?';
+            } else {
+                const a = 2 * ri(1, 6);
+                const b = ri(2, 12);
+                currentAnswer = (a * b) / 2;
+                prevSummary = `Area of right triangle a=${a}, b=${b} = ${currentAnswer}`;
+                document.getElementById('svgArea').innerHTML = buildRightTriangleSVG(a, b);
+                document.getElementById('questionText').textContent = 'What is the area of this right triangle?';
+            }
+        }
+
+        function loadAreaRectangle() {
+            const w = ri(2, 14), h = ri(2, 14);
+            currentAnswer = w * h;
+            prevSummary = `Area of rectangle ${w}×${h} = ${w*h}`;
+            switchMode('numeric');
+            renderNumeric();
+            const useBaseHeight = Math.random() < 0.5;
+            document.getElementById('svgArea').innerHTML = buildRectSVG(w, h, useBaseHeight);
+            document.getElementById('questionText').textContent = useBaseHeight
+                ? 'What is the area? (A = base × height)'
+                : 'What is the area of this rectangle?';
+        }
+
+        function loadAreaSquare() {
+            const s = ri(2, 14);
+            currentAnswer = s * s;
+            prevSummary = `Area of square s=${s} = ${s*s}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildSquareSVG(s);
+            document.getElementById('questionText').textContent = 'What is the area of this square?';
+        }
+
+        function loadAreaCircle() {
+            const r = ri(1, 10);
+            currentAnswer = parseFloat((3.14 * r * r).toFixed(2));
+            switchMode('numeric');
+            renderNumeric();
+            const negBtn = document.getElementById('geoNegBtn');
+            negBtn.style.visibility = 'visible';
+            negBtn.textContent = '.';
+            if (Math.random() < 0.5) {
+                prevSummary = `Area of circle r=${r} = ${currentAnswer}`;
+                document.getElementById('svgArea').innerHTML = buildCircleSVG(r);
+                document.getElementById('questionText').textContent = 'What is the area? (A = π × r², use π ≈ 3.14, round to nearest hundredth)';
+            } else {
+                const d = r * 2;
+                prevSummary = `Area of circle d=${d} = ${currentAnswer}`;
+                document.getElementById('svgArea').innerHTML = buildCircleDiameterSVG(d);
+                document.getElementById('questionText').textContent = 'What is the area? (A = π × (d÷2)², use π ≈ 3.14, round to nearest hundredth)';
+            }
+        }
+
+        // --- Perimeter exercises ---
+        function loadPerimeterTriangle() {
+            const a = ri(5, 14), b = ri(5, 14), c = ri(5, 14);
+            currentAnswer = a + b + c;
+            prevSummary = `Perimeter of triangle = ${a+b+c}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildTrianglePerimeterSVG(a, b, c);
+            document.getElementById('questionText').textContent = 'What is the perimeter of this triangle?';
+        }
+
+        function loadPerimeterSquare() {
+            const s = ri(2, 14);
+            currentAnswer = 4 * s;
+            prevSummary = `Perimeter of square s=${s} = ${4*s}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildSquareSVG(s);
+            document.getElementById('questionText').textContent = 'What is the perimeter of this square?';
+        }
+
+        function loadPerimeterRectangle() {
+            const w = ri(2, 14), h = ri(2, 14);
+            currentAnswer = 2 * (w + h);
+            prevSummary = `Perimeter of rectangle ${w}×${h} = ${2*(w+h)}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildRectSVG(w, h);
+            document.getElementById('questionText').textContent = 'What is the perimeter of this rectangle?';
+        }
+
+        function loadPerimeterCircle() {
+            const r = ri(1, 10);
+            currentAnswer = Math.round(2 * 3.14 * r);
+            prevSummary = `Circumference r=${r} = ${currentAnswer}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildCircleSVG(r);
+            document.getElementById('questionText').textContent = 'What is the circumference? (C = 2 × π × r, use π ≈ 3.14, round to nearest whole number)';
+        }
+
+        // --- Area/Perimeter SVG builders ---
+        function buildTriangleAreaSVG(b, h) {
+            const scale = Math.min(130 / Math.max(b, h), 10);
+            const rw = b * scale, rh = h * scale;
+            const x0 = (SVG_W - rw) / 2;
+            const y1 = 168;
+            const Cx = x0 + rw * 0.38, Cy = y1 - rh;
+            const Dx = Cx, Dy = y1;
+            const stroke = 'rgba(190,205,218,0.85)';
+            const dimColor = 'rgba(150,180,240,0.75)';
+            return makeSVG() +
+                `<polygon points="${x0},${y1} ${x0+rw},${y1} ${Cx.toFixed(1)},${Cy.toFixed(1)}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                `<line x1="${Cx.toFixed(1)}" y1="${Cy.toFixed(1)}" x2="${Dx.toFixed(1)}" y2="${Dy}" stroke="${dimColor}" stroke-width="1.5" stroke-dasharray="5,3"/>` +
+                `<polyline points="${Dx+8},${Dy} ${Dx+8},${Dy-8} ${Dx},${Dy-8}" fill="none" stroke="${dimColor}" stroke-width="1.3"/>` +
+                svgText((x0 + x0+rw) / 2, y1 + 16, b, { size: 14 }) +
+                svgText(Dx + 15, (Cy + Dy) / 2, h, { size: 14 }) +
+                '</svg>';
+        }
+
+        function buildRightTriangleSVG(a, b) {
+            const scale = Math.min(130 / Math.max(a, b), 10);
+            const ra = Math.round(a * scale), rb = Math.round(b * scale);
+            const x1 = (SVG_W - ra) / 2, y1 = (SVG_H + rb) / 2;
+            const x2 = x1 + ra, y2 = y1;
+            const x3 = x1, y3 = y1 - rb;
+            const stroke = 'rgba(190,205,218,0.85)';
+            const dimColor = 'rgba(150,180,240,0.75)';
+            const sq = 10;
+            return makeSVG() +
+                `<polygon points="${x1},${y1} ${x2},${y2} ${x3},${y3}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                `<polyline points="${x1+sq},${y1} ${x1+sq},${y1-sq} ${x1},${y1-sq}" fill="none" stroke="${dimColor}" stroke-width="1.5"/>` +
+                svgText((x1 + x2) / 2, y2 + 16, a, { size: 14 }) +
+                svgText(x3 - 15, (y3 + y1) / 2, b, { size: 14 }) +
+                '</svg>';
+        }
+
+        function buildTrianglePerimeterSVG(a, b, c) {
+            const Ax=55, Ay=165, Bx=185, By=165, Cx=150, Cy=52;
+            const stroke = 'rgba(190,205,218,0.85)';
+            return makeSVG() +
+                `<polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                svgText((Ax+Bx)/2, Ay + 16, b, { size: 14 }) +
+                svgText((Bx+Cx)/2 + 14, (By+Cy)/2, c, { size: 14, anchor: 'start' }) +
+                svgText((Ax+Cx)/2 - 14, (Ay+Cy)/2, a, { size: 14, anchor: 'end' }) +
+                '</svg>';
+        }
+
+        function buildSquareSVG(s) {
+            const scale = Math.min(130 / s, 12);
+            const rs = Math.round(s * scale);
+            const x0 = (SVG_W - rs) / 2, y0 = (SVG_H - rs) / 2;
+            const stroke = 'rgba(190,205,218,0.85)';
+            return makeSVG() +
+                `<rect x="${x0}" y="${y0}" width="${rs}" height="${rs}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                svgText(x0 + rs/2, y0 + rs + 16, s, { size: 14 }) +
+                '</svg>';
+        }
+
+        function buildCircleSVG(r) {
+            const cx = SVG_W / 2, cy = SVG_H / 2, dispR = 72;
+            const stroke = 'rgba(190,205,218,0.85)';
+            const dimColor = 'rgba(150,180,240,0.75)';
+            return makeSVG() +
+                `<circle cx="${cx}" cy="${cy}" r="${dispR}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                `<line x1="${cx}" y1="${cy}" x2="${cx+dispR}" y2="${cy}" stroke="${dimColor}" stroke-width="1.5"/>` +
+                dot(cx, cy) +
+                svgText(cx + dispR/2, cy - 12, r, { size: 14 }) +
+                '</svg>';
+        }
+
+        function buildCircleDiameterSVG(d) {
+            const cx = SVG_W / 2, cy = SVG_H / 2, dispR = 72;
+            const stroke = 'rgba(190,205,218,0.85)';
+            const dimColor = 'rgba(150,180,240,0.75)';
+            return makeSVG() +
+                `<circle cx="${cx}" cy="${cy}" r="${dispR}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>` +
+                `<line x1="${cx-dispR}" y1="${cy}" x2="${cx+dispR}" y2="${cy}" stroke="${dimColor}" stroke-width="1.5"/>` +
+                dot(cx - dispR, cy) +
+                dot(cx + dispR, cy) +
+                svgText(cx, cy - 12, d, { size: 14 }) +
+                '</svg>';
+        }
+
+        function buildRectSVG(w, h, baseHeight = false) {
+            const scale = Math.min(130 / Math.max(w, h), 12);
+            const rw = Math.round(w * scale), rh = Math.round(h * scale);
+            const x0 = (SVG_W - rw) / 2, y0 = (SVG_H - rh) / 2;
+            const cx = x0 + rw / 2, cy = y0 + rh / 2;
+            const stroke = 'rgba(190,205,218,0.85)';
+            const rect = `<rect x="${x0}" y="${y0}" width="${rw}" height="${rh}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2"/>`;
+            if (baseHeight) {
+                return makeSVG() + rect +
+                    svgText(cx, y0 + rh + 16, w, { size: 15 }) +
+                    svgText(x0 + rw + 14, cy, h, { size: 15, anchor: 'start' }) +
+                    '</svg>';
+            }
+            return makeSVG() + rect +
+                svgText(cx, y0 - 13, w, { size: 15 }) +
+                svgText(x0 - 14, cy, h, { size: 15 }) +
+                '</svg>';
+        }
+
+        // --- Volume ---
+        function loadVolume() {
+            const l = ri(2, 10), w = ri(2, 10), h = ri(2, 10);
+            currentAnswer = l * w * h;
+            prevSummary   = `Volume ${l}×${w}×${h} = ${l*w*h}`;
+            switchMode('numeric');
+            renderNumeric();
+            document.getElementById('svgArea').innerHTML = buildPrismSVG(l, w, h);
+            document.getElementById('questionText').textContent = 'What is the volume of this rectangular prism?';
+        }
+
+        function buildPrismSVG(l, w, h) {
+            const scale = Math.min(90 / Math.max(l, w, h), 9);
+            const sl = l * scale, sw = w * scale, sh = h * scale;
+            const dx = sl * 0.866, dyl = sl * 0.5;
+            const dxw = sw * 0.866, dyw = sw * 0.5;
+
+            const bx = SVG_W / 2 - dx / 2 + dxw / 2;
+            const by = SVG_H - 28;
+            const A=[bx,by], B=[bx-dx,by-dyl], C=[bx-dx+dxw,by-dyl-dyw], D=[bx+dxw,by-dyw];
+            const E=[bx,by-sh], F=[bx-dx,by-dyl-sh], G=[bx-dx+dxw,by-dyl-dyw-sh], H=[bx+dxw,by-dyw-sh];
+
+            const stroke = 'rgba(190,205,218,0.7)';
+            const sw2 = 1.5;
+            function pt(v) { return v[0].toFixed(1)+','+v[1].toFixed(1); }
+            function poly(verts, fill) {
+                return `<polygon points="${verts.map(pt).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width="${sw2}"/>`;
+            }
+
+            const midAB = [(A[0]+B[0])/2, (A[1]+B[1])/2];
+            const midAD = [(A[0]+D[0])/2, (A[1]+D[1])/2];
+            const midAE = [(A[0]+E[0])/2+10, (A[1]+E[1])/2];
+
+            return makeSVG() +
+                poly([A,B,C,D], 'rgba(80,120,200,0.18)') +
+                poly([A,B,F,E], 'rgba(60,90,180,0.25)') +
+                poly([A,D,H,E], 'rgba(80,120,200,0.30)') +
+                poly([E,F,G,H], 'rgba(80,120,200,0.28)') +
+                `<line x1="${F[0].toFixed(1)}" y1="${F[1].toFixed(1)}" x2="${G[0].toFixed(1)}" y2="${G[1].toFixed(1)}" stroke="${stroke}" stroke-width="${sw2}"/>` +
+                `<line x1="${G[0].toFixed(1)}" y1="${G[1].toFixed(1)}" x2="${H[0].toFixed(1)}" y2="${H[1].toFixed(1)}" stroke="${stroke}" stroke-width="${sw2}"/>` +
+                `<line x1="${G[0].toFixed(1)}" y1="${G[1].toFixed(1)}" x2="${C[0].toFixed(1)}" y2="${C[1].toFixed(1)}" stroke="${stroke}" stroke-width="${sw2}"/>` +
+                svgText(midAB[0]-6, midAB[1]+6, l, { size: 13 }) +
+                svgText(midAD[0]+8, midAD[1]+6, w, { size: 13 }) +
+                svgText(midAE[0], midAE[1], h, { size: 13 }) +
+                '</svg>';
+        }
+
+        // --- Shapes (used by symmetry & classify-shapes) ---
+        const SX = SVG_W / 2, SY = SVG_H / 2 + 8;
+
+        const SHAPES = {
+            equilateral: {
+                label: 'Equilateral Triangle', classify: 'Equilateral', byType: 'Triangle', symmetry: 3,
+                makePoints: () => [0,1,2].map(i => [
+                    SX + 78 * Math.cos(-Math.PI/2 + i * 2*Math.PI/3),
+                    SY + 78 * Math.sin(-Math.PI/2 + i * 2*Math.PI/3)
+                ])
+            },
+            isosceles: {
+                label: 'Isosceles Triangle', classify: 'Isosceles', byType: 'Triangle', symmetry: 1,
+                makePoints: () => [[SX, SY-70], [SX-58, SY+52], [SX+58, SY+52]]
+            },
+            scalene: {
+                label: 'Scalene Triangle', classify: 'Scalene', byType: 'Triangle', symmetry: 0,
+                makePoints: () => [[SX-68, SY+50], [SX+62, SY+46], [SX+20, SY-60]]
+            },
+            right: {
+                label: 'Right Triangle', classify: 'Right', byType: 'Triangle', symmetry: 0,
+                makePoints: () => [[SX-65, SY+50], [SX+70, SY+50], [SX-65, SY-50]],
+                rightAngleAt: [SX-65, SY+50]
+            },
+            rectangle: {
+                label: 'Rectangle', byType: 'Quadrilateral', symmetry: 2,
+                makePoints: () => [[SX-80,SY-40],[SX+80,SY-40],[SX+80,SY+40],[SX-80,SY+40]]
+            },
+            square: {
+                label: 'Square', byType: 'Quadrilateral', symmetry: 4,
+                makePoints: () => { const s=56; return [[SX-s,SY-s],[SX+s,SY-s],[SX+s,SY+s],[SX-s,SY+s]]; }
+            },
+        };
+
+        function computeInteriorAngle(prev, curr, next) {
+            const v1 = [prev[0]-curr[0], prev[1]-curr[1]];
+            const v2 = [next[0]-curr[0], next[1]-curr[1]];
+            const dot = v1[0]*v2[0] + v1[1]*v2[1];
+            const len1 = Math.hypot(v1[0], v1[1]);
+            const len2 = Math.hypot(v2[0], v2[1]);
+            return Math.round(Math.acos(Math.max(-1, Math.min(1, dot / (len1 * len2)))) * 180 / Math.PI);
+        }
+
+        function angleLabelPos(prev, curr, next, offset) {
+            const v1 = [prev[0]-curr[0], prev[1]-curr[1]];
+            const v2 = [next[0]-curr[0], next[1]-curr[1]];
+            const u1 = [v1[0]/Math.hypot(...v1), v1[1]/Math.hypot(...v1)];
+            const u2 = [v2[0]/Math.hypot(...v2), v2[1]/Math.hypot(...v2)];
+            const bx = u1[0]+u2[0], by = u1[1]+u2[1];
+            const blen = Math.hypot(bx, by);
+            if (blen < 0.001) return curr;
+            return [curr[0] + (bx/blen)*offset, curr[1] + (by/blen)*offset];
+        }
+
+        function buildPolygonSVG(pts, shape, showAngles) {
+            const stroke = 'rgba(190,205,218,0.85)';
+            const ptStr = pts.map(p => p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+            let extra = '';
+            if (shape.rightAngleAt) {
+                const [rx, ry] = shape.rightAngleAt;
+                extra = `<polyline points="${rx+14},${ry} ${rx+14},${ry-14} ${rx},${ry-14}" fill="none" stroke="${stroke}" stroke-width="1.6"/>`;
+            }
+            let angleLabels = '';
+            if (showAngles) {
+                const n = pts.length;
+                for (let i = 0; i < n; i++) {
+                    const prev = pts[(i - 1 + n) % n];
+                    const curr = pts[i];
+                    const next = pts[(i + 1) % n];
+                    const deg = computeInteriorAngle(prev, curr, next);
+                    const [tx, ty] = angleLabelPos(prev, curr, next, 22);
+                    angleLabels += svgText(tx.toFixed(1), ty.toFixed(1), deg + '°', { size: 11, fill: 'rgba(190,205,218,0.75)' });
+                }
+            }
+            return makeSVG() +
+                `<polygon points="${ptStr}" fill="rgba(80,120,200,0.18)" stroke="${stroke}" stroke-width="2.2"/>` +
+                extra + angleLabels + '</svg>';
+        }
+
+        // --- Symmetry ---
+        function loadSymmetry() {
+            const key = pick(Object.keys(SHAPES));
+            const shape = SHAPES[key];
+            const sym = shape.symmetry;
+            const pool = [0,1,2,3,4];
+            const decoys = shuffle(pool.filter(n => n !== sym)).slice(0, 3);
+            const choices = shuffle([sym, ...decoys]).map(n => ({ label: String(n), correct: n === sym }));
+            switchMode('choice');
+            buildChoiceButtons(choices);
+            document.getElementById('svgArea').innerHTML = buildPolygonSVG(shape.makePoints(), shape, true);
+            document.getElementById('questionText').textContent = 'How many lines of symmetry does this shape have?';
+        }
+
+        // --- Classify Shapes ---
+        function loadClassifyShapes() {
+            const key = pick(Object.keys(SHAPES));
+            const shape = SHAPES[key];
+            const useClassify = shape.classify && Math.random() < 0.5;
+
+            let correct, pool, question;
+            if (useClassify) {
+                correct  = shape.classify;
+                pool     = ['Equilateral', 'Isosceles', 'Scalene', 'Right'];
+                question = 'How would you classify this triangle?';
+            } else {
+                correct  = shape.byType;
+                pool     = ['Triangle', 'Quadrilateral', 'Pentagon', 'Hexagon'];
+                question = 'What type of polygon is this?';
+            }
+
+            switchMode('choice');
+            buildChoiceButtons(makeChoices(correct, pool, []));
+            document.getElementById('svgArea').innerHTML = buildPolygonSVG(shape.makePoints(), shape);
+            document.getElementById('questionText').textContent = question;
+        }
+
+        // --- Angles ---
+        function loadAngles() {
+            let deg;
+            do { deg = ri(15, 165); } while (deg >= 83 && deg <= 97);
+
+            switchMode('choice');
+            const offsets = shuffle([-30, -15, 15, 30]);
+            const decoys = offsets.slice(0, 3).map(o => {
+                let v = deg + o;
+                if (v < 10)  v = deg + Math.abs(o);
+                if (v > 170) v = deg - Math.abs(o);
+                return v;
+            });
+            const choices = shuffle([deg, ...decoys]).map(v => ({ label: v + '°', correct: v === deg }));
+            buildChoiceButtons(choices);
+            document.getElementById('svgArea').innerHTML = buildAngleSVG(deg);
+            document.getElementById('questionText').textContent = 'What is the measure of this angle?';
+        }
+
+        function buildAngleSVG(deg) {
+            const vx = 55, vy = SVG_H - 32;
+            const rayLen = 115;
+            const r1x = vx + rayLen, r1y = vy;
+            const r2x = vx + rayLen * Math.cos(-deg * Math.PI / 180);
+            const r2y = vy + rayLen * Math.sin(-deg * Math.PI / 180);
+            const arcR = 30;
+            const ax = vx + arcR, ay = vy;
+            const bx = vx + arcR * Math.cos(-deg * Math.PI / 180);
+            const by = vy + arcR * Math.sin(-deg * Math.PI / 180);
+            const stroke = 'rgba(190,205,218,0.85)';
+            const arcColor = 'rgba(130,170,240,0.7)';
+            return makeSVG() +
+                `<line x1="${vx}" y1="${vy}" x2="${r1x}" y2="${r1y}" stroke="${stroke}" stroke-width="2.2"/>` +
+                arrowHead(vx, vy, r1x, r1y) +
+                `<line x1="${vx}" y1="${vy}" x2="${r2x.toFixed(1)}" y2="${r2y.toFixed(1)}" stroke="${stroke}" stroke-width="2.2"/>` +
+                arrowHead(vx, vy, r2x, r2y) +
+                dot(vx, vy) +
+                `<path d="M ${ax} ${ay} A ${arcR} ${arcR} 0 0 0 ${bx.toFixed(1)} ${by.toFixed(1)}" fill="none" stroke="${arcColor}" stroke-width="1.8"/>` +
+                '</svg>';
+        }
+
+        // --- Coordinates ---
+        function loadCoordinates() {
+            const range = 5;
+            let px, py;
+            do { px = ri(-range, range); py = ri(-range, range); } while (px === 0 && py === 0);
+            coordAnswer = { x: px, y: py };
+            prevSummary = `Point (${px}, ${py})`;
+            switchMode('coord');
+            renderCoord();
+            document.getElementById('svgArea').innerHTML = buildCoordSVG(px, py, range);
+            document.getElementById('questionText').textContent = 'What are the coordinates of the point?';
+        }
+
+        function buildCoordSVG(px, py, range) {
+            const size = 300;
+            const margin = 28;
+            const spacing = (size - 2 * margin) / (2 * range); // 24.4px per unit
+            const ox = size / 2, oy = size / 2;
+            const half = spacing * range;
+            const gridColor = 'rgba(190,205,218,0.13)';
+            const axisColor = 'rgba(190,205,218,0.55)';
+            const labelColor = 'rgba(190,205,218,0.5)';
+
+            let lines = '';
+            for (let i = -range; i <= range; i++) {
+                const gx = ox + i * spacing, gy = oy - i * spacing;
+                const isAxis = i === 0;
+                const c = isAxis ? axisColor : gridColor;
+                const sw = isAxis ? 1.5 : 1;
+                lines += `<line x1="${gx.toFixed(1)}" y1="${(oy-half).toFixed(1)}" x2="${gx.toFixed(1)}" y2="${(oy+half).toFixed(1)}" stroke="${c}" stroke-width="${sw}"/>`;
+                lines += `<line x1="${(ox-half).toFixed(1)}" y1="${gy.toFixed(1)}" x2="${(ox+half).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="${c}" stroke-width="${sw}"/>`;
+            }
+
+            let labels = '';
+            for (let i = -range; i <= range; i++) {
+                if (i === 0) continue;
+                labels += svgText((ox + i*spacing).toFixed(1), (oy + 14).toFixed(1), i, { size: 11, fill: labelColor });
+                labels += svgText((ox - 13).toFixed(1), (oy - i*spacing).toFixed(1), i, { size: 11, fill: labelColor, anchor: 'end' });
+            }
+            labels += svgText((ox + half + 18).toFixed(1), oy, 'x', { size: 14, fill: axisColor });
+            labels += svgText(ox, (oy - half - 16).toFixed(1), 'y', { size: 14, fill: axisColor });
+
+            const af = axisColor;
+            const arrowExtra = 12;
+            const arrows =
+                arrowHead(ox, oy, ox, oy - half - arrowExtra, af) +
+                arrowHead(ox, oy, ox, oy + half + arrowExtra, af) +
+                arrowHead(ox, oy, ox + half + arrowExtra, oy, af) +
+                arrowHead(ox, oy, ox - half - arrowExtra, oy, af);
+
+            const dotX = ox + px * spacing, dotY = oy - py * spacing;
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" style="width:100%;height:auto;">` +
+                lines + labels + arrows +
+                `<circle cx="${dotX.toFixed(1)}" cy="${dotY.toFixed(1)}" r="6" fill="#f06292"/>` +
+                '</svg>';
+        }
+
+        // --- Keyboard ---
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Tab' && currentMode === 'coord') {
+                e.preventDefault();
+                focusCoord(activeCoord === 'x' ? 'y' : 'x');
+            }
+        });
+
+        document.addEventListener('keyup', e => {
+            if (currentMode === 'choice') return;
+            if (e.key >= '0' && e.key <= '9') appendDigit(e.key);
+            else if (e.key === '.') appendNeg();
+            else if (e.key === '-') appendNeg();
+            else if (e.key === 'Backspace' || e.key === 'Delete') deleteLast();
+            else if (e.key === 'Enter') {
+                if (enterCooldown) return;
+                enterCooldown = true;
+                setTimeout(() => { enterCooldown = false; }, 400);
+                document.getElementById('geoCheckmark').click();
+            }
+            else if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && currentMode === 'coord')
+                focusCoord(activeCoord === 'x' ? 'y' : 'x');
+        });
+
+        // --- Num pad buttons ---
+        ['1','2','3','4','5','6','7','8','9','0'].forEach(d =>
+            document.getElementById('geoBtn' + d).addEventListener('click', () => appendDigit(d))
+        );
+        document.getElementById('geoNegBtn').addEventListener('click', appendNeg);
+        document.getElementById('geoDeleteBtn').addEventListener('click', deleteLast);
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        const EXERCISE_LABELS = {
+            'area-triangle':      'Area: Triangle',
+            'area-square':        'Area: Square',
+            'area-rectangle':     'Area: Rectangle',
+            'area-circle':        'Area: Circle',
+            'perimeter-triangle': 'Perimeter: Triangle',
+            'perimeter-square':   'Perimeter: Square',
+            'perimeter-rectangle':'Perimeter: Rectangle',
+            'perimeter-circle':   'Circumference: Circle',
+            'volume':             'Volume',
+            'symmetry':           'Symmetry',
+            'classify-shapes':    'Classifying Shapes',
+            'angles':             'Angle Measurement',
+            'coordinates':        'Coordinate Planes',
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('modeIndicator').textContent =
+                exerciseList.length === 1 ? (EXERCISE_LABELS[exerciseList[0]] || 'Geometry') : 'Geometry';
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

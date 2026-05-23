@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body { padding: 16px; }
+
+        .prev-area {
+            min-height: 2rem;
+            font-size: 1rem;
+            color: rgba(190, 205, 218, 0.35);
+            margin-top: 0.5rem;
+        }
+        .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
+        .prev-area.wrong-result   { color: rgba(210, 80,  80,  0.65); }
+
+        #graphArea {
+            margin: 1.5rem 0 0.5rem;
+            width: min(480px, 100%);
+        }
+
+        #graphArea svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .question-text {
+            font-size: 1.05rem;
+            color: rgba(190, 205, 218, 0.8);
+            margin: 0.75rem 0 1rem;
+            min-height: 1.4rem;
+        }
+
+        .choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 17vw;
+            min-width: 280px;
+            margin-bottom: 1rem;
+        }
+
+        .choice-btn {
+            padding: 14px 8px;
+            font-size: 1.15rem;
+            font-family: Roboto Mono;
+            background-color: rgb(35, 50, 85);
+            color: rgba(227, 234, 245, 0.9);
+            border: none;
+            box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: background-color 0.12s;
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover { background-color: rgb(52, 75, 120); }
+        }
+
+        .choice-btn.correct-flash { background-color: rgb(55, 130, 55) !important; color: #fff; }
+        .choice-btn.wrong-flash   { background-color: rgb(150, 45, 45) !important; color: #fff; }
+    </style>
+</head>
+<body class="darkTheme">
+    <div style="z-index:1;">
+        <div class="header">
+            <div>
+                <span class="title1">Math Practice</span>
+                <div id="modeIndicator" class="modeIndicator"></div>
+            </div>
+            <div class="scoreDisplay">
+                <span class="questionsCorrect" id="questionscorrect">0</span>
+                <span class="questionsCorrect">/</span>
+                <span class="questionsCorrect" id="questionsAnswered">0</span>
+                <span class="questionsCorrect"> correct</span>
+            </div>
+        </div>
+
+        <div id="prevArea" class="prev-area"></div>
+
+        <div id="graphArea"></div>
+        <div id="questionText" class="question-text"></div>
+        <div id="choiceButtons" class="choice-grid"></div>
+
+        <br><br>
+        <div class="modeButtonRow">
+            <button id="finishButton" class="finishButton">Finish</button>
+        </div>
+        <div class="textOnTheRight"></div>
+    </div>
+
+    <script>
+        // --- URL params ---
+        const params = new URLSearchParams(window.location.search);
+        const typeParam   = params.get('type')   || 'bar';
+        const scaledParam = params.get('scaled')  || 'false';
+        const scaled      = scaledParam === 'true';
+        const ALL_TYPES   = ['bar', 'picture', 'pie'];
+        const typeList    = typeParam.split(',').filter(t => ALL_TYPES.includes(t));
+        if (!typeList.length) typeList.push('bar');
+
+        // --- State ---
+        let questionsCorrect  = 0;
+        let questionsAnswered = 0;
+        let prevSummary       = '';
+        let choicesLocked     = false;
+
+        // --- Helpers ---
+        function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function pick(arr)    { return arr[ri(0, arr.length - 1)]; }
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function makeChoices(correct, pool) {
+            const decoys = shuffle([...new Set(pool)].filter(l => l !== correct)).slice(0, 3);
+            return shuffle([correct, ...decoys]).map(l => ({ label: l, correct: l === correct }));
+        }
+
+        // --- Score & prev ---
+        function updateScore() {
+            document.getElementById('questionscorrect').textContent = questionsCorrect;
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+        }
+
+        function showPrev(text, wasCorrect) {
+            const el = document.getElementById('prevArea');
+            el.textContent = text;
+            el.className = 'prev-area ' + (wasCorrect ? 'correct-result' : 'wrong-result');
+        }
+
+        // --- Particles ---
+        const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+        function spawnParticles(el) {
+            const rect = el.getBoundingClientRect();
+            const ox = rect.left + rect.width / 2, oy = rect.top + rect.height / 2;
+            for (let i = 0; i < 28; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const dist  = 80 + Math.random() * 140;
+                const size  = (6 + Math.random() * 8) + 'px';
+                p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[ri(0, particleColors.length - 1)]};`;
+                p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                document.body.appendChild(p);
+                p.addEventListener('animationend', () => p.remove());
+            }
+        }
+
+        // --- Choice buttons ---
+        function buildChoiceButtons(choices) {
+            const container = document.getElementById('choiceButtons');
+            container.innerHTML = '';
+            choicesLocked = false;
+            choices.forEach((ch, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = ch.label;
+                btn.addEventListener('click', () => {
+                    if (choicesLocked) return;
+                    choicesLocked = true;
+                    const wasCorrect = ch.correct;
+                    [...container.children].forEach((b, j) => {
+                        if (choices[j].correct) b.classList.add('correct-flash');
+                        else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
+                    });
+                    if (wasCorrect) { spawnParticles(btn); questionsCorrect++; }
+                    questionsAnswered++;
+                    updateScore();
+                    showPrev(prevSummary + ' → ' + ch.label + (wasCorrect ? '  ✓' : '  ✗'), wasCorrect);
+                    setTimeout(() => loadQuestion(), 900);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Scenarios ---
+        // Each scenario pairs a subject with a category set and provides natural sentence templates.
+
+        const FULL_NAME = {
+            Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday',
+            Jan: 'January', Feb: 'February', Mar: 'March', Apr: 'April', May: 'May',
+        };
+        function fullName(cat) { return FULL_NAME[cat] || cat; }
+
+        const SCENARIOS = [
+            {
+                yLabel: 'Apples Picked', xLabel: 'Day', emoji: '🍎',
+                cats: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                q: {
+                    howMany: c         => `How many apples were picked on ${fullName(c)}?`,
+                    most:    ()        => `On which day were the most apples picked?`,
+                    least:   ()        => `On which day were the fewest apples picked?`,
+                    diff:    (big, sm) => `How many more apples were picked on ${fullName(big)} than on ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many apples were picked on ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+            {
+                yLabel: 'Books Read', xLabel: 'Month', emoji: '📚',
+                cats: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                q: {
+                    howMany: c         => `How many books were read in ${fullName(c)}?`,
+                    most:    ()        => `In which month were the most books read?`,
+                    least:   ()        => `In which month were the fewest books read?`,
+                    diff:    (big, sm) => `How many more books were read in ${fullName(big)} than in ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many books were read in ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+            {
+                yLabel: 'Stars Earned', xLabel: 'Student', emoji: '⭐',
+                cats: ['Ann', 'Ben', 'Cal', 'Dee', 'Eva'],
+                q: {
+                    howMany: c         => `How many stars did ${c} earn?`,
+                    most:    ()        => `Which student earned the most stars?`,
+                    least:   ()        => `Which student earned the fewest stars?`,
+                    diff:    (big, sm) => `How many more stars did ${big} earn than ${sm}?`,
+                    total:   (a, b)    => `How many stars did ${a} and ${b} earn combined?`,
+                },
+            },
+            {
+                yLabel: 'Goals Scored', xLabel: 'Player', emoji: '⚽',
+                cats: ['Ann', 'Ben', 'Cal', 'Dee', 'Eva'],
+                q: {
+                    howMany: c         => `How many goals did ${c} score?`,
+                    most:    ()        => `Which player scored the most goals?`,
+                    least:   ()        => `Which player scored the fewest goals?`,
+                    diff:    (big, sm) => `How many more goals did ${big} score than ${sm}?`,
+                    total:   (a, b)    => `How many goals did ${a} and ${b} score combined?`,
+                },
+            },
+            {
+                yLabel: 'Pencils Used', xLabel: 'Student', emoji: '✏️',
+                cats: ['Ann', 'Ben', 'Cal', 'Dee', 'Eva'],
+                q: {
+                    howMany: c         => `How many pencils did ${c} use?`,
+                    most:    ()        => `Which student used the most pencils?`,
+                    least:   ()        => `Which student used the fewest pencils?`,
+                    diff:    (big, sm) => `How many more pencils did ${big} use than ${sm}?`,
+                    total:   (a, b)    => `How many pencils did ${a} and ${b} use combined?`,
+                },
+            },
+            {
+                yLabel: 'Fish Caught', xLabel: 'Day', emoji: '🐟',
+                cats: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                q: {
+                    howMany: c         => `How many fish were caught on ${fullName(c)}?`,
+                    most:    ()        => `On which day were the most fish caught?`,
+                    least:   ()        => `On which day were the fewest fish caught?`,
+                    diff:    (big, sm) => `How many more fish were caught on ${fullName(big)} than on ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many fish were caught on ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+            {
+                yLabel: 'Cats Seen', xLabel: 'Month', emoji: '🐱',
+                cats: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                q: {
+                    howMany: c         => `How many cats were seen in ${fullName(c)}?`,
+                    most:    ()        => `In which month were the most cats seen?`,
+                    least:   ()        => `In which month were the fewest cats seen?`,
+                    diff:    (big, sm) => `How many more cats were seen in ${fullName(big)} than in ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many cats were seen in ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+            {
+                yLabel: 'Number of Flowers', xLabel: 'Color', emoji: '🌸',
+                cats: ['Red', 'Blue', 'Green', 'Yellow', 'Pink'],
+                q: {
+                    howMany: c         => `How many ${c.toLowerCase()} flowers are there?`,
+                    most:    ()        => `Which color has the most flowers?`,
+                    least:   ()        => `Which color has the fewest flowers?`,
+                    diff:    (big, sm) => `How many more ${big.toLowerCase()} flowers are there than ${sm.toLowerCase()}?`,
+                    total:   (a, b)    => `How many ${a.toLowerCase()} and ${b.toLowerCase()} flowers are there combined?`,
+                },
+            },
+            {
+                yLabel: 'Points Scored', xLabel: 'Day', emoji: '🏆',
+                cats: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                q: {
+                    howMany: c         => `How many points were scored on ${fullName(c)}?`,
+                    most:    ()        => `On which day were the most points scored?`,
+                    least:   ()        => `On which day were the fewest points scored?`,
+                    diff:    (big, sm) => `How many more points were scored on ${fullName(big)} than on ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many points were scored on ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+            {
+                yLabel: 'Cookies Baked', xLabel: 'Month', emoji: '🍪',
+                cats: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                q: {
+                    howMany: c         => `How many cookies were baked in ${fullName(c)}?`,
+                    most:    ()        => `In which month were the most cookies baked?`,
+                    least:   ()        => `In which month were the fewest cookies baked?`,
+                    diff:    (big, sm) => `How many more cookies were baked in ${fullName(big)} than in ${fullName(sm)}?`,
+                    total:   (a, b)    => `How many cookies were baked in ${fullName(a)} and ${fullName(b)} combined?`,
+                },
+            },
+        ];
+
+        function genData(count, scaleVal) {
+            const vals = [];
+            for (let i = 0; i < count; i++) vals.push(ri(1, 8) * scaleVal);
+            return vals;
+        }
+
+        // Generate count unique integers ≥ 1 summing to 20.
+        // Each value × 5 equals its whole-number percentage (1/20 = 5%).
+        // The raw counts are shown inside slices; questions ask about the derived percentage.
+        function genPieVals(count) {
+            for (let attempt = 0; attempt < 400; attempt++) {
+                const used = new Set();
+                const vals = [];
+                let remaining = 20;
+                let ok = true;
+                for (let i = 0; i < count - 1; i++) {
+                    const maxV = remaining - (count - i - 1);
+                    const options = [];
+                    for (let v = 1; v <= maxV; v++) {
+                        if (!used.has(v)) options.push(v);
+                    }
+                    if (!options.length) { ok = false; break; }
+                    const v = pick(options);
+                    vals.push(v); used.add(v); remaining -= v;
+                }
+                if (ok && remaining >= 1 && !used.has(remaining)) {
+                    vals.push(remaining);
+                    return shuffle(vals);
+                }
+            }
+            return ({ 3: [4, 6, 10], 4: [2, 4, 6, 8], 5: [1, 3, 4, 5, 7] })[count] || [4, 6, 10];
+        }
+
+        // Pie-specific question templates (percentage phrasing), indexed to match SCENARIOS.
+        const PIE_Q = [
+            { // Apples / Days
+                howMany: c         => `What percentage of the apples were picked on ${fullName(c)}?`,
+                most:    ()        => `On which day was the highest percentage of apples picked?`,
+                least:   ()        => `On which day was the lowest percentage of apples picked?`,
+                diff:    (big, sm) => `What percentage more apples were picked on ${fullName(big)} than on ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the apples were picked on ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+            { // Books / Months
+                howMany: c         => `What percentage of the books were read in ${fullName(c)}?`,
+                most:    ()        => `In which month was the highest percentage of books read?`,
+                least:   ()        => `In which month was the lowest percentage of books read?`,
+                diff:    (big, sm) => `What percentage more books were read in ${fullName(big)} than in ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the books were read in ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+            { // Stars / Students
+                howMany: c         => `What percentage of the stars did ${c} earn?`,
+                most:    ()        => `Which student earned the highest percentage of stars?`,
+                least:   ()        => `Which student earned the lowest percentage of stars?`,
+                diff:    (big, sm) => `What percentage more stars did ${big} earn than ${sm}?`,
+                total:   (a, b)    => `What percentage of the stars did ${a} and ${b} earn combined?`,
+            },
+            { // Goals / Players
+                howMany: c         => `What percentage of the goals did ${c} score?`,
+                most:    ()        => `Which player scored the highest percentage of goals?`,
+                least:   ()        => `Which player scored the lowest percentage of goals?`,
+                diff:    (big, sm) => `What percentage more goals did ${big} score than ${sm}?`,
+                total:   (a, b)    => `What percentage of the goals did ${a} and ${b} score combined?`,
+            },
+            { // Pencils / Students
+                howMany: c         => `What percentage of the pencils did ${c} use?`,
+                most:    ()        => `Which student used the highest percentage of pencils?`,
+                least:   ()        => `Which student used the lowest percentage of pencils?`,
+                diff:    (big, sm) => `What percentage more pencils did ${big} use than ${sm}?`,
+                total:   (a, b)    => `What percentage of the pencils did ${a} and ${b} use combined?`,
+            },
+            { // Fish / Days
+                howMany: c         => `What percentage of the fish were caught on ${fullName(c)}?`,
+                most:    ()        => `On which day was the highest percentage of fish caught?`,
+                least:   ()        => `On which day was the lowest percentage of fish caught?`,
+                diff:    (big, sm) => `What percentage more fish were caught on ${fullName(big)} than on ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the fish were caught on ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+            { // Cats / Months
+                howMany: c         => `What percentage of the cats were seen in ${fullName(c)}?`,
+                most:    ()        => `In which month was the highest percentage of cats seen?`,
+                least:   ()        => `In which month was the lowest percentage of cats seen?`,
+                diff:    (big, sm) => `What percentage more cats were seen in ${fullName(big)} than in ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the cats were seen in ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+            { // Flowers / Colors
+                howMany: c         => `What percentage of the flowers are ${c.toLowerCase()}?`,
+                most:    ()        => `Which color makes up the highest percentage of flowers?`,
+                least:   ()        => `Which color makes up the lowest percentage of flowers?`,
+                diff:    (big, sm) => `What percentage more flowers are ${big.toLowerCase()} than ${sm.toLowerCase()}?`,
+                total:   (a, b)    => `What percentage of the flowers are ${a.toLowerCase()} or ${b.toLowerCase()}?`,
+            },
+            { // Points / Days
+                howMany: c         => `What percentage of the points were scored on ${fullName(c)}?`,
+                most:    ()        => `On which day was the highest percentage of points scored?`,
+                least:   ()        => `On which day was the lowest percentage of points scored?`,
+                diff:    (big, sm) => `What percentage more points were scored on ${fullName(big)} than on ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the points were scored on ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+            { // Cookies / Months
+                howMany: c         => `What percentage of the cookies were baked in ${fullName(c)}?`,
+                most:    ()        => `In which month was the highest percentage of cookies baked?`,
+                least:   ()        => `In which month was the lowest percentage of cookies baked?`,
+                diff:    (big, sm) => `What percentage more cookies were baked in ${fullName(big)} than in ${fullName(sm)}?`,
+                total:   (a, b)    => `What percentage of the cookies were baked in ${fullName(a)} and ${fullName(b)} combined?`,
+            },
+        ];
+
+        // --- SVG colours ---
+        const BAR_COLORS = ['#5b8dee','#f06292','#81c784','#ffb74d','#ce93d8'];
+
+        // --- Bar graph SVG ---
+        // viewBox: 0 0 400 230  plot area: x=55..385, y=14..175
+        function buildBarSVG(cats, vals, scaleVal, highlightIdx, yLabel, xLabel) {
+            const W = 400, H = 230;
+            const PL = 55, PR = 385, PT = 14, PB = 175;
+            const plotW = PR - PL, plotH = PB - PT;
+
+            const maxVal = Math.max(...vals);
+            const yMax   = Math.ceil(maxVal / scaleVal) * scaleVal + scaleVal;
+            const yTicks = [];
+            for (let v = 0; v <= yMax; v += scaleVal) yTicks.push(v);
+
+            const toY    = v => PB - (v / yMax) * plotH;
+            const barW   = Math.floor(plotW / cats.length * 0.55);
+            const barGap = plotW / cats.length;
+            const midX   = (PL + PR) / 2;
+            const midY   = (PT + PB) / 2;
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Roboto Mono, monospace">`;
+
+            // Y-axis rotated label
+            svg += `<text transform="rotate(-90 11 ${midY})" x="11" y="${midY}" text-anchor="middle" font-size="10" fill="rgba(190,205,218,0.4)">${yLabel}</text>`;
+
+            // Y grid lines and tick labels
+            for (const v of yTicks) {
+                const y = toY(v);
+                svg += `<line x1="${PL}" y1="${y}" x2="${PR}" y2="${y}" stroke="rgba(190,205,218,0.12)" stroke-width="1"/>`;
+                svg += `<text x="${PL - 5}" y="${y + 4}" text-anchor="end" font-size="11" fill="rgba(190,205,218,0.5)">${v}</text>`;
+            }
+
+            // Axis lines
+            svg += `<line x1="${PL}" y1="${PB}" x2="${PR}" y2="${PB}" stroke="rgba(190,205,218,0.3)" stroke-width="1.5"/>`;
+            svg += `<line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PB}" stroke="rgba(190,205,218,0.3)" stroke-width="1.5"/>`;
+
+            // Bars and category labels
+            cats.forEach((cat, i) => {
+                const cx    = PL + barGap * i + barGap / 2;
+                const x     = cx - barW / 2;
+                const bh    = (vals[i] / yMax) * plotH;
+                const by    = PB - bh;
+                const color   = i === highlightIdx ? '#f06292' : BAR_COLORS[i % BAR_COLORS.length];
+                const opacity = i === highlightIdx ? '1' : '0.72';
+                svg += `<rect x="${x}" y="${by}" width="${barW}" height="${bh}" fill="${color}" fill-opacity="${opacity}" rx="2"/>`;
+                svg += `<text x="${cx}" y="${PB + 13}" text-anchor="middle" font-size="11" fill="rgba(190,205,218,0.65)">${cat}</text>`;
+            });
+
+            // X-axis label
+            svg += `<text x="${midX}" y="${PB + 27}" text-anchor="middle" font-size="10" fill="rgba(190,205,218,0.4)">${xLabel}</text>`;
+
+            svg += '</svg>';
+            return svg;
+        }
+
+        // --- Picture graph SVG ---
+        // Title row at top, then one row per category, key row at bottom.
+        function buildPictureSVG(cats, vals, scaleVal, scenario, highlightIdx) {
+            const W      = 400;
+            const titleH = 24, rowH = 38, labelW = 70, cellW = 32;
+            const maxSymbols = Math.max(...vals.map(v => v / scaleVal));
+            const H      = titleH + cats.length * rowH + 32;
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Roboto Mono, monospace">`;
+
+            // Title
+            svg += `<text x="${labelW}" y="16" font-size="11" fill="rgba(190,205,218,0.4)">${scenario.yLabel} by ${scenario.xLabel}</text>`;
+
+            // Vertical grid lines
+            for (let c = 0; c <= Math.ceil(maxSymbols); c++) {
+                const x = labelW + c * cellW;
+                svg += `<line x1="${x}" y1="${titleH}" x2="${x}" y2="${titleH + cats.length * rowH}" stroke="rgba(190,205,218,0.08)" stroke-width="1"/>`;
+            }
+
+            // Column count labels along the top of the grid
+            for (let c = 1; c <= Math.ceil(maxSymbols); c++) {
+                const x = labelW + (c - 0.5) * cellW;
+                svg += `<text x="${x}" y="${titleH + 10}" text-anchor="middle" font-size="9" fill="rgba(190,205,218,0.25)">${c}</text>`;
+            }
+
+            cats.forEach((cat, i) => {
+                const y    = titleH + i * rowH;
+                const cy   = y + rowH / 2;
+                const isHL = i === highlightIdx;
+                const labelColor = isHL ? '#f06292' : 'rgba(190,205,218,0.7)';
+
+                if (isHL) svg += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="rgba(240,98,146,0.07)"/>`;
+
+                svg += `<text x="${labelW - 8}" y="${cy + 4}" text-anchor="end" font-size="12" fill="${labelColor}">${cat}</text>`;
+
+                const count = vals[i] / scaleVal;
+                for (let s = 0; s < count; s++) {
+                    const ex = labelW + s * cellW + cellW / 2;
+                    svg += `<text x="${ex}" y="${cy + 6}" text-anchor="middle" font-size="18">${scenario.emoji}</text>`;
+                }
+            });
+
+            // Separator and key
+            const sepY = titleH + cats.length * rowH;
+            svg += `<line x1="0" y1="${sepY}" x2="${W}" y2="${sepY}" stroke="rgba(190,205,218,0.2)" stroke-width="1"/>`;
+            const keyLabel = scaleVal === 1
+                ? `${scenario.emoji} = 1`
+                : `${scenario.emoji} = ${scaleVal}`;
+            svg += `<text x="${labelW}" y="${sepY + 20}" font-size="11" fill="rgba(190,205,218,0.45)">${keyLabel}  —  ${scenario.yLabel}</text>`;
+
+            svg += '</svg>';
+            return svg;
+        }
+
+        // --- Pie graph SVG ---
+        // Circle with exploded highlight slice, value labels inside, category legend on right.
+        const PIE_COLORS = ['#5b8dee', '#81c784', '#ffb74d', '#ce93d8', '#4dd0e1'];
+
+        function buildPieSVG(cats, vals, scenario, highlightIdx) {
+            const W = 400, H = 240;
+            const cx = 145, cy = 112, r = 90;
+            const total = vals.reduce((a, b) => a + b, 0);
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Roboto Mono, monospace">`;
+
+            // Caption below pie
+            svg += `<text x="${cx}" y="${cy + r + 20}" text-anchor="middle" font-size="10" fill="rgba(190,205,218,0.4)">${scenario.yLabel}</text>`;
+
+            let startAngle = -Math.PI / 2;
+            cats.forEach((cat, i) => {
+                const sweep = (vals[i] / total) * 2 * Math.PI;
+                const end   = startAngle + sweep;
+                const mid   = startAngle + sweep / 2;
+                const isHL  = i === highlightIdx;
+
+                // Explode highlighted slice outward
+                const ox  = isHL ? Math.cos(mid) * 9 : 0;
+                const oy  = isHL ? Math.sin(mid) * 9 : 0;
+                const scx = cx + ox, scy = cy + oy;
+
+                const x1    = scx + r * Math.cos(startAngle);
+                const y1    = scy + r * Math.sin(startAngle);
+                const x2    = scx + r * Math.cos(end);
+                const y2    = scy + r * Math.sin(end);
+                const large = sweep > Math.PI ? 1 : 0;
+                const color = isHL ? '#f06292' : PIE_COLORS[i % PIE_COLORS.length];
+
+                svg += `<path d="M ${scx.toFixed(1)} ${scy.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${color}" fill-opacity="${isHL ? 1 : 0.82}" stroke="#1a1a2e" stroke-width="1.5"/>`;
+
+                // Integer value label inside slice
+                const lx  = (scx + r * 0.6 * Math.cos(mid)).toFixed(1);
+                const ly  = (scy + r * 0.6 * Math.sin(mid)).toFixed(1);
+                const fs  = sweep > 0.45 ? 12 : 9;
+                svg += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="${fs}" font-weight="700" fill="rgba(255,255,255,0.92)">${vals[i]}</text>`;
+
+                startAngle = end;
+            });
+
+            // 5% tick marks around the circumference (20 ticks, every 18°)
+            for (let t = 0; t < 20; t++) {
+                const angle  = -Math.PI / 2 + t * (Math.PI / 10);
+                const isMajor = t % 5 === 0;
+                const r0 = r + 1;
+                const r1 = r + (isMajor ? 6 : 4);
+                const tx1 = (cx + r0 * Math.cos(angle)).toFixed(1);
+                const ty1 = (cy + r0 * Math.sin(angle)).toFixed(1);
+                const tx2 = (cx + r1 * Math.cos(angle)).toFixed(1);
+                const ty2 = (cy + r1 * Math.sin(angle)).toFixed(1);
+                svg += `<line x1="${tx1}" y1="${ty1}" x2="${tx2}" y2="${ty2}" stroke="rgba(190,205,218,${isMajor ? '0.45' : '0.28'})" stroke-width="${isMajor ? 1.5 : 1}" stroke-linecap="round"/>`;
+            }
+
+            // Legend — right side, vertically centered
+            const legX       = 265;
+            const legStartY  = Math.round((H - cats.length * 30) / 2) + 10;
+            cats.forEach((cat, i) => {
+                const isHL  = i === highlightIdx;
+                const color = isHL ? '#f06292' : PIE_COLORS[i % PIE_COLORS.length];
+                const ly    = legStartY + i * 30;
+                svg += `<rect x="${legX}" y="${ly - 10}" width="13" height="13" fill="${color}" rx="2" fill-opacity="${isHL ? 1 : 0.82}"/>`;
+                svg += `<text x="${legX + 19}" y="${ly}" font-size="12" fill="${isHL ? '#f06292' : 'rgba(190,205,218,0.7)'}">${fullName(cat)}</text>`;
+            });
+
+            svg += '</svg>';
+            return svg;
+        }
+
+        // --- Question types ---
+
+        function questionHowMany(cats, vals, scaleVal, i, scenario, graphSVG) {
+            const correct = String(vals[i]);
+            const others  = vals.filter((_, j) => j !== i).map(String);
+            const nearby  = [-scaleVal, scaleVal, -2*scaleVal, 2*scaleVal]
+                .map(d => vals[i] + d).filter(v => v > 0).map(String);
+            const pool    = [...new Set([...others, ...nearby])].filter(v => v !== correct);
+            prevSummary   = `${fullName(cats[i])}: ${correct}`;
+            document.getElementById('questionText').textContent = scenario.q.howMany(cats[i]);
+            document.getElementById('graphArea').innerHTML = graphSVG;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        function questionMostLeast(cats, vals, mostMode, scenario, graphSVG) {
+            const winIdx  = mostMode ? vals.indexOf(Math.max(...vals)) : vals.indexOf(Math.min(...vals));
+            const correct = fullName(cats[winIdx]);
+            const pool    = cats.filter((_, i) => i !== winIdx).map(fullName);
+            prevSummary   = `${mostMode ? 'Most' : 'Least'}: ${correct}`;
+            document.getElementById('questionText').textContent = mostMode ? scenario.q.most() : scenario.q.least();
+            document.getElementById('graphArea').innerHTML = graphSVG;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        function questionDifference(cats, vals, scaleVal, i, j, scenario, graphSVG) {
+            const [bigIdx, smIdx] = vals[i] >= vals[j] ? [i, j] : [j, i];
+            const diff    = vals[bigIdx] - vals[smIdx];
+            const correct = String(diff);
+            const nearby  = [-scaleVal, scaleVal, -2*scaleVal, 2*scaleVal]
+                .map(d => diff + d).filter(v => v > 0).map(String);
+            const pool    = [...new Set(nearby)].filter(v => v !== correct);
+            prevSummary   = `${fullName(cats[bigIdx])} − ${fullName(cats[smIdx])} = ${correct}`;
+            document.getElementById('questionText').textContent = scenario.q.diff(cats[bigIdx], cats[smIdx]);
+            document.getElementById('graphArea').innerHTML = graphSVG;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        function questionTotal(cats, vals, scaleVal, i, j, scenario, graphSVG) {
+            const total   = vals[i] + vals[j];
+            const correct = String(total);
+            const nearby  = [-scaleVal, scaleVal, -2*scaleVal, 2*scaleVal]
+                .map(d => total + d).filter(v => v > 0).map(String);
+            const pool    = [...new Set(nearby)].filter(v => v !== correct);
+            prevSummary   = `${fullName(cats[i])} + ${fullName(cats[j])} = ${correct}`;
+            document.getElementById('questionText').textContent = scenario.q.total(cats[i], cats[j]);
+            document.getElementById('graphArea').innerHTML = graphSVG;
+            buildChoiceButtons(makeChoices(correct, pool));
+        }
+
+        // --- Pie question loader (percentage mode) ---
+        function loadPieQuestion(cats, scenario) {
+            const vals     = genPieVals(cats.length);
+            const pq       = PIE_Q[SCENARIOS.indexOf(scenario)];
+            const qTypes   = ['howmany', 'howmany', 'mostleast', 'diff', 'total'];
+            const qType    = pick(qTypes);
+            const hlIdx    = ri(0, cats.length - 1);
+            let i2 = ri(0, cats.length - 1), j2 = ri(0, cats.length - 1);
+            while (j2 === i2) j2 = ri(0, cats.length - 1);
+
+            const mostMode = Math.random() < 0.5;
+            const hiFor    = qType === 'howmany'   ? hlIdx
+                           : qType === 'mostleast'  ? (mostMode ? vals.indexOf(Math.max(...vals)) : vals.indexOf(Math.min(...vals)))
+                           : -1;
+
+            const graphSVG = buildPieSVG(cats, vals, scenario, hiFor);
+
+            const pctPool = (base) => [-20, -15, -10, -5, 5, 10, 15, 20]
+                .map(d => base + d).filter(v => v > 0 && v <= 100).map(v => v + '%');
+
+            // pct(v): convert raw count to percentage (total=20, so each unit = 5%)
+            const pct = v => v * 5;
+
+            switch (qType) {
+                case 'howmany': {
+                    const correct = pct(vals[hlIdx]) + '%';
+                    const pool    = [...pctPool(pct(vals[hlIdx])), ...vals.filter((_, j) => j !== hlIdx).map(v => pct(v) + '%')]
+                        .filter(v => v !== correct);
+                    prevSummary = `${fullName(cats[hlIdx])}: ${correct}`;
+                    document.getElementById('questionText').textContent = pq.howMany(cats[hlIdx]);
+                    document.getElementById('graphArea').innerHTML = graphSVG;
+                    buildChoiceButtons(makeChoices(correct, pool));
+                    break;
+                }
+                case 'mostleast': {
+                    const winIdx  = mostMode ? vals.indexOf(Math.max(...vals)) : vals.indexOf(Math.min(...vals));
+                    const correct = fullName(cats[winIdx]);
+                    const pool    = cats.filter((_, i) => i !== winIdx).map(fullName);
+                    prevSummary   = `${mostMode ? 'Most' : 'Least'}: ${correct}`;
+                    document.getElementById('questionText').textContent = mostMode ? pq.most() : pq.least();
+                    document.getElementById('graphArea').innerHTML = graphSVG;
+                    buildChoiceButtons(makeChoices(correct, pool));
+                    break;
+                }
+                case 'diff': {
+                    const [bigIdx, smIdx] = vals[i2] >= vals[j2] ? [i2, j2] : [j2, i2];
+                    const diff    = pct(vals[bigIdx] - vals[smIdx]);
+                    const correct = diff + '%';
+                    const pool    = pctPool(diff).filter(v => v !== correct);
+                    prevSummary   = `${fullName(cats[bigIdx])} − ${fullName(cats[smIdx])} = ${correct}`;
+                    document.getElementById('questionText').textContent = pq.diff(cats[bigIdx], cats[smIdx]);
+                    document.getElementById('graphArea').innerHTML = graphSVG;
+                    buildChoiceButtons(makeChoices(correct, pool));
+                    break;
+                }
+                case 'total': {
+                    const sum     = pct(vals[i2] + vals[j2]);
+                    const correct = sum + '%';
+                    const pool    = pctPool(sum).filter(v => v !== correct);
+                    prevSummary   = `${fullName(cats[i2])} + ${fullName(cats[j2])} = ${correct}`;
+                    document.getElementById('questionText').textContent = pq.total(cats[i2], cats[j2]);
+                    document.getElementById('graphArea').innerHTML = graphSVG;
+                    buildChoiceButtons(makeChoices(correct, pool));
+                    break;
+                }
+            }
+        }
+
+        // --- Load question ---
+        function loadQuestion() {
+            const type     = pick(typeList);
+            const scenario = pick(SCENARIOS);
+            const count    = ri(3, 5);
+            const cats     = scenario.cats.slice(0, count);
+
+            if (type === 'pie') return loadPieQuestion(cats, scenario);
+
+            const scaleVal = scaled ? pick([2, 3, 4, 5]) : 1;
+            const vals     = genData(count, scaleVal);
+
+            if (new Set(vals).size < count) return loadQuestion();
+
+            const qTypes   = ['howmany', 'howmany', 'mostleast', 'diff', 'total'];
+            const qType    = pick(qTypes);
+            const hlIdx    = ri(0, count - 1);
+            let i2 = ri(0, count - 1), j2 = ri(0, count - 1);
+            while (j2 === i2) j2 = ri(0, count - 1);
+
+            const mostMode = Math.random() < 0.5;
+            const hiFor    = qType === 'howmany'   ? hlIdx
+                           : qType === 'mostleast'  ? (mostMode ? vals.indexOf(Math.max(...vals)) : vals.indexOf(Math.min(...vals)))
+                           : -1;
+
+            const graphSVG = type === 'bar'
+                ? buildBarSVG(cats, vals, scaleVal, hiFor, scenario.yLabel, scenario.xLabel)
+                : buildPictureSVG(cats, vals, scaleVal, scenario, hiFor);
+
+            switch (qType) {
+                case 'howmany':   questionHowMany(cats, vals, scaleVal, hlIdx, scenario, graphSVG);      break;
+                case 'mostleast': questionMostLeast(cats, vals, mostMode, scenario, graphSVG);            break;
+                case 'diff':      questionDifference(cats, vals, scaleVal, i2, j2, scenario, graphSVG); break;
+                case 'total':     questionTotal(cats, vals, scaleVal, i2, j2, scenario, graphSVG);       break;
+            }
+        }
+
+        // --- Finish ---
+        document.getElementById('finishButton').addEventListener('click', () => {
+            spawnParticles(document.getElementById('finishButton'));
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        });
+
+        // --- Init ---
+        const LABELS = {
+            'bar-false':     'Bar Graphs',
+            'picture-false': 'Picture Graphs',
+            'bar-true':      'Scaled Bar Graphs',
+            'picture-true':  'Scaled Picture Graphs',
+            'pie-false':     'Pie Graphs (Percentages)',
+        };
+        const mixedTypes = typeList.length > 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const key = typeList.length === 1 ? `${typeList[0]}-${scaled}` : null;
+            document.getElementById('modeIndicator').textContent = key ? (LABELS[key] || 'Graphs') : 'Graphs';
+            loadQuestion();
+        });
+    </script>
+</body>
+</html>

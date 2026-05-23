@@ -250,6 +250,7 @@
         let currentMode   = 'counting';  // 'counting' | 'arithmetic'
         let questionsCorrect  = 0;
         let questionsAnswered = 0;
+        let enterCooldown     = false;
 
         // --- Helpers ---
         function randInt(min, max) {
@@ -404,15 +405,6 @@
                 centsInput += d;
             }
             renderAnswer();
-            autoCheck();
-        }
-
-        function autoCheck() {
-            const dollars = parseInt(dollarsInput || '0');
-            const cents   = parseInt(centsInput   || '0');
-            if (!isNaN(dollars) && !isNaN(cents) && dollars * 100 + cents === currentCents) {
-                document.getElementById('checkmark').click();
-            }
         }
 
         // --- Check ---
@@ -478,6 +470,9 @@
                 else centsInput = '';
                 renderAnswer();
             } else if (e.key === 'Enter') {
+                if (enterCooldown) return;
+                enterCooldown = true;
+                setTimeout(() => { enterCooldown = false; }, 400);
                 document.getElementById('checkmark').click();
             }
         });

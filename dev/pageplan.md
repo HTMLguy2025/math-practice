@@ -18,12 +18,12 @@ Each page template handles a category of exercises, driven by URL parameters.
 | `conversions.html` | ✅ Complete (not in original plan) |
 | `clock.html`     | ✅ Complete   |
 | `money.html`     | ✅ Complete (count mode only; make mode not started) |
-| `numberline.html`| ⬜ Not started |
+| `numberline.html`| ✅ Complete   |
 | `rounding.html`  | ✅ Complete   |
-| `placevalue.html`| ⬜ Not started |
-| `geometry.html`  | ⬜ Not started |
-| `graphs.html`    | ⬜ Not started |
-| `pemdas.html`    | ⬜ Not started |
+| `placevalue.html`| ✅ Complete   |
+| `geometry.html`  | ✅ Complete   |
+| `graphs.html`    | ✅ Complete   |
+| `pemdas.html`    | ✅ Complete (steps mode not implemented) |
 
 ---
 
@@ -75,29 +75,30 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 3. `numberline.html` — Number Line ⬜ Not started
+### 3. `numberline.html` — Number Line ✅ Complete
 
-**Interaction:** A number line is displayed. Student drags a marker or clicks a position to place an answer, or types a number to identify what the marker points to.
+**Interaction:** A number line SVG is shown. Student types the marked value using the number pad, or selects from multiple choice (fractions mode).
 
-**Used by:**
-- Ordering numbers on a number line (Level 1)
-- Fractions on a number line (Level 3)
-- Negative numbers on a number line (Level 5)
-- Counting forward/backward (Level 1)
+**Exercises**
 
-**Layout:**
-- SVG or canvas number line, horizontal, centered
-- Labeled tick marks (scale adjusts per exercise)
-- Draggable point or clickable region
-- "What number is this?" or "Place X on the number line" prompt
-- Confirm button
+| Exercise | URL param | Input | Level |
+|---|---|---|---|
+| Whole number identification | `?exercise=ordering` | Numeric | 1 |
+| Counting forward (missing number) | `?exercise=count-forward` | Numeric | 1 |
+| Counting backward (missing number) | `?exercise=count-backward` | Numeric | 1 |
+| Count from any number (hop arrows) | `?exercise=count-from` | Numeric | 1 |
+| Fractions on a number line | `?exercise=fractions` | Multiple choice | 3 |
+| Negative numbers | `?exercise=negative` | Numeric (± button) | 5 |
 
-**URL params:** `?exercise=fractions` or `?exercise=negative`
+Multiple exercises can be mixed: `?exercise=count-forward,count-backward`
 
-**Notes:**
-- Scale and range need to be configurable per exercise type
-- Fraction mode needs fraction labels (1/2, 1/4, etc.) on tick marks
-- Snap-to-tick behavior for ease of use on touch
+**SVG approach:**
+- Wide landscape SVG (320×90 viewBox, max 360px rendered width)
+- `ordering` / `negative`: full integer line, labels every 5, pink dot at marked value
+- `count-forward` / `count-backward`: 5-value sequence, missing value shown as pink "?" above the line
+- `count-from`: segment around start→answer, blue hop arrows above line, green dot at start / pink dot at answer
+- `fractions`: 0–1 line, ticks at 1/denom intervals, fraction labels (auto-simplified), pink dot
+- Denominators: 2, 3, 4, 6, 8; answer as multiple choice from same/mixed denominator pool
 
 ---
 
@@ -187,75 +188,110 @@ Each page template handles a category of exercises, driven by URL parameters.
 
 ---
 
-### 8. `placevalue.html` — Place Value ⬜ Not started
+### 8. `placevalue.html` — Place Value ✅ Complete
 
-**Interaction:** A number is shown. Student identifies a specific digit's place value, or fills in a place value chart.
+**Interaction:** A place value chart shows a number with one digit highlighted in pink. Student picks from 4 choices.
 
-**Used by:**
-- Tens & Ones (Level 1)
-- Multiples of 10 (Level 1)
-- Hundreds, Tens, Ones (Level 2)
+| Exercise | URL param | Level |
+|---|---|---|
+| Tens & Ones | `?exercise=tens-ones` | 1 |
+| Multiples of 10 | `?exercise=multiples-of-10` | 1 |
+| Hundreds, Tens & Ones | `?exercise=hundreds-tens-ones` | 2 |
 
-**Layout:**
-- A number displayed large
-- Place value chart (columns labeled: Hundreds | Tens | Ones)
-- Highlighted digit with question: "What is the value of the underlined digit?"
-- Multiple choice or numeric input
+**Question types (mixed randomly per question):**
+- `tens-ones` / `hundreds-tens-ones`: "What is the **value** of the pink digit?" or "What **place** is the pink digit in?"
+- `multiples-of-10`: "How many tens are in N?" (chart view) or "What number equals N tens?" (prompt view)
 
-**URL params:** `?exercise=tens-ones` or `?exercise=hundreds`
+**Display:** Inline-flex place value chart — each column shows a large digit with its place label (Ones / Tens / Hundreds). The highlighted cell turns pink with an underline.
 
 ---
 
-### 9. `geometry.html` — Geometry / Visual ⬜ Not started
+### 9. `geometry.html` — Geometry / Visual ✅ Complete
 
 **Interaction:** A shape or diagram is shown. Student identifies, measures, or classifies it.
 
-**Used by:**
-- Angle Measurement (Level 4) — read a protractor
-- Lines & Rays (Level 4) — identify from diagram
-- Symmetry (Level 4) — identify line of symmetry
-- Area & Perimeter (Level 3, 4) — given dimensions, calculate
-- Volume (Level 5) — given a rectangular prism, calculate
-- Classifying 2D Shapes (Level 5)
-- Coordinate Planes (Level 5)
+---
 
-**Layout:**
-- SVG diagram centered at top (shape, angle, grid, etc.)
-- Question below
-- Input method varies by exercise:
-  - Numeric entry (area, perimeter, volume)
-  - Multiple choice (classify, identify)
-  - Click on diagram (symmetry line, coordinate point)
+#### Exercises
 
-**URL params:** `?exercise=area-perimeter` or `?exercise=angles` etc.
+| Exercise | URL param | Input method | Level | Status |
+|---|---|---|---|---|
+| Area — Triangle | `?exercise=area-triangle` | Numeric | 4 | ✅ |
+| Area — Square | `?exercise=area-square` | Numeric | 4 | ✅ |
+| Area — Rectangle | `?exercise=area-rectangle` | Numeric | 4 | ✅ |
+| Area — Circle | `?exercise=area-circle` | Numeric | 4 | ✅ |
+| Perimeter — Triangle | `?exercise=perimeter-triangle` | Numeric | 4 | ✅ |
+| Perimeter — Square | `?exercise=perimeter-square` | Numeric | 4 | ✅ |
+| Perimeter — Rectangle | `?exercise=perimeter-rectangle` | Numeric | 4 | ✅ |
+| Circumference — Circle | `?exercise=perimeter-circle` | Numeric | 4 | ✅ |
+| Angle Measurement | `?exercise=angles` | Multiple choice | 4 | ✅ |
+| Symmetry | `?exercise=symmetry` | Multiple choice | 4 | ✅ |
+| Classifying 2D Shapes | `?exercise=classify-shapes` | Multiple choice | 4 | ✅ |
+| Volume | `?exercise=volume` | Numeric | 5 | ✅ |
+| Coordinate Planes | `?exercise=coordinates` | Two numeric inputs (x, y) | 5 | ✅ |
 
-**Notes:**
-- This is the most complex template — diagrams need to be randomly generated
-- Coordinate plane mode needs a clickable grid
-- May be worth splitting into sub-templates if complexity gets too high
+Multiple exercises can be mixed by comma-separating params: `?exercise=area-triangle,area-square`
 
 ---
 
-### 10. `graphs.html` — Data / Graphs ⬜ Not started
+#### SVG generation — as built
 
-**Interaction:** A bar graph or picture graph is displayed. Student answers questions about the data.
+- **Area / Perimeter** — Each shape is its own exercise. SVG shows the shape with labeled dimensions. Triangles use an even base to guarantee integer area; circles use π ≈ 3.14 with rounding. Triangle sides minimum 5 units.
+  - Shapes: triangle (labeled base + height), square, rectangle, circle (labeled radius)
+  - Right-angle marker drawn on right triangles
+  - For perimeter-circle the question says "circumference" and uses C = 2πr
 
-**Used by:**
-- Bar Graphs (Level 2)
-- Picture Graphs (Level 2)
-- Scaled Bar Graphs (Level 3)
-- Scaled Picture Graphs (Level 3)
+- **Angle Measurement** — Two rays from a common vertex with a degree arc. Angle range 15°–165°, excluding 83°–97° to avoid trivial 90° guesses. Four multiple-choice options with nearby decoys.
 
-**Layout:**
-- SVG graph rendered at top (randomly generated data)
-- Question below (e.g., "How many apples were sold on Tuesday?")
-- Numeric input or multiple choice answer
+- **Symmetry** — Polygon drawn from a fixed set: equilateral triangle, isosceles triangle, scalene triangle, right triangle, rectangle, square. Asks "How many lines of symmetry?" Interior angle in degrees labeled at every vertex.
 
-**URL params:** `?type=bar&scaled=false` or `?type=picture&scaled=true`
+- **Classifying 2D Shapes** — Reuses the same polygon SVG as symmetry. Two question modes alternated randomly: name by side count (triangle / quadrilateral / …) or classify a triangle by sides (equilateral / isosceles / scalene / right).
+
+- **Volume** — Rectangular prism in isometric projection (three visible parallelogram faces). Dimensions labeled l, w, h (integers 2–9). Student computes l × w × h.
+
+- **Coordinate Planes** — 10×10 grid (x: −5 to 5, y: −5 to 5) with labeled axes and arrowheads. A pink dot is plotted at a random non-origin integer coordinate. Student types x then y in two separate input boxes; Tab / arrow keys switch focus. On desktop (≥600px) the grid and input pad sit side-by-side so neither is off-screen.
 
 ---
 
-### 11. `pemdas.html` — Order of Operations ⬜ Not started
+#### Notes / deviations from original plan
+
+- Lines & Rays exercise was cut — not added.
+- Area & Perimeter were split into fully separate exercises rather than a two-sub-question flow on one SVG.
+- Coordinate Planes: read-mode only (student reads the plotted point). Click-to-place mode not implemented.
+
+---
+
+### 10. `graphs.html` — Data / Graphs ✅ Complete
+
+**Interaction:** A bar graph or picture graph is shown with randomly generated data. Student picks from 4 multiple-choice answers.
+
+| Exercise | URL param | Level |
+|---|---|---|
+| Bar Graphs | `?type=bar` | 2 |
+| Picture Graphs | `?type=picture` | 2 |
+| Scaled Bar Graphs | `?type=bar&scaled=true` | 3 |
+| Scaled Picture Graphs | `?type=picture&scaled=true` | 3 |
+| Pie Graphs | `?type=pie` | 4 |
+
+Multiple types can be mixed: `?type=bar,picture`
+
+**Question types (mixed randomly):**
+- "How many [items] are shown for [category]?" — reads one bar/row
+- "Which category has the most/fewest [items]?" — comparison across all bars
+- "How many more does A have than B?" — difference between two bars
+- "How many in A and B combined?" — sum of two bars
+
+**SVG approach:**
+- Bar graph: viewBox 400×220, plot area x=50–380 y=10–170, colored bars with y-axis grid lines and tick labels. Highlighted bar turns pink for "how many" questions.
+- Picture graph: one row per category, emoji symbols spaced in a grid, key row at bottom showing scale. Highlighted row has pink label.
+- Unscaled (Level 2): each value is a whole number 1–8. Scale = 1 (each symbol = 1).
+- Scaled (Level 3): each value is a multiple of 2, 3, 4, or 5. Scale shown in picture graph key.
+- Decoys for numeric answers: nearby multiples of the scale value. Decoys for category answers: the other category names.
+- **Pie graph**: Percentage-based questions. Values are generated as unique multiples of 5 summing to 100 (so each value is directly a whole-number percentage). Percentage labels drawn inside each slice. Highlighted slice explodes outward. Legend on the right shows full category names. Four question types: "What percentage did X represent?", "Which category had the most/least?", "What percentage more did X have than Y?", "What percentage did X and Y make up combined?" Decoys are ±5/10/15/20% from the correct answer.
+
+---
+
+### 11. `pemdas.html` — Order of Operations ✅ Complete
 
 **Interaction:** Student is shown a multi-step equation and enters the answer.
 

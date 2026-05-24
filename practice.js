@@ -15,15 +15,34 @@ const QuestionsCorrect = document.querySelector("#questionscorrect");
 const TopScore = document.querySelector("#topScore");
 const FinishButton = document.querySelector("#finishButton");
 
+const getCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return match ? decodeURIComponent(match[1]) : null;
+};
+const setCookie = (name, value) => {
+    const expires = new Date();
+    expires.setFullYear(expires.getFullYear() + 1);
+    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires.toUTCString() + '; path=/';
+};
+
+const toLocalDateStr = (d) =>
+    d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+
+const prevWeekday = (date) => {
+    const d = new Date(date);
+    do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+    return d;
+};
+
 const getTopScore = () => {
     const value = localStorage.getItem('topScore_' + urlMode + '_' + urlDigits);
-    console.log('[TopScore] Loaded from storage:', value);
     return value;
 }
 
 const setTopScore = (value) => {
     localStorage.setItem('topScore_' + urlMode + '_' + urlDigits, value);
-    console.log('[TopScore] Saved to storage:', value, '| Verify read-back:', localStorage.getItem('topScore_' + urlMode + '_' + urlDigits));
 }
 
 const params = new URLSearchParams(window.location.search);
@@ -48,9 +67,9 @@ const getPair = () => {
     if (urlMode === 'divide' && d === 1) {
         const divisor  = Math.floor(Math.random() * 8) + 2;  // 2–9
         const quotient = Math.floor(Math.random() * 9) + 2;  // 2–10
-        return { n1: divisor * quotient, n2: divisor };
+        return { n1: divisor * quotient, n2: divisor, digits: d };
     }
-    return { n1: getNum(d), n2: getNum(d) };
+    return { n1: getNum(d), n2: getNum(d), digits: d };
 };
 
 const computeAnswer = (n1, n2, op) => {
@@ -65,13 +84,14 @@ const modeToOperator = { multiply: 'times', add: 'plus', subtract: 'minus', divi
 
 var selectedAnswer = "";
 var currentQuestionOperator = modeToOperator[urlMode] || 'times';
-var { n1: currentQuestionNum1, n2: currentQuestionNum2 } = getPair();
+var { n1: currentQuestionNum1, n2: currentQuestionNum2, digits: currentQuestionDigits } = getPair();
 var answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
 var { n1: previousQuestionNum1, n2: previousQuestionNum2 } = getPair();
 var previousQuestionOperator = currentQuestionOperator;
 var previousQuestionAnswer = computeAnswer(previousQuestionNum1, previousQuestionNum2, previousQuestionOperator);
 var questionsCorrect = 0;
 var questionsAnswered = 0;
+var sessionPoints = 0;
 
 const renderAnswer = () => {
     DisplayedSelectedAnswer.innerHTML = selectedAnswer + '<span class="cursor"></span>';
@@ -167,7 +187,7 @@ const registerEventListeners = () => {
         previousQuestionAnswer = answer;
         previousQuestionOperator = currentQuestionOperator;
 
-        ({ n1: currentQuestionNum1, n2: currentQuestionNum2 } = getPair());
+        ({ n1: currentQuestionNum1, n2: currentQuestionNum2, digits: currentQuestionDigits } = getPair());
         answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
 
         LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
@@ -179,11 +199,11 @@ const registerEventListeners = () => {
 
         if (wasCorrect) {
             setTimeout(() => spawnParticles(checkButton), 325);
-            console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - correct");
             questionsCorrect++;
             questionsAnswered++;
+            const digitPoints = { 1: 1, 2: 3, 3: 5 };
+            sessionPoints += digitPoints[currentQuestionDigits] || currentQuestionDigits;
         } else {
-            console.log(previousQuestionNum1 + " " + previousQuestionOperator + " " + previousQuestionNum2 + " = " + previousQuestionAnswer + " - incorrect");
             questionsAnswered++;
         }
 
@@ -226,6 +246,50 @@ const registerEventListeners = () => {
                 TopScore.innerHTML = newTopScore;
             }
         }
+        if (questionsAnswered > 0) {
+            const today = getToday();
+            const dayOfWeek = today.getDay();
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                const todayStr = toLocalDateStr(today);
+
+                let dailyPts = 0;
+                const dpDate = getCookie('dailyPointsDate_' + urlMode);
+                if (dpDate === todayStr) {
+                    dailyPts = parseInt(getCookie('dailyPoints_' + urlMode) || '0');
+                }
+                dailyPts += sessionPoints;
+                setCookie('dailyPoints_' + urlMode,     String(dailyPts));
+                setCookie('dailyPointsDate_' + urlMode, todayStr);
+
+                const lastStr = getCookie('streakLastDate_' + urlMode);
+                if (lastStr !== todayStr) {
+                    let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
+                    const goal = Math.min(50 + Math.floor(streak / 5) * 5, 80);
+
+                    if (dailyPts >= goal) {
+                        const calendarGap = lastStr
+                            ? Math.round((today - new Date(lastStr)) / 86400000)
+                            : Infinity;
+
+                        if (calendarGap >= 14) {
+                            streak = 1;
+                        } else if (toLocalDateStr(prevWeekday(today)) === lastStr) {
+                            streak += 1;
+                        } else {
+                            streak = 1;
+                        }
+
+                        let best = parseInt(getCookie('streakBest_' + urlMode) || '0');
+                        if (streak > best) best = streak;
+
+                        setCookie('streakCount_'    + urlMode, String(streak));
+                        setCookie('streakLastDate_' + urlMode, todayStr);
+                        setCookie('streakBest_'     + urlMode, String(best));
+                    }
+                }
+            }
+        }
+
         spawnParticles(FinishButton);
         setTimeout(() => { window.location.href = 'index.html'; }, 1000);
     });

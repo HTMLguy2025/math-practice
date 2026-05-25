@@ -262,21 +262,21 @@ const registerEventListeners = () => {
                 setCookie('dailyPointsDate_' + urlMode, todayStr);
 
                 const lastStr = getCookie('streakLastDate_' + urlMode);
-                if (lastStr !== todayStr) {
-                    let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
-                    const goal = Math.min(50 + streak, 120);
+                let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
 
+                if (lastStr !== todayStr) {
+                    const goal = Math.min(50 + streak, 120);
                     if (dailyPts >= goal) {
                         const calendarGap = lastStr
                             ? Math.round((today - new Date(lastStr)) / 86400000)
                             : Infinity;
 
-                        if (calendarGap >= 14) {
+                        const willReset = calendarGap >= 14 || toLocalDateStr(prevWeekday(today)) !== lastStr;
+                        if (willReset) {
                             streak = 1;
-                        } else if (toLocalDateStr(prevWeekday(today)) === lastStr) {
-                            streak += 1;
+                            setCookie('bonusCount_' + urlMode, '0');
                         } else {
-                            streak = 1;
+                            streak += 1;
                         }
 
                         let best = parseInt(getCookie('streakBest_' + urlMode) || '0');
@@ -286,6 +286,15 @@ const registerEventListeners = () => {
                         setCookie('streakLastDate_' + urlMode, todayStr);
                         setCookie('streakBest_'     + urlMode, String(best));
                     }
+                }
+
+                const goalForBonus = Math.min(50 + streak, 120);
+                const bonusEarnedDate = getCookie('bonusEarnedDate_' + urlMode);
+                if (bonusEarnedDate !== todayStr && dailyPts >= goalForBonus + 20) {
+                    let bonuses = parseInt(getCookie('bonusCount_' + urlMode) || '0');
+                    bonuses++;
+                    setCookie('bonusCount_'      + urlMode, String(bonuses));
+                    setCookie('bonusEarnedDate_' + urlMode, todayStr);
                 }
             }
         }

@@ -13,6 +13,6 @@ Each Simple Operations exercise (Multiplication, Addition, Subtraction, Division
 
 ---
 
-# Hotfix 2.3.1
+# Hotfix 2.3.1 @ 2.3.2
 
 *Small changes to the streak tracking system*

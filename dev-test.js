@@ -1,7 +1,7 @@
 var DAY_OFFSET = 0;
-var STREAK_OVERRIDE = true;
+var STREAK_OVERRIDE = false;
 var STREAK_OVERRIDE_VALUE = 4;
-var BONUS_OVERRIDE = true;
+var BONUS_OVERRIDE = false;
 var BONUS_OVERRIDE_VALUE = 4;
 
 

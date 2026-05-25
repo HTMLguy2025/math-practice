@@ -1030,7 +1030,7 @@
                 const modeKey = simpleModeKey[section.label];
                 if (modeKey) {
                     const currentStreak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : parseInt(getCookie('streakCount_' + modeKey) || '0');
-                    const goal = Math.min(50 + Math.floor(currentStreak / 5) * 5, 80);
+                    const goal = Math.min(50 + currentStreak, 120);
                     const dpDate = getCookie('dailyPointsDate_' + modeKey);
                     const today = getToday();
                     const todayStr = today.getFullYear() + '-' +

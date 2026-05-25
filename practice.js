@@ -264,7 +264,7 @@ const registerEventListeners = () => {
                 const lastStr = getCookie('streakLastDate_' + urlMode);
                 if (lastStr !== todayStr) {
                     let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
-                    const goal = Math.min(50 + Math.floor(streak / 5) * 5, 80);
+                    const goal = Math.min(50 + streak, 120);
 
                     if (dailyPts >= goal) {
                         const calendarGap = lastStr

@@ -12,3 +12,7 @@ Each Simple Operations exercise (Multiplication, Addition, Subtraction, Division
 - The flame label changes style as your streak grows longer
 
 ---
+
+# Hotfix 2.3.1
+
+*Small changes to the streak tracking system*

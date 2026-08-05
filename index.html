@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet"> -->
     <link rel="icon" href="newicon.png" type="image/x-icon">
     <script src="version.js"></script>
     <script src="dev-test.js"></script>
@@ -818,8 +818,14 @@
         const lastSeen = getCookie('lastSeenVersion');
         if (lastSeen !== CURRENT_VERSION) {
             fetch('release-notes.md')
-                .then(r => r.text())
+                .then(r => r.ok ? r.text() : '')
                 .then(md => {
+                    // No notes written for this release — record the version
+                    // and stay quiet instead of popping an empty banner.
+                    if (!md.trim()) {
+                        setCookie('lastSeenVersion', CURRENT_VERSION);
+                        return;
+                    }
                     const tokens = marked.lexer(md);
                     const heading = tokens.find(t => t.type === 'heading');
                     const rest = tokens.filter(t => t !== heading);
@@ -1075,6 +1081,17 @@
 
         const simpleModeKey = { 'Multiplication': 'multiply', 'Addition': 'add', 'Subtraction': 'subtract', 'Division': 'divide' };
 
+        const toDateStr = (d) =>
+            d.getFullYear() + '-' +
+            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0');
+
+        const prevWeekday = (date) => {
+            const d = new Date(date);
+            do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+            return d;
+        };
+
         function buildSimpleGrid(containerEl, levelKey) {
             containerEl.innerHTML = '';
             LEVELS[levelKey].sections.forEach(section => {
@@ -1097,13 +1114,18 @@
 
                 const modeKey = simpleModeKey[section.label];
                 if (modeKey) {
-                    const currentStreak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : parseInt(getCookie('streakCount_' + modeKey) || '0');
+                    const today = getToday();
+                    const todayStr = toDateStr(today);
+
+                    // A streak is still running only if it was last extended
+                    // today or on the previous weekday; older means it lapsed.
+                    const lastStr = getCookie('streakLastDate_' + modeKey);
+                    const alive = lastStr === todayStr || lastStr === toDateStr(prevWeekday(today));
+                    const storedStreak = alive ? parseInt(getCookie('streakCount_' + modeKey) || '0') : 0;
+
+                    const currentStreak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : storedStreak;
                     const goal = Math.min(50 + currentStreak, 120);
                     const dpDate = getCookie('dailyPointsDate_' + modeKey);
-                    const today = getToday();
-                    const todayStr = today.getFullYear() + '-' +
-                        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                        String(today.getDate()).padStart(2, '0');
                     const dailyPts = (dpDate === todayStr)
                         ? parseInt(getCookie('dailyPoints_' + modeKey) || '0')
                         : 0;

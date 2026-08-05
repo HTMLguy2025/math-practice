@@ -264,15 +264,16 @@ const registerEventListeners = () => {
                 const lastStr = getCookie('streakLastDate_' + urlMode);
                 let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
 
+                // The stored count only stands if the streak was last extended
+                // today or on the previous weekday. Anything older means a
+                // weekday was missed, so it has lapsed back to nothing.
+                const lapsed = lastStr !== todayStr && lastStr !== toLocalDateStr(prevWeekday(today));
+                if (lapsed) streak = 0;
+
                 if (lastStr !== todayStr) {
                     const goal = Math.min(50 + streak, 120);
                     if (dailyPts >= goal) {
-                        const calendarGap = lastStr
-                            ? Math.round((today - new Date(lastStr)) / 86400000)
-                            : Infinity;
-
-                        const willReset = calendarGap >= 14 || toLocalDateStr(prevWeekday(today)) !== lastStr;
-                        if (willReset) {
+                        if (lapsed) {
                             streak = 1;
                             setCookie('bonusCount_' + urlMode, '0');
                         } else {

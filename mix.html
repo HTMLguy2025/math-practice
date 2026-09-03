@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="version.js"></script>
+    <title>Math Practice</title>
+    <style>
+        body.mix-host {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 16px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* The host shows the version in the launcher and exercises; keep the stage corner clean */
+        body.mix-host .textOnTheRight {
+            display: none;
+        }
+
+        .mix-meta {
+            font-size: 0.75rem;
+            color: rgba(190, 205, 218, 0.45);
+            margin-top: 2px;
+        }
+
+        /* Stage — fills the space between the header and the Finish bar */
+
+        .mix-stage {
+            position: fixed;
+            left: 0;
+            right: 0;
+            top: 96px;
+            bottom: 84px;
+        }
+
+        .mix-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: transparent;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .mix-frame.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Interstitial shown between questions while the next page fades in */
+
+        .mix-interstitial {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            background: rgba(18, 18, 31, 0.6);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            outline: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .mix-interstitial.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mix-next-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(190, 205, 218, 0.6);
+        }
+
+        .mix-next-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+            padding: 0 1rem;
+            color: rgba(235, 240, 255, 0.95);
+            text-shadow: 0 0 18px rgba(90, 130, 200, 0.35);
+        }
+
+        .mix-sweep {
+            width: 180px;
+            height: 4px;
+            margin-top: 0.4rem;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .mix-sweep-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #4fc3f7, #7c6cf0);
+        }
+
+        .mix-interstitial.show .mix-sweep-fill {
+            animation: mixSweep var(--feedback, 1000ms) linear forwards;
+        }
+
+        @keyframes mixSweep {
+            from { width: 0; }
+            to   { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .mix-next-title { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body class="darkTheme mix-host">
+    <div class="header" id="mixHeader">
+        <div>
+            <span class="title1">Mix &amp; Match</span>
+            <div id="modeIndicator" class="modeIndicator">Loading…</div>
+            <div id="mixMeta" class="mix-meta"></div>
+        </div>
+        <div class="scoreDisplay">
+            <div>
+                <span class="questionsCorrect" id="questionscorrect">0</span>
+                <span class="questionsCorrect">/</span>
+                <span class="questionsCorrect" id="questionsAnswered">0</span>
+                <span class="questionsCorrect"> correct</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mix-stage" id="mixStage">
+        <iframe class="mix-frame" id="frameA" title="Exercise"></iframe>
+        <iframe class="mix-frame" id="frameB" title="Exercise"></iframe>
+        <div class="mix-interstitial" id="interstitial" tabindex="-1">
+            <div class="mix-next-label">Next up</div>
+            <div class="mix-next-title" id="nextTitle"></div>
+            <div class="mix-sweep"><div class="mix-sweep-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="modeButtonRow">
+        <button id="finishButton" class="finishButton">Finish</button>
+    </div>
+    <div class="textOnTheRight"></div>
+
+    <script>
+        (() => {
+            // How long the student sees the ✓/✗ feedback before the next
+            // exercise fades in.
+            const FEEDBACK_MS = 1000;
+
+            let playlist = [];
+            try { playlist = JSON.parse(sessionStorage.getItem('mixPlaylist') || '[]'); } catch (e) {}
+            playlist = playlist.filter(p => p && p.href);
+            if (playlist.length === 0) {
+                window.location.replace('index.html');
+                return;
+            }
+
+            let totals = { correct: 0, answered: 0 };
+            try {
+                const saved = JSON.parse(sessionStorage.getItem('mixScore') || 'null');
+                if (saved && typeof saved.answered === 'number') totals = saved;
+            } catch (e) {}
+
+            const frames        = [document.getElementById('frameA'), document.getElementById('frameB')];
+            const stage         = document.getElementById('mixStage');
+            const interstitial  = document.getElementById('interstitial');
+            const nextTitle     = document.getElementById('nextTitle');
+            const modeIndicator = document.getElementById('modeIndicator');
+
+            let active   = 0;      // index into frames
+            let current  = null;   // playlist item on screen
+            let upcoming = null;   // playlist item preloading in the other frame
+            let upcomingReady = Promise.resolve();
+            let locked = false;    // true while transitioning between questions
+
+            document.documentElement.style.setProperty('--feedback', FEEDBACK_MS + 'ms');
+            document.getElementById('mixMeta').textContent =
+                playlist.length + ' exercise' + (playlist.length === 1 ? '' : 's') + ' in this mix';
+
+            const renderScore = () => {
+                document.getElementById('questionscorrect').textContent  = totals.correct;
+                document.getElementById('questionsAnswered').textContent = totals.answered;
+                try { sessionStorage.setItem('mixScore', JSON.stringify(totals)); } catch (e) {}
+            };
+
+            const withMixFlag = (href) => {
+                const u = new URL(href, window.location.href);
+                u.searchParams.set('mix', '1');
+                return u.href;
+            };
+
+            // Uniform random pick, never the same exercise twice in a row.
+            const pickNext = (exclude) => {
+                if (playlist.length === 1) return playlist[0];
+                let choice;
+                do {
+                    choice = playlist[Math.floor(Math.random() * playlist.length)];
+                } while (exclude && choice.href === exclude.href);
+                return choice;
+            };
+
+            // Resolves once the embedded page has initialised (or on a safety timeout).
+            const loadInto = (frame, item) => new Promise(resolve => {
+                let done = false;
+                const finish = () => {
+                    if (done) return;
+                    done = true;
+                    window.removeEventListener('message', onMsg);
+                    resolve();
+                };
+                const onMsg = (e) => {
+                    if (e.source === frame.contentWindow && e.data && e.data.type === 'mix:ready') finish();
+                };
+                window.addEventListener('message', onMsg);
+                frame.addEventListener('load', () => setTimeout(finish, 60), { once: true });
+                setTimeout(finish, 5000);
+                frame.src = withMixFlag(item.href);
+            });
+
+            const layout = () => {
+                const headerBottom = document.getElementById('mixHeader').getBoundingClientRect().bottom;
+                const finishTop    = document.querySelector('.modeButtonRow').getBoundingClientRect().top;
+                stage.style.top    = Math.ceil(headerBottom + 10) + 'px';
+                stage.style.bottom = Math.ceil(window.innerHeight - finishTop + 8) + 'px';
+            };
+            window.addEventListener('resize', layout);
+
+            const focusActive = () => {
+                try { frames[active].contentWindow.focus(); } catch (e) {}
+            };
+
+            const show = (idx, item) => {
+                frames[idx].classList.add('active');
+                frames[1 - idx].classList.remove('active');
+                active  = idx;
+                current = item;
+                modeIndicator.textContent = item.label;
+                focusActive();
+            };
+
+            const queueNext = () => {
+                upcoming = pickNext(current);
+                upcomingReady = loadInto(frames[1 - active], upcoming);
+            };
+
+            window.addEventListener('message', async (e) => {
+                if (window.location.origin !== 'null' && e.origin !== window.location.origin) return;
+                if (!e.data || e.data.type !== 'mix:answered') return;
+                if (e.source !== frames[active].contentWindow) return;
+                if (locked) return;
+                locked = true;
+
+                totals.answered++;
+                if (e.data.correct) totals.correct++;
+                renderScore();
+
+                // Take focus off the exercise so stray keystrokes don't land on
+                // the question it has already moved on to underneath.
+                nextTitle.textContent = upcoming ? upcoming.label : '';
+                interstitial.classList.add('show');
+                interstitial.focus();
+
+                await Promise.all([
+                    new Promise(r => setTimeout(r, FEEDBACK_MS)),
+                    upcomingReady,
+                ]);
+
+                show(1 - active, upcoming);
+                interstitial.classList.remove('show');
+                queueNext();
+                locked = false;
+            });
+
+            // If focus is on the host (e.g. after clicking the header), hand
+            // keystrokes to the exercise and move focus into it.
+            ['keydown', 'keyup'].forEach(type => {
+                document.addEventListener(type, (ev) => {
+                    if (locked) { ev.preventDefault(); return; }
+                    const frame = frames[active];
+                    if (!frame || !frame.contentDocument) return;
+                    if (ev.target && ev.target.tagName === 'INPUT') return;
+                    try {
+                        frame.contentDocument.dispatchEvent(new KeyboardEvent(type, {
+                            key: ev.key, code: ev.code, keyCode: ev.keyCode, which: ev.which,
+                            bubbles: true, cancelable: true,
+                        }));
+                    } catch (e) {}
+                    if (type === 'keyup') focusActive();
+                });
+            });
+            stage.addEventListener('mousedown', () => { if (!locked) focusActive(); });
+
+            const particleColors = ['#4fc3f7','#81c784','#ffb74d','#f06292','#ce93d8','#fff176'];
+            const spawnParticles = (el) => {
+                const rect = el.getBoundingClientRect();
+                const ox = rect.left + rect.width / 2;
+                const oy = rect.top + rect.height / 2;
+                for (let i = 0; i < 28; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    const angle = Math.random() * 2 * Math.PI;
+                    const dist  = 80 + Math.random() * 140;
+                    const size  = (6 + Math.random() * 8) + 'px';
+                    p.style.cssText = `left:${ox}px;top:${oy}px;width:${size};height:${size};background-color:${particleColors[Math.floor(Math.random() * particleColors.length)]};z-index:100;`;
+                    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+                    document.body.appendChild(p);
+                    p.addEventListener('animationend', () => p.remove());
+                }
+            };
+
+            document.getElementById('finishButton').addEventListener('click', () => {
+                sessionStorage.removeItem('mixPlaylist');
+                sessionStorage.removeItem('mixScore');
+                spawnParticles(document.getElementById('finishButton'));
+                setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+            });
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                layout();
+                renderScore();
+                const first = pickNext(null);
+                await loadInto(frames[0], first);
+                show(0, first);
+                queueNext();
+                setTimeout(layout, 300);
+            });
+        })();
+    </script>
+</body>
+</html>

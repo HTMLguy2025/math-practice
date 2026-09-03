@@ -9,9 +9,10 @@
     <link rel = "stylesheet" href = "styles.css">
     <link rel = "icon" href = "newicon.png" type = "image/x-icon">
     <script src="version.js"></script>
+    <script src="mix.js"></script>
     <title>Math Practice</title>
 </head>
-<body class = "darkTheme">
+<body class = "darkTheme practice-page">
     <div style = "z-index: 1;">
         <div class = "header">
             <div>
@@ -21,6 +22,7 @@
             <div class = "scoreDisplay">
                 <div><span class = "questionsCorrect" id = "questionscorrect">0</span><span class = "questionsCorrect">/</span><span class = "questionsCorrect" id = "questionsAnswered">0</span><span class = "questionsCorrect"> correct</span></div>
                 <div><span class = "questionsCorrect">Top score: </span><span class = "questionsCorrect" id = "topScore">none</span></div>
+                <div id = "practicePointsRow" class = "practicePointsRow">Practice points: <span id = "practicePoints">0</span></div>
             </div>
         </div>
         <div>
@@ -53,7 +55,11 @@
             <button id = "button9" class = "numButtons">9</button>
             <button id = "decimalButton" class = "numButtons">.</button>
             <button id = "button0" class = "numButtons">0</button>
-            <button id = "negativeButton" class = "numButtons">-a</button>
+            <button id = "negativeButton" class = "numButtons">&minus;</button>
+            <label id = "autoCompleteToggle" class = "autoToggle" data-tooltip="Submits your answer the moment it matches. Turn this off to press the check button or Enter yourself.">
+                <input type = "checkbox" id = "autoCompleteCheck">
+                <span>Auto-Complete</span>
+            </label>
         </div>
         </div>
         <br>

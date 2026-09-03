@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="newicon.png" type="image/x-icon">
     <script src="version.js"></script>
+    <script src="mix.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -560,7 +561,7 @@
                 const large = sweep > Math.PI ? 1 : 0;
                 const color = isHL ? '#f06292' : PIE_COLORS[i % PIE_COLORS.length];
 
-                svg += `<path d="M ${scx.toFixed(1)} ${scy.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${color}" fill-opacity="${isHL ? 1 : 0.82}" stroke="#1a1a2e" stroke-width="1.5"/>`;
+                svg += `<path d="M ${scx.toFixed(1)} ${scy.toFixed(1)} L ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)} Z" fill="${color}" fill-opacity="${isHL ? 1 : 0.82}" stroke="#12121f" stroke-width="1.5"/>`;
 
                 // Integer value label inside slice
                 const lx  = (scx + r * 0.6 * Math.cos(mid)).toFixed(1);

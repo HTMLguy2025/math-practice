@@ -14,6 +14,9 @@ const QuestionsAnswered = document.querySelector("#questionsAnswered");
 const QuestionsCorrect = document.querySelector("#questionscorrect");
 const TopScore = document.querySelector("#topScore");
 const FinishButton = document.querySelector("#finishButton");
+const PracticePoints = document.querySelector("#practicePoints");
+const PracticePointsRow = document.querySelector("#practicePointsRow");
+const AutoCompleteCheck = document.querySelector("#autoCompleteCheck");
 
 const getCookie = (name) => {
     const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -36,59 +39,126 @@ const prevWeekday = (date) => {
     return d;
 };
 
-const getTopScore = () => {
-    const value = localStorage.getItem('topScore_' + urlMode + '_' + urlDigits);
-    return value;
-}
-
-const setTopScore = (value) => {
-    localStorage.setItem('topScore_' + urlMode + '_' + urlDigits, value);
-}
-
+// --- URL options ---
 const params = new URLSearchParams(window.location.search);
-const urlMode    = params.get('mode') || 'multiply';
+const urlMode     = params.get('mode') || 'multiply';
 const digitsParam = params.get('digits') || '1';
 const digitsList  = digitsParam.split(',').map(Number).filter(n => [1, 2, 3].includes(n));
 if (digitsList.length === 0) digitsList.push(1);
-const urlDigits  = digitsList[0]; // used for display / score key
+const urlDigits   = digitsList[0]; // used for display / score key
+
+const useNegatives = params.get('negatives') === '1';
+const useDecimals  = params.get('decimals') === '1';
+// "Mix with regular": each enabled modifier is a coin flip per question, so
+// questions range from plain through one modifier to both at once.
+const mixRegular   = params.get('mixregular') === '1' && (useNegatives || useDecimals);
+
+// Plain runs keep their historical top-score key; modified runs get their own.
+const scoreKey = 'topScore_' + urlMode + '_' + urlDigits
+    + (useNegatives ? '_neg' : '')
+    + (useDecimals  ? '_dec' : '');
+
+const getTopScore = () => localStorage.getItem(scoreKey);
+const setTopScore = (value) => localStorage.setItem(scoreKey, value);
+
+// A session only replaces the saved top score if it is genuinely better:
+// higher accuracy wins, and on equal accuracy the longer session wins. Compared
+// with cross-multiplication so 2/3 and 4/6 count as the same accuracy exactly.
+const isBetterScore = (correct, answered, saved) => {
+    if (!saved) return true;
+    const [savedCorrect, savedAnswered] = saved.split('/').map(Number);
+    if (!savedAnswered) return true;
+    const lhs = correct * savedAnswered;
+    const rhs = savedCorrect * answered;
+    if (lhs !== rhs) return lhs > rhs;
+    return answered > savedAnswered;
+};
+
+// --- Question generation ---
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const round2  = (x) => Math.round(x * 100) / 100;
 
 const pickDigits = () => digitsList[Math.floor(Math.random() * digitsList.length)];
 
-const getNum = (d) => {
-    const digits = d !== undefined ? d : pickDigits();
-    if (digits === 1) return Math.ceil(Math.random() * 10);
-    if (digits === 2) return Math.floor(Math.random() * 90) + 10;
-    return Math.floor(Math.random() * 900) + 100;
+const pickMods = () => {
+    if (!mixRegular) return { neg: useNegatives, dec: useDecimals };
+    return {
+        neg: useNegatives && Math.random() < 0.5,
+        dec: useDecimals  && Math.random() < 0.5,
+    };
 };
 
-// For 1-digit division, generate a 2-digit ÷ 1-digit pair that divides evenly.
+const getNum = (d, dec) => {
+    let n;
+    if (d === 1)      n = Math.ceil(Math.random() * 10);
+    else if (d === 2) n = randInt(10, 99);
+    else              n = randInt(100, 999);
+    // Decimal operands carry one non-zero tenth so the decimal is always real.
+    if (dec) n = round2(n + randInt(1, 9) / 10);
+    return n;
+};
+
+// "With negatives": at least one operand is negative.
+const applySigns = (n1, n2) => {
+    const pattern = randInt(0, 2);   // 0: first only, 1: second only, 2: both
+    return {
+        n1: pattern !== 1 ? -n1 : n1,
+        n2: pattern !== 0 ? -n2 : n2,
+    };
+};
+
 const getPair = () => {
     const d = pickDigits();
-    if (urlMode === 'divide' && d === 1) {
-        const divisor  = Math.floor(Math.random() * 8) + 2;  // 2–9
-        const quotient = Math.floor(Math.random() * 9) + 2;  // 2–10
-        return { n1: divisor * quotient, n2: divisor, digits: d };
+    const { neg, dec } = pickMods();
+    let n1, n2;
+
+    if (urlMode === 'divide') {
+        if (dec) {
+            // Decimal divisor with a whole-number quotient keeps the answer clean.
+            const divisor  = getNum(d, true);
+            const quotient = randInt(2, 12);
+            n2 = divisor;
+            n1 = round2(divisor * quotient);
+        } else if (d === 1) {
+            // 2-digit ÷ 1-digit that divides evenly.
+            const divisor  = randInt(2, 9);
+            const quotient = randInt(2, 10);
+            n1 = divisor * quotient;
+            n2 = divisor;
+        } else {
+            n1 = getNum(d, false);
+            n2 = getNum(d, false);
+        }
+    } else {
+        n1 = getNum(d, dec);
+        n2 = getNum(d, dec);
     }
-    return { n1: getNum(d), n2: getNum(d), digits: d };
+
+    if (neg) ({ n1, n2 } = applySigns(n1, n2));
+    return { n1, n2, digits: d, neg, dec };
 };
 
 const computeAnswer = (n1, n2, op) => {
-    if (op === 'times') return n1 * n2;
-    if (op === 'plus') return n1 + n2;
-    if (op === 'minus') return n1 - n2;
-    return Math.round((n1 / n2) * 100) / 100;
+    if (op === 'times') return round2(n1 * n2);
+    if (op === 'plus')  return round2(n1 + n2);
+    if (op === 'minus') return round2(n1 - n2);
+    return round2(n1 / n2);
 };
+
+// A negative second operand gets parentheses so "5 − (−3)" reads clearly.
+const fmtTop    = (n) => String(n);
+const fmtBottom = (n) => (n < 0 ? '(' + n + ')' : String(n));
 
 const opSymbol = { times: 'x', plus: '+', minus: '-', divide: '÷' };
 const modeToOperator = { multiply: 'times', add: 'plus', subtract: 'minus', divide: 'divide' };
 
 var selectedAnswer = "";
 var currentQuestionOperator = modeToOperator[urlMode] || 'times';
-var { n1: currentQuestionNum1, n2: currentQuestionNum2, digits: currentQuestionDigits } = getPair();
-var answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
-var { n1: previousQuestionNum1, n2: previousQuestionNum2 } = getPair();
+var current = getPair();
+var answer = computeAnswer(current.n1, current.n2, currentQuestionOperator);
+var previous = getPair();
 var previousQuestionOperator = currentQuestionOperator;
-var previousQuestionAnswer = computeAnswer(previousQuestionNum1, previousQuestionNum2, previousQuestionOperator);
+var previousQuestionAnswer = computeAnswer(previous.n1, previous.n2, previousQuestionOperator);
 var questionsCorrect = 0;
 var questionsAnswered = 0;
 var sessionPoints = 0;
@@ -130,11 +200,76 @@ const spawnParticles = (originEl) => {
     }
 };
 
+// Auto-Complete submits as soon as the typed answer matches. On by default;
+// the toggle under the check button remembers the choice.
+let autoComplete = localStorage.getItem('autoComplete') !== '0';
+
 const autoCheck = () => {
-    if (selectedAnswer == answer) {
+    if (autoComplete && selectedAnswer == answer) {
         checkButton.click();
     }
 }
+
+// --- Streak / daily-goal context (shared by the live display and Finish) ---
+// A stored streak only stands if it was last extended today or on the previous
+// weekday. The goal shown is the one in force at the start of today, so if the
+// streak was already extended today we look at the count before that extension.
+const getStreakContext = () => {
+    const today = getToday();
+    const dow = today.getDay();
+    const isWeekday = dow !== 0 && dow !== 6;
+    const todayStr = toLocalDateStr(today);
+
+    const dpDate = getCookie('dailyPointsDate_' + urlMode);
+    const savedDaily = dpDate === todayStr ? parseInt(getCookie('dailyPoints_' + urlMode) || '0') : 0;
+
+    const lastStr = getCookie('streakLastDate_' + urlMode);
+    let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
+    const extendedToday = lastStr === todayStr;
+    const lapsed = !extendedToday && lastStr !== toLocalDateStr(prevWeekday(today));
+    if (lapsed) streak = 0;
+
+    const baseStreak = extendedToday ? Math.max(0, streak - 1) : streak;
+    const goal = Math.min(50 + baseStreak, 120);
+
+    return { todayStr, isWeekday, savedDaily, streak, extendedToday, lapsed, goal, bonusAt: goal + 20 };
+};
+
+const FLAME_HTML =
+    '<span class="finish-flame" aria-hidden="true">' +
+        '<svg viewBox="0 0 22 30" xmlns="http://www.w3.org/2000/svg" overflow="visible">' +
+            '<circle class="ember-1" cx="9"  cy="5" r="1.2" fill="#ff9800"/>' +
+            '<circle class="ember-2" cx="13" cy="3" r="1.0" fill="#ffcc02"/>' +
+            '<circle class="ember-3" cx="8"  cy="7" r="0.9" fill="#ff6d00"/>' +
+            '<g class="flame-body">' +
+                '<path d="M11,30 C4,25 1,18 4,11 C6,6 9,2 11,-1 C13,2 16,6 18,11 C21,18 18,25 11,30Z" fill="#ff4500"/>' +
+                '<path d="M11,27 C6,22 4,17 7,11 C9,7 11,4 11,1 C11,4 13,7 15,11 C18,17 16,22 11,27Z" fill="#ff6d00"/>' +
+                '<g class="flame-inner"><path d="M11,24 C8,20 7,16 9,12 C10,10 11,8 11,8 C11,8 12,10 13,12 C15,16 14,20 11,24Z" fill="#ffd600"/></g>' +
+                '<path d="M11,9 C10,6 10,3 11,0 C12,3 12,6 11,9Z" fill="#fff9c4" opacity="0.85"/>' +
+            '</g>' +
+        '</svg>' +
+        '<span class="text-ember te-1"></span><span class="text-ember te-2"></span><span class="text-ember te-3"></span>' +
+    '</span>';
+
+const updatePracticePoints = () => {
+    if (!PracticePoints) return;
+    const ctx = getStreakContext();
+    const total = ctx.savedDaily + sessionPoints;
+    const goalMet  = ctx.isWeekday && total >= ctx.goal;
+    const bonusHit = ctx.isWeekday && total >= ctx.bonusAt;
+
+    PracticePoints.textContent = ctx.isWeekday ? total + ' / ' + ctx.goal : String(total);
+    if (PracticePointsRow) {
+        PracticePointsRow.classList.toggle('goal-met', goalMet && !bonusHit);
+        PracticePointsRow.classList.toggle('bonus-ready', bonusHit);
+    }
+
+    FinishButton.classList.toggle('goal-met', goalMet && !bonusHit);
+    FinishButton.classList.toggle('bonus-ready', bonusHit);
+    const flame = FinishButton.querySelector('.finish-flame');
+    if (bonusHit && !flame) FinishButton.insertAdjacentHTML('beforeend', FLAME_HTML);
+    if (!bonusHit && flame) flame.remove();
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const saved = getTopScore();
@@ -142,24 +277,38 @@ document.addEventListener('DOMContentLoaded', () => {
         TopScore.innerHTML = saved;
     }
 
-    const modeNames = { multiply: 'Multiplication', add: 'Addition', subtract: 'Subtraction' };
+    const modeNames = { multiply: 'Multiplication', add: 'Addition', subtract: 'Subtraction', divide: 'Division' };
     const digitLabels = { 1: '1-Digit', 2: '2-Digit', 3: '3-Digit' };
     const modeIndicator = document.getElementById('modeIndicator');
     if (modeIndicator) {
         const digitLabel = digitsList.length > 1
             ? digitsList.map(d => digitLabels[d] || d).join(', ')
             : (digitLabels[urlDigits] || '1-Digit');
-        modeIndicator.textContent = (modeNames[urlMode] || 'Multiplication') + ' · ' + digitLabel;
+        let label = (modeNames[urlMode] || 'Multiplication') + ' · ' + digitLabel;
+        const mods = [];
+        if (useNegatives) mods.push('Negatives');
+        if (useDecimals)  mods.push('Decimals');
+        if (mods.length) label += ' · ' + mods.join(', ') + (mixRegular ? ' (mixed)' : '');
+        modeIndicator.textContent = label;
     }
 
     Operator.innerHTML = opSymbol[currentQuestionOperator];
     LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
-    factNumberOne.innerHTML = currentQuestionNum1;
-    factNumberTwo.innerHTML = currentQuestionNum2;
-    LastQuesNum1.innerHTML = previousQuestionNum1;
-    LastQuesNum2.innerHTML = previousQuestionNum2;
+    factNumberOne.innerHTML = fmtTop(current.n1);
+    factNumberTwo.innerHTML = fmtBottom(current.n2);
+    LastQuesNum1.innerHTML = fmtTop(previous.n1);
+    LastQuesNum2.innerHTML = fmtBottom(previous.n2);
     LastQuesAnswer.innerHTML = previousQuestionAnswer;
 
+    if (AutoCompleteCheck) {
+        AutoCompleteCheck.checked = autoComplete;
+        AutoCompleteCheck.addEventListener('change', () => {
+            autoComplete = AutoCompleteCheck.checked;
+            localStorage.setItem('autoComplete', autoComplete ? '1' : '0');
+        });
+    }
+
+    updatePracticePoints();
     registerEventListeners();
 });
 
@@ -181,34 +330,40 @@ const registerEventListeners = () => {
         ], { duration: 325 });
 
         const wasCorrect = selectedAnswer == answer;
+        const answered = current;
 
-        previousQuestionNum1 = currentQuestionNum1;
-        previousQuestionNum2 = currentQuestionNum2;
+        previous = current;
         previousQuestionAnswer = answer;
         previousQuestionOperator = currentQuestionOperator;
 
-        ({ n1: currentQuestionNum1, n2: currentQuestionNum2, digits: currentQuestionDigits } = getPair());
-        answer = computeAnswer(currentQuestionNum1, currentQuestionNum2, currentQuestionOperator);
+        current = getPair();
+        answer = computeAnswer(current.n1, current.n2, currentQuestionOperator);
 
         LastQuesOperator.innerHTML = opSymbol[previousQuestionOperator];
-        LastQuesNum1.innerHTML = previousQuestionNum1;
-        LastQuesNum2.innerHTML = previousQuestionNum2;
+        LastQuesNum1.innerHTML = fmtTop(previous.n1);
+        LastQuesNum2.innerHTML = fmtBottom(previous.n2);
         LastQuesAnswer.innerHTML = previousQuestionAnswer;
-        factNumberOne.innerHTML = currentQuestionNum1;
-        factNumberTwo.innerHTML = currentQuestionNum2;
+        factNumberOne.innerHTML = fmtTop(current.n1);
+        factNumberTwo.innerHTML = fmtBottom(current.n2);
 
         if (wasCorrect) {
             setTimeout(() => spawnParticles(checkButton), 325);
             questionsCorrect++;
             questionsAnswered++;
+            // Harder questions are worth more: by digit count, plus a bonus per
+            // modifier applied — decimals take more work than a sign flip.
             const digitPoints = { 1: 1, 2: 3, 3: 5 };
-            sessionPoints += digitPoints[currentQuestionDigits] || currentQuestionDigits;
+            const NEGATIVE_BONUS = 1, DECIMAL_BONUS = 2;
+            sessionPoints += (digitPoints[answered.digits] || answered.digits)
+                + (answered.neg ? NEGATIVE_BONUS : 0)
+                + (answered.dec ? DECIMAL_BONUS : 0);
         } else {
             questionsAnswered++;
         }
 
         QuestionsAnswered.innerHTML = questionsAnswered;
         QuestionsCorrect.innerHTML = questionsCorrect;
+        updatePracticePoints();
         selectedAnswer = "";
         renderAnswer();
     });
@@ -230,72 +385,41 @@ const registerEventListeners = () => {
 
     FinishButton.addEventListener('click', () => {
         if (questionsAnswered > 0) {
-            const currentPct = questionsCorrect / questionsAnswered;
-            const saved = getTopScore();
-            let saveNew = true;
-            if (saved) {
-                const parts = saved.split('/');
-                const savedPct = parseInt(parts[0]) / parseInt(parts[1]);
-                if (currentPct < savedPct) {
-                    saveNew = false;
-                }
-            }
-            if (saveNew) {
+            if (isBetterScore(questionsCorrect, questionsAnswered, getTopScore())) {
                 const newTopScore = questionsCorrect + '/' + questionsAnswered;
                 setTopScore(newTopScore);
                 TopScore.innerHTML = newTopScore;
             }
-        }
-        if (questionsAnswered > 0) {
-            const today = getToday();
-            const dayOfWeek = today.getDay();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                const todayStr = toLocalDateStr(today);
 
-                let dailyPts = 0;
-                const dpDate = getCookie('dailyPointsDate_' + urlMode);
-                if (dpDate === todayStr) {
-                    dailyPts = parseInt(getCookie('dailyPoints_' + urlMode) || '0');
-                }
-                dailyPts += sessionPoints;
+            const ctx = getStreakContext();
+            if (ctx.isWeekday) {
+                const dailyPts = ctx.savedDaily + sessionPoints;
                 setCookie('dailyPoints_' + urlMode,     String(dailyPts));
-                setCookie('dailyPointsDate_' + urlMode, todayStr);
+                setCookie('dailyPointsDate_' + urlMode, ctx.todayStr);
 
-                const lastStr = getCookie('streakLastDate_' + urlMode);
-                let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
-
-                // The stored count only stands if the streak was last extended
-                // today or on the previous weekday. Anything older means a
-                // weekday was missed, so it has lapsed back to nothing.
-                const lapsed = lastStr !== todayStr && lastStr !== toLocalDateStr(prevWeekday(today));
-                if (lapsed) streak = 0;
-
-                if (lastStr !== todayStr) {
-                    const goal = Math.min(50 + streak, 120);
-                    if (dailyPts >= goal) {
-                        if (lapsed) {
-                            streak = 1;
-                            setCookie('bonusCount_' + urlMode, '0');
-                        } else {
-                            streak += 1;
-                        }
-
-                        let best = parseInt(getCookie('streakBest_' + urlMode) || '0');
-                        if (streak > best) best = streak;
-
-                        setCookie('streakCount_'    + urlMode, String(streak));
-                        setCookie('streakLastDate_' + urlMode, todayStr);
-                        setCookie('streakBest_'     + urlMode, String(best));
+                if (!ctx.extendedToday && dailyPts >= ctx.goal) {
+                    let streak;
+                    if (ctx.lapsed) {
+                        streak = 1;
+                        setCookie('bonusCount_' + urlMode, '0');
+                    } else {
+                        streak = ctx.streak + 1;
                     }
+
+                    let best = parseInt(getCookie('streakBest_' + urlMode) || '0');
+                    if (streak > best) best = streak;
+
+                    setCookie('streakCount_'    + urlMode, String(streak));
+                    setCookie('streakLastDate_' + urlMode, ctx.todayStr);
+                    setCookie('streakBest_'     + urlMode, String(best));
                 }
 
-                const goalForBonus = Math.min(50 + streak, 120);
                 const bonusEarnedDate = getCookie('bonusEarnedDate_' + urlMode);
-                if (bonusEarnedDate !== todayStr && dailyPts >= goalForBonus + 20) {
+                if (bonusEarnedDate !== ctx.todayStr && dailyPts >= ctx.bonusAt) {
                     let bonuses = parseInt(getCookie('bonusCount_' + urlMode) || '0');
                     bonuses++;
                     setCookie('bonusCount_'      + urlMode, String(bonuses));
-                    setCookie('bonusEarnedDate_' + urlMode, todayStr);
+                    setCookie('bonusEarnedDate_' + urlMode, ctx.todayStr);
                 }
             }
         }

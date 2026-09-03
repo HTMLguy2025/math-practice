@@ -23,7 +23,7 @@
 
         body {
             position: relative;
-            background-color: #1a1a2e;
+            background-color: #12121f;
             color: rgb(190, 205, 218);
             min-height: 100vh;
             display: flex;
@@ -373,7 +373,7 @@
         }
 
         .fade-out-down {
-            animation: fadeOutDown 0.4s ease forwards;
+            animation: fadeOutDown 0.15s ease forwards;
             pointer-events: none;
         }
 
@@ -415,7 +415,7 @@
             width: 0%;
             background-color: rgb(60, 100, 170);
             border-radius: 3px;
-            transition: width 2s linear;
+            transition: width 0.3s linear;
         }
 
         .status {
@@ -440,7 +440,7 @@
 
         @keyframes fadeOutDown {
             from { opacity: 1; transform: translateY(0); }
-            to { opacity: 0; transform: translateY(30px); }
+            to { opacity: 0; transform: translateY(10px); }
         }
 
         @keyframes bannerFadeOut {
@@ -470,7 +470,7 @@
         #updateBanner {
             position: fixed;
             inset: 2rem;
-            background-color: #1a1a2e;
+            background-color: #12121f;
             color: rgb(190, 205, 218);
             padding: 2rem 2.5rem;
             box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
@@ -644,7 +644,7 @@
             bottom: calc(100% + 7px);
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(22, 22, 40, 0.97);
+            background: rgba(14, 14, 26, 0.97);
             color: rgba(190, 205, 218, 0.88);
             font-size: 0.63rem;
             font-weight: 400;
@@ -761,6 +761,449 @@
                 flex-direction: column;
             }
         }
+
+        /* ===== 2.4 visual refresh ===== */
+
+        body {
+            background-image:
+                radial-gradient(ellipse 70% 50% at 15% 0%, rgba(60, 100, 170, 0.22), transparent 60%),
+                radial-gradient(ellipse 60% 45% at 100% 100%, rgba(124, 108, 240, 0.10), transparent 60%),
+                linear-gradient(rgba(190, 205, 218, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(190, 205, 218, 0.035) 1px, transparent 1px);
+            background-size: auto, auto, 28px 28px, 28px 28px;
+            background-attachment: fixed;
+        }
+
+        .title {
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 24px rgba(90, 130, 200, 0.35);
+        }
+
+        .title::after {
+            content: '';
+            display: block;
+            width: 72px;
+            height: 3px;
+            margin: 0.6rem auto 0;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #4fc3f7, #7c6cf0);
+            opacity: 0.85;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            color: rgba(190, 205, 218, 0.55);
+        }
+
+        .section-label::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, #4fc3f7, #7c6cf0);
+        }
+
+        .mode-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(190, 205, 218, 0.09);
+            border-radius: 10px;
+            padding: 0.9rem 0.95rem;
+        }
+
+        #simpleGrid, .mode-grid {
+            gap: 1.25rem;
+        }
+
+        .launch-btn, .level-btn, .group-btn, .start-btn {
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .launch-btn, .level-btn, .group-btn {
+            transition: background-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        }
+
+        .launch-btn:hover, .level-btn:hover, .group-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .level-btn {
+            border-left-width: 3px;
+        }
+
+        .level-btn[data-level="1"] { border-left-color: #4fc3f7; }
+        .level-btn[data-level="2"] { border-left-color: #81c784; }
+        .level-btn[data-level="3"] { border-left-color: #ffb74d; }
+        .level-btn[data-level="4"] { border-left-color: #f06292; }
+        .level-btn[data-level="5"] { border-left-color: #ce93d8; }
+
+        #updateBanner {
+            border-radius: 12px;
+            border: 1px solid rgba(190, 205, 218, 0.1);
+        }
+
+        @media (max-width: 1000px) {
+            #simpleGrid, .mode-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Mix & Match — home page entry */
+
+        .mix-entry {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .mix-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            min-width: 280px;
+            padding: 12px 18px;
+            font-size: 1rem;
+            font-family: 'Roboto Mono', monospace;
+            color: rgba(235, 240, 255, 0.95);
+            text-align: left;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background:
+                linear-gradient(rgb(31, 46, 80), rgb(31, 46, 80)) padding-box,
+                linear-gradient(135deg, #4fc3f7, #7c6cf0) border-box;
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 18px rgba(90, 130, 200, 0.15);
+            transition: box-shadow 0.2s, transform 0.15s, background 0.2s;
+        }
+
+        .mix-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), 0 0 26px rgba(90, 130, 200, 0.3);
+            background:
+                linear-gradient(rgb(38, 56, 96), rgb(38, 56, 96)) padding-box,
+                linear-gradient(135deg, #4fc3f7, #7c6cf0) border-box;
+        }
+
+        .mix-btn svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            color: #8ad4ff;
+        }
+
+        .mix-btn small {
+            display: block;
+            font-size: 0.72rem;
+            color: rgba(190, 205, 218, 0.6);
+            margin-top: 2px;
+        }
+
+        .mix-replay {
+            font-size: 0.85rem;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border: 1px solid rgba(190, 205, 218, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(190, 205, 218, 0.85);
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .mix-replay:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(235, 240, 255, 0.95);
+        }
+
+        /* Mix & Match — builder view */
+
+        #mixView {
+            display: none;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+            width: 960px;
+            max-width: calc(100vw - 4rem);
+        }
+
+        .mix-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem 1rem;
+        }
+
+        .mix-hint {
+            font-size: 0.8rem;
+            color: rgba(190, 205, 218, 0.5);
+            margin-top: 0.2rem;
+        }
+
+        .mix-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .mix-count {
+            font-size: 0.85rem;
+            color: rgba(190, 205, 218, 0.75);
+        }
+
+        .mix-count strong {
+            color: rgba(235, 240, 255, 0.95);
+        }
+
+        .mix-clear {
+            background: none;
+            border: none;
+            padding: 0;
+            color: rgba(190, 205, 218, 0.45);
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+
+        .mix-clear:hover {
+            color: rgba(190, 205, 218, 0.9);
+        }
+
+        .mix-start {
+            margin-top: 0;
+            width: auto;
+            padding: 10px 22px;
+        }
+
+        #mixGroups {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .mix-group {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(190, 205, 218, 0.09);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .mix-group-head {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 0.9rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .mix-group-head:hover {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .mix-chevron {
+            width: 9px;
+            height: 9px;
+            margin-left: 2px;
+            flex-shrink: 0;
+            border-right: 2px solid rgba(190, 205, 218, 0.6);
+            border-bottom: 2px solid rgba(190, 205, 218, 0.6);
+            transform: rotate(-45deg);
+            transition: transform 0.2s;
+        }
+
+        .mix-group.open .mix-chevron {
+            transform: rotate(45deg);
+        }
+
+        .mix-level-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .mix-group-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: rgba(227, 234, 245, 0.9);
+        }
+
+        .mix-badge {
+            font-size: 0.72rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(190, 205, 218, 0.15);
+            color: rgba(190, 205, 218, 0.55);
+            text-align: center;
+        }
+
+        .mix-badge.has {
+            color: rgba(140, 220, 255, 0.95);
+            border-color: rgba(90, 130, 200, 0.5);
+            background: rgba(60, 100, 170, 0.15);
+        }
+
+        .mix-group-actions {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .mix-group-actions button {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            color: rgba(190, 205, 218, 0.5);
+            cursor: pointer;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+
+        .mix-group-actions button:hover {
+            color: rgba(235, 240, 255, 0.95);
+        }
+
+        .mix-group-body {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 0.9rem 1.25rem;
+            padding: 0.25rem 0.9rem 0.9rem;
+            border-top: 1px solid rgba(190, 205, 218, 0.07);
+        }
+
+        .mix-group.open .mix-group-body {
+            display: grid;
+        }
+
+        .mix-sec {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            padding-top: 0.6rem;
+        }
+
+        .mix-sec-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(190, 205, 218, 0.45);
+        }
+
+        .mix-sec .check-item span {
+            font-size: 0.88rem;
+        }
+
+        /* Simple-operation menu — spotlights one card and opens options beside it */
+
+        #opBackdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            background: rgba(4, 4, 10, 0.62);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
+        #opBackdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mode-section.op-focus {
+            position: relative;
+            z-index: 21;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(90, 130, 200, 0.55);
+            box-shadow: 0 0 0 1px rgba(90, 130, 200, 0.25), 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        #opMenu {
+            position: fixed;
+            z-index: 22;
+            width: 270px;
+            padding: 0.9rem 1rem 1rem;
+            background: #161628;
+            border: 1px solid rgba(90, 130, 200, 0.4);
+            border-radius: 10px;
+            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.65);
+            display: none;
+            flex-direction: column;
+            gap: 0.55rem;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        #opMenu.show {
+            display: flex;
+        }
+
+        #opMenu.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .op-menu-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .op-menu-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: rgba(227, 234, 245, 0.95);
+        }
+
+        .op-menu-close {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            font-size: 1rem;
+            line-height: 1;
+            color: rgba(190, 205, 218, 0.5);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .op-menu-close:hover {
+            color: rgba(235, 240, 255, 0.95);
+        }
+
+        .op-hint {
+            font-size: 0.68rem;
+            line-height: 1.35;
+            color: rgba(190, 205, 218, 0.45);
+            margin: -0.2rem 0 0 1.55rem;
+        }
+
+        #opMenu .check-item.disabled {
+            opacity: 0.45;
+        }
+
+        #opMenu .start-btn {
+            align-self: stretch;
+            width: auto;
+            margin-top: 0.4rem;
+        }
+
+        @media (max-width: 600px) {
+            #opMenu {
+                width: min(320px, calc(100vw - 24px));
+            }
+        }
     </style>
 </head>
 <body>
@@ -778,6 +1221,15 @@
                 <button class="level-btn" data-level="4">Level 4</button>
                 <button class="level-btn" data-level="5">Level 5</button>
             </div>
+            <p class="section-label levels-label">Mix &amp; Match</p>
+            <div class="mix-entry">
+                <button class="mix-btn" id="mixOpenBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/></svg>
+                    <span>Build a Mix<small>Pick simple operations and practice them shuffled</small></span>
+                </button>
+                <button class="mix-replay" id="mixReplayBtn" style="display:none;"></button>
+            </div>
+
         </div>
 
         <div id="subOptions">
@@ -786,6 +1238,22 @@
             <div class="mode-grid" id="subGrid"></div>
             <div id="subCheckPanel" class="check-panel" style="display:none;"></div>
         </div>
+        <div id="mixView">
+            <button class="back-btn" id="mixBackBtn">&#x2190; Back</button>
+            <div class="mix-head">
+                <div>
+                    <p class="sub-title">Mix &amp; Match</p>
+                    <p class="mix-hint">Choose at least two operations. Each question is drawn at random from your picks.</p>
+                </div>
+                <div class="mix-toolbar">
+                    <span class="mix-count" id="mixCount"><strong>0</strong> selected</span>
+                    <button class="mix-clear" id="mixClearBtn">Clear</button>
+                    <button class="start-btn mix-start" id="mixStartBtn" disabled>Start</button>
+                </div>
+            </div>
+            <div id="mixGroups"></div>
+        </div>
+
     </div>
 
     <div id="updateOverlay"></div>
@@ -845,7 +1313,7 @@
             setTimeout(() => {
                 banner.style.display = 'none';
                 overlay.style.display = 'none';
-            }, 400);
+            }, 150);
         });
 
         const LEVELS = {
@@ -1107,7 +1575,11 @@
                     btn.textContent = opt.text;
                     btn.href = opt.href || '#';
                     if (opt.href) {
-                        btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
+                        btn.addEventListener('click', e => {
+                            e.preventDefault();
+                            const digit = parseInt((opt.href.match(/digits=(\d)/) || [])[1]) || 1;
+                            openOpMenu(div, simpleModeKey[section.label], digit);
+                        });
                     }
                     div.appendChild(btn);
                 });
@@ -1124,7 +1596,9 @@
                     const storedStreak = alive ? parseInt(getCookie('streakCount_' + modeKey) || '0') : 0;
 
                     const currentStreak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : storedStreak;
-                    const goal = Math.min(50 + currentStreak, 120);
+                    // If the streak was already extended today, show the goal that was in force this morning.
+                    const baseStreak = (lastStr === todayStr && !STREAK_OVERRIDE) ? Math.max(0, currentStreak - 1) : currentStreak;
+                    const goal = Math.min(50 + baseStreak, 120);
                     const dpDate = getCookie('dailyPointsDate_' + modeKey);
                     const dailyPts = (dpDate === todayStr)
                         ? parseInt(getCookie('dailyPoints_' + modeKey) || '0')
@@ -1246,7 +1720,7 @@
                 gridEl.classList.remove('fade-out-down');
                 document.getElementById('backBtn').style.display = 'none';
                 buildCheckPanel(section, gridEl, panelEl);
-            }, 400);
+            }, 150);
         }
 
         function buildCheckPanel(section, gridEl, panelEl) {
@@ -1355,10 +1829,10 @@
             panelEl.style.transform = 'translateY(6px)';
             panelEl.style.display = 'flex';
             panelEl.offsetHeight;
-            panelEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            panelEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
             panelEl.style.opacity = '1';
             panelEl.style.transform = 'translateY(0)';
-            setTimeout(() => { panelEl.style.transition = ''; }, 400);
+            setTimeout(() => { panelEl.style.transition = ''; }, 150);
         }
 
         function showConversionPanel(section, gridEl, panelEl) {
@@ -1368,7 +1842,7 @@
                 gridEl.classList.remove('fade-out-down');
                 document.getElementById('backBtn').style.display = 'none';
                 buildConversionPanel(section, gridEl, panelEl);
-            }, 400);
+            }, 150);
         }
 
         function buildConversionPanel(section, gridEl, panelEl) {
@@ -1447,10 +1921,10 @@
             panelEl.style.transform = 'translateY(6px)';
             panelEl.style.display = 'flex';
             panelEl.offsetHeight;
-            panelEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            panelEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
             panelEl.style.opacity = '1';
             panelEl.style.transform = 'translateY(0)';
-            setTimeout(() => { panelEl.style.transition = ''; }, 400);
+            setTimeout(() => { panelEl.style.transition = ''; }, 150);
         }
 
         function closeGroupPanel(gridEl, panelEl) {
@@ -1463,11 +1937,11 @@
                 gridEl.style.opacity = '0';
                 gridEl.style.transform = 'translateY(6px)';
                 gridEl.offsetHeight;
-                gridEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                gridEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
                 gridEl.style.opacity = '1';
                 gridEl.style.transform = 'translateY(0)';
-                setTimeout(() => { gridEl.style.transition = ''; }, 400);
-            }, 400);
+                setTimeout(() => { gridEl.style.transition = ''; }, 150);
+            }, 150);
         }
 
         function combineHrefs(hrefs) {
@@ -1502,9 +1976,9 @@
                 const launchArea = document.getElementById('launchArea');
                 launchArea.style.display = 'flex';
                 setTimeout(() => { document.getElementById('progressFill').style.width = '100%'; }, 50);
-            }, 400);
-            setTimeout(() => { document.getElementById('spinner').classList.add('done'); }, 2200);
-            setTimeout(() => { window.location.href = href; }, 2500);
+            }, 150);
+            setTimeout(() => { document.getElementById('spinner').classList.add('done'); }, 280);
+            setTimeout(() => { window.location.href = href; }, 400);
         }
 
         function fadeSwap(hideEl, showEl, displayType) {
@@ -1517,15 +1991,384 @@
                 showEl.style.opacity = '0';
                 showEl.style.transform = 'translateY(6px)';
                 showEl.offsetHeight;
-                showEl.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                showEl.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
                 showEl.style.opacity = '1';
                 showEl.style.transform = 'translateY(0)';
-                setTimeout(() => { showEl.style.transition = ''; }, 400);
-            }, 400);
+                setTimeout(() => { showEl.style.transition = ''; }, 150);
+            }, 150);
+        }
+
+        // ===== Simple-operation menu =====
+        // Clicking a digit button spotlights that operation's card and opens a
+        // menu beside it with optional negatives / decimals and "mix with regular".
+        // The digit comes from the button that was tapped; option choices are
+        // remembered per operation.
+
+        const OP_NAMES = { multiply: 'Multiplication', add: 'Addition', subtract: 'Subtraction', divide: 'Division' };
+        let opMenuState = null;   // { card, mode, digits: Set, negatives, decimals, mixRegular }
+
+        function opMenuEls() {
+            let backdrop = document.getElementById('opBackdrop');
+            let menu     = document.getElementById('opMenu');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'opBackdrop';
+                backdrop.addEventListener('click', closeOpMenu);
+                document.body.appendChild(backdrop);
+
+                menu = document.createElement('div');
+                menu.id = 'opMenu';
+                document.body.appendChild(menu);
+
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && opMenuState) closeOpMenu(); });
+                window.addEventListener('resize', positionOpMenu);
+                window.addEventListener('scroll', positionOpMenu, { passive: true });
+            }
+            return { backdrop, menu };
+        }
+
+        function loadOpOptions(mode) {
+            try { return JSON.parse(localStorage.getItem('simpleOpts_' + mode) || 'null') || {}; }
+            catch (e) { return {}; }
+        }
+
+        function opHref(s) {
+            const digits = [1, 2, 3].filter(d => s.digits.has(d)).join(',');
+            let href = 'practice.html?mode=' + s.mode + '&digits=' + digits;
+            if (s.negatives) href += '&negatives=1';
+            if (s.decimals)  href += '&decimals=1';
+            if (s.mixRegular && (s.negatives || s.decimals)) href += '&mixregular=1';
+            return href;
+        }
+
+        function openOpMenu(card, mode, digit) {
+            const { backdrop, menu } = opMenuEls();
+            const saved = loadOpOptions(mode);
+            opMenuState = {
+                card, mode,
+                digits: new Set([digit]),
+                negatives:  !!saved.negatives,
+                decimals:   !!saved.decimals,
+                mixRegular: !!saved.mixRegular,
+            };
+            renderOpMenu();
+            document.querySelectorAll('.mode-section.op-focus').forEach(el => el.classList.remove('op-focus'));
+            card.classList.add('op-focus');
+            backdrop.classList.add('show');
+            menu.classList.add('show');
+            positionOpMenu();
+            menu.offsetHeight;
+            menu.classList.add('visible');
+        }
+
+        function closeOpMenu() {
+            if (!opMenuState) return;
+            const { backdrop, menu } = opMenuEls();
+            opMenuState.card.classList.remove('op-focus');
+            backdrop.classList.remove('show');
+            menu.classList.remove('visible');
+            menu.classList.remove('show');
+            opMenuState = null;
+        }
+
+        // Beside the card on the right if there's room, else on the left,
+        // else directly below it — always kept inside the viewport.
+        function positionOpMenu() {
+            if (!opMenuState) return;
+            const menu = document.getElementById('opMenu');
+            const r  = opMenuState.card.getBoundingClientRect();
+            const mw = menu.offsetWidth, mh = menu.offsetHeight;
+            const vw = window.innerWidth, vh = window.innerHeight, gap = 12;
+            let left, top;
+            if (r.right + gap + mw <= vw - gap) {
+                left = r.right + gap;
+                top  = r.top;
+            } else if (r.left - gap - mw >= gap) {
+                left = r.left - gap - mw;
+                top  = r.top;
+            } else {
+                left = Math.max(gap, Math.min(r.left, vw - mw - gap));
+                top  = r.bottom + 8;
+            }
+            top = Math.max(gap, Math.min(top, vh - mh - gap));
+            menu.style.left = Math.round(left) + 'px';
+            menu.style.top  = Math.round(top) + 'px';
+        }
+
+        function renderOpMenu() {
+            const menu = document.getElementById('opMenu');
+            const s = opMenuState;
+            menu.innerHTML = '';
+
+            const head = document.createElement('div');
+            head.className = 'op-menu-head';
+            head.innerHTML =
+                '<span class="op-menu-title">' + OP_NAMES[s.mode] + ' · ' + [...s.digits][0] + '-Digit</span>' +
+                '<button type="button" class="op-menu-close" aria-label="Close">&#x2715;</button>';
+            head.querySelector('.op-menu-close').addEventListener('click', closeOpMenu);
+            menu.appendChild(head);
+
+            const optLabel = document.createElement('p');
+            optLabel.className = 'panel-sublabel';
+            optLabel.textContent = 'Options';
+            menu.appendChild(optLabel);
+
+            const makeCheck = (key, text) => {
+                const label = document.createElement('label');
+                label.className = 'check-item';
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = !!s[key];
+                const span = document.createElement('span');
+                span.textContent = text;
+                label.appendChild(cb);
+                label.appendChild(span);
+                return { label, cb };
+            };
+            const neg = makeCheck('negatives',  'With negatives');
+            const dec = makeCheck('decimals',   'With decimals');
+            const mix = makeCheck('mixRegular', 'Mix with regular');
+
+            const hint = document.createElement('p');
+            hint.className = 'op-hint';
+            hint.textContent = 'Shuffles the options above in and out at random — some questions plain, some with one, some with both.';
+
+            const syncMix = () => {
+                const any = s.negatives || s.decimals;
+                mix.cb.disabled = !any;
+                mix.label.classList.toggle('disabled', !any);
+            };
+            neg.cb.addEventListener('change', () => { s.negatives = neg.cb.checked; syncMix(); });
+            dec.cb.addEventListener('change', () => { s.decimals  = dec.cb.checked; syncMix(); });
+            mix.cb.addEventListener('change', () => { s.mixRegular = mix.cb.checked; });
+            syncMix();
+
+            menu.appendChild(neg.label);
+            menu.appendChild(dec.label);
+            menu.appendChild(mix.label);
+            menu.appendChild(hint);
+
+            const start = document.createElement('button');
+            start.type = 'button';
+            start.className = 'start-btn';
+            start.textContent = 'Start';
+            start.addEventListener('click', () => {
+                try {
+                    localStorage.setItem('simpleOpts_' + s.mode, JSON.stringify({
+                        negatives: s.negatives, decimals: s.decimals, mixRegular: s.mixRegular,
+                    }));
+                } catch (e) {}
+                const href = opHref(s);
+                closeOpMenu();
+                launchMode(href);
+            });
+            menu.appendChild(start);
+        }
+
+        // ===== Mix & Match =====
+        // The builder derives its checklist from LEVELS so it can never drift
+        // from what the launcher offers. One entry per distinct href; an
+        // exercise that appears in several levels is listed under the first.
+
+        const MIX_SELECTION_KEY = 'mixSelection';
+        const MIX_GROUP_COLORS  = { simple: '#8ab4ff', 1: '#4fc3f7', 2: '#81c784', 3: '#ffb74d', 4: '#f06292', 5: '#ce93d8' };
+        let mixCatalog  = null;
+        let mixSelected = new Set();
+
+        function buildMixCatalog() {
+            const seen   = new Set();
+            const groups = [];
+            ['simple'].forEach(key => {
+                const level = LEVELS[key];
+                const group = { key: String(key), label: level.label, items: [] };
+                const add = (section, parts, href) => {
+                    if (!href || seen.has(href)) return;
+                    seen.add(href);
+                    group.items.push({ href, section, label: parts.join(' · ') });
+                };
+                level.sections.forEach(sec => {
+                    if (sec.type === 'operation-group') {
+                        sec.operations.forEach(op =>
+                            op.options.forEach(o => add(sec.label, [sec.label, op.text, o.text], o.href)));
+                    } else if (sec.type === 'conversion') {
+                        sec.conversionTypes.forEach(ct => add(sec.label, [sec.label, ct.text], ct.href));
+                    } else {
+                        sec.options.forEach(o => add(sec.label, [sec.label, o.text], o.href));
+                    }
+                });
+                if (group.items.length) groups.push(group);
+            });
+            return groups;
+        }
+
+        function getMixCatalog() {
+            return mixCatalog || (mixCatalog = buildMixCatalog());
+        }
+
+        function mixAllItems() {
+            return getMixCatalog().flatMap(g => g.items);
+        }
+
+        function loadMixSelection() {
+            const valid = new Set(mixAllItems().map(i => i.href));
+            try {
+                const saved = JSON.parse(localStorage.getItem(MIX_SELECTION_KEY) || '[]');
+                return new Set(saved.filter(h => valid.has(h)));
+            } catch (e) {
+                return new Set();
+            }
+        }
+
+        function saveMixSelection() {
+            try { localStorage.setItem(MIX_SELECTION_KEY, JSON.stringify([...mixSelected])); } catch (e) {}
+        }
+
+        function mixPlaylist() {
+            return mixAllItems()
+                .filter(i => mixSelected.has(i.href))
+                .map(i => ({ label: i.label, href: i.href }));
+        }
+
+        function startMix() {
+            const items = mixPlaylist();
+            if (items.length < 2) return;
+            sessionStorage.setItem('mixPlaylist', JSON.stringify(items));
+            sessionStorage.removeItem('mixScore');
+            launchMode('mix.html');
+        }
+
+        function updateMixReplay() {
+            const btn = document.getElementById('mixReplayBtn');
+            const n = mixPlaylist().length;
+            if (n >= 2) {
+                btn.textContent = 'Replay last mix · ' + n + ' operations';
+                btn.style.display = '';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        function refreshMixCounts() {
+            const total = mixSelected.size;
+            document.getElementById('mixCount').innerHTML = '<strong>' + total + '</strong> selected';
+            document.getElementById('mixStartBtn').disabled = total < 2;
+            document.querySelectorAll('.mix-group').forEach(groupEl => {
+                const hrefs = JSON.parse(groupEl.dataset.hrefs);
+                const n = hrefs.filter(h => mixSelected.has(h)).length;
+                const badge = groupEl.querySelector('.mix-badge');
+                badge.textContent = n + ' / ' + hrefs.length;
+                badge.classList.toggle('has', n > 0);
+            });
+        }
+
+        function buildMixView() {
+            const container = document.getElementById('mixGroups');
+            container.innerHTML = '';
+
+            getMixCatalog().forEach(group => {
+                const hasPicks = group.items.some(i => mixSelected.has(i.href));
+                const groupEl = document.createElement('div');
+                groupEl.className = 'mix-group open';
+                groupEl.dataset.hrefs = JSON.stringify(group.items.map(i => i.href));
+
+                const head = document.createElement('div');
+                head.className = 'mix-group-head';
+                head.innerHTML =
+                    '<span class="mix-chevron"></span>' +
+                    '<span class="mix-level-dot" style="background:' + MIX_GROUP_COLORS[group.key] + '"></span>' +
+                    '<span class="mix-group-title">' + group.label + '</span>' +
+                    '<span class="mix-badge"></span>' +
+                    '<span class="mix-group-actions">' +
+                        '<button type="button" data-act="all">All</button>' +
+                        '<button type="button" data-act="none">None</button>' +
+                    '</span>';
+                head.addEventListener('click', e => {
+                    const act = e.target.dataset && e.target.dataset.act;
+                    if (act) {
+                        group.items.forEach(i => act === 'all' ? mixSelected.add(i.href) : mixSelected.delete(i.href));
+                        groupEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                            cb.checked = mixSelected.has(cb.dataset.href);
+                        });
+                        saveMixSelection();
+                        refreshMixCounts();
+                        if (act === 'all') groupEl.classList.add('open');
+                        return;
+                    }
+                    groupEl.classList.toggle('open');
+                });
+                groupEl.appendChild(head);
+
+                const body = document.createElement('div');
+                body.className = 'mix-group-body';
+                [...new Set(group.items.map(i => i.section))].forEach(secLabel => {
+                    const sec = document.createElement('div');
+                    sec.className = 'mix-sec';
+                    const lbl = document.createElement('div');
+                    lbl.className = 'mix-sec-label';
+                    lbl.textContent = secLabel;
+                    sec.appendChild(lbl);
+
+                    group.items.filter(i => i.section === secLabel).forEach(item => {
+                        const label = document.createElement('label');
+                        label.className = 'check-item';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.dataset.href = item.href;
+                        cb.checked = mixSelected.has(item.href);
+                        cb.addEventListener('change', () => {
+                            if (cb.checked) mixSelected.add(item.href); else mixSelected.delete(item.href);
+                            saveMixSelection();
+                            refreshMixCounts();
+                        });
+                        const span = document.createElement('span');
+                        // The section is already the column heading — don't repeat it
+                        const prefix = secLabel + ' · ';
+                        span.textContent = item.label.startsWith(prefix) ? item.label.slice(prefix.length) : item.label;
+                        label.appendChild(cb);
+                        label.appendChild(span);
+                        sec.appendChild(label);
+                    });
+                    body.appendChild(sec);
+                });
+                groupEl.appendChild(body);
+                container.appendChild(groupEl);
+            });
+
+            refreshMixCounts();
+        }
+
+        function initMixView() {
+            const mainView = document.getElementById('mainView');
+            const mixView  = document.getElementById('mixView');
+
+            document.getElementById('mixOpenBtn').addEventListener('click', () => {
+                mixSelected = loadMixSelection();
+                buildMixView();
+                fadeSwap(mainView, mixView, 'flex');
+            });
+            document.getElementById('mixBackBtn').addEventListener('click', () => {
+                updateMixReplay();
+                fadeSwap(mixView, mainView, 'flex');
+            });
+            document.getElementById('mixClearBtn').addEventListener('click', () => {
+                mixSelected.clear();
+                saveMixSelection();
+                document.querySelectorAll('#mixGroups input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+                refreshMixCounts();
+            });
+            document.getElementById('mixStartBtn').addEventListener('click', startMix);
+            document.getElementById('mixReplayBtn').addEventListener('click', () => {
+                mixSelected = loadMixSelection();
+                startMix();
+            });
+
+            mixSelected = loadMixSelection();
+            updateMixReplay();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             buildSimpleGrid(document.getElementById('simpleGrid'), 'simple');
+            initMixView();
 
             document.querySelectorAll('.level-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

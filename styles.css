@@ -172,7 +172,7 @@
 /* Dark theme */
 
 .darkTheme {
-    background-color: #1a1a2e;
+    background-color: #12121f;
     color: #b0bcd4;
 }
 
@@ -431,5 +431,459 @@
 
     .finishButton {
         font-size: 0.9rem;
+    }
+}
+
+/* ===== 2.4 visual refresh ===== */
+
+body.darkTheme {
+    background-color: #12121f;
+    background-image:
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(60, 100, 170, 0.20), transparent 60%),
+        radial-gradient(ellipse 60% 45% at 100% 100%, rgba(124, 108, 240, 0.09), transparent 60%),
+        linear-gradient(rgba(190, 205, 218, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(190, 205, 218, 0.035) 1px, transparent 1px);
+    background-size: auto, auto, 28px 28px, 28px 28px;
+    background-attachment: fixed;
+    /* Reserve room so nothing can sit underneath the fixed Finish bar */
+    padding-bottom: 92px;
+}
+
+.darkTheme .header {
+    padding-bottom: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(190, 205, 218, 0.12);
+}
+
+.darkTheme .title1 {
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 22px rgba(90, 130, 200, 0.35);
+}
+
+.darkTheme .numButtons,
+.darkTheme .checkButton,
+.darkTheme .deleteButton,
+.darkTheme .modeButtons,
+.darkTheme .finishButton {
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.darkTheme .numButtons {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.darkTheme .checkButton {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.darkTheme .displayedAnswerHolder {
+    border-radius: 6px;
+    border: 1px solid rgba(90, 130, 200, 0.35);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+.darkTheme .displayedAnswer {
+    border-radius: 4px;
+}
+
+@media (hover: hover) {
+    .darkTheme .checkButton:hover {
+        box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(79, 117, 63, 0.45);
+    }
+
+    .darkTheme .finishButton:hover {
+        box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(60, 100, 170, 0.45);
+    }
+}
+
+/* Finish button — floats in the bottom-right corner so it is always reachable.
+   Only that corner is ever covered; body padding above keeps the last row of
+   content clear of it once you scroll to the bottom. */
+
+.modeButtonRow {
+    position: fixed;
+    right: 16px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.modeButtonRow > * {
+    pointer-events: auto;
+}
+
+.darkTheme .finishButton {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Version caption sits just above the Finish button */
+.textOnTheRight {
+    position: fixed;
+    right: 16px;
+    bottom: 64px;
+    z-index: 51;
+    font-size: 0.68rem;
+    color: rgba(190, 205, 218, 0.45);
+    text-align: right;
+    pointer-events: none;
+}
+
+@media (max-width: 480px) {
+    .modeButtonRow {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .modeButtonRow .finishButton {
+        margin-left: auto;
+        width: auto;
+    }
+
+    .textOnTheRight {
+        right: 12px;
+        bottom: 54px;
+    }
+}
+
+/* Embedded inside Mix & Match — the host page owns the header, score and Finish */
+
+html.mix-embedded body.darkTheme {
+    padding: 6px 16px 24px;
+    background-image: none;
+}
+
+html.mix-embedded .header,
+html.mix-embedded .modeButtonRow,
+html.mix-embedded .textOnTheRight {
+    display: none !important;
+}
+
+/* ===== Practice points + Finish button states (practice.html) ===== */
+
+.practicePointsRow {
+    font-size: 0.85rem;
+    color: rgba(190, 205, 218, 0.55);
+    margin-top: 2px;
+    transition: color 0.3s;
+}
+
+.practicePointsRow.goal-met {
+    color: rgba(130, 210, 140, 0.95);
+}
+
+.practicePointsRow.bonus-ready {
+    color: rgba(255, 200, 90, 0.95);
+}
+
+.modeButtonRow .finishButton {
+    position: relative;
+    overflow: visible;
+    transition: box-shadow 0.3s, outline-color 0.3s;
+}
+
+/* Enough points to keep today's streak going */
+.darkTheme .finishButton.goal-met {
+    outline: 2px solid rgba(130, 210, 140, 0.95);
+    outline-offset: 3px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 18px rgba(130, 210, 140, 0.45);
+}
+
+/* Enough for a bonus — gold outline, pulsing glow, and a flame with embers */
+.darkTheme .finishButton.bonus-ready {
+    outline: 2px solid rgba(255, 200, 90, 0.95);
+    outline-offset: 3px;
+    animation: finishGlow 2s ease-in-out infinite;
+}
+
+@keyframes finishGlow {
+    0%, 100% { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 170, 40, 0.4); }
+    50%      { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 28px rgba(255, 190, 60, 0.85); }
+}
+
+.finish-flame {
+    position: absolute;
+    top: -17px;
+    right: -7px;
+    width: 18px;
+    height: 24px;
+    pointer-events: none;
+}
+
+.finish-flame svg {
+    display: block;
+    width: 18px;
+    height: 24px;
+    overflow: visible;
+}
+
+.flame-body {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: flame-flicker 1.3s ease-in-out infinite;
+}
+
+.flame-inner {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: flame-inner-flicker 0.65s ease-in-out infinite;
+}
+
+.ember-1 { animation: ember-rise-1 3.2s ease-out infinite; animation-delay: 0.4s; }
+.ember-2 { animation: ember-rise-2 2.8s ease-out infinite; animation-delay: 1.5s; }
+.ember-3 { animation: ember-rise-3 3.8s ease-out infinite; animation-delay: 0.9s; }
+
+.text-ember {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    pointer-events: none;
+    bottom: 100%;
+}
+
+.te-1 { left: 15%; background: #ff9800; animation: ember-rise-1 3.5s ease-out infinite; animation-delay: 0.2s; }
+.te-2 { left: 55%; background: #ffcc02; animation: ember-rise-2 3.0s ease-out infinite; animation-delay: 1.2s; }
+.te-3 { left: 80%; background: #ff6d00; animation: ember-rise-3 4.0s ease-out infinite; animation-delay: 0.7s; }
+
+@keyframes flame-flicker {
+    0%   { transform: scaleX(1)    scaleY(1)    rotate(0deg); }
+    8%   { transform: scaleX(0.91) scaleY(1.09) rotate(-2deg); }
+    16%  { transform: scaleX(1.07) scaleY(0.94) rotate(1.5deg); }
+    24%  { transform: scaleX(0.93) scaleY(1.07) rotate(-2.5deg); }
+    33%  { transform: scaleX(1.06) scaleY(0.95) rotate(2deg); }
+    42%  { transform: scaleX(0.90) scaleY(1.10) rotate(-1.5deg); }
+    52%  { transform: scaleX(1.07) scaleY(0.94) rotate(1deg); }
+    62%  { transform: scaleX(0.94) scaleY(1.06) rotate(-2deg); }
+    72%  { transform: scaleX(1.08) scaleY(0.93) rotate(2.5deg); }
+    82%  { transform: scaleX(0.95) scaleY(1.05) rotate(-1deg); }
+    91%  { transform: scaleX(1.02) scaleY(0.99) rotate(0.5deg); }
+    100% { transform: scaleX(1)    scaleY(1)    rotate(0deg); }
+}
+
+@keyframes flame-inner-flicker {
+    0%   { transform: scaleX(1)    scaleY(1); }
+    14%  { transform: scaleX(1.15) scaleY(0.87); }
+    28%  { transform: scaleX(0.85) scaleY(1.15); }
+    43%  { transform: scaleX(1.12) scaleY(0.90); }
+    57%  { transform: scaleX(0.88) scaleY(1.12); }
+    71%  { transform: scaleX(1.07) scaleY(0.94); }
+    85%  { transform: scaleX(0.94) scaleY(1.06); }
+    100% { transform: scaleX(1)    scaleY(1); }
+}
+
+@keyframes ember-rise-1 {
+    0%   { transform: translate(0, 0);        opacity: 0; }
+    2%   { opacity: 0.9; }
+    30%  { transform: translate(-3px, -20px); opacity: 0; }
+    100% { transform: translate(-3px, -20px); opacity: 0; }
+}
+
+@keyframes ember-rise-2 {
+    0%   { transform: translate(0, 0);       opacity: 0; }
+    3%   { opacity: 0.8; }
+    28%  { transform: translate(4px, -16px); opacity: 0; }
+    100% { transform: translate(4px, -16px); opacity: 0; }
+}
+
+@keyframes ember-rise-3 {
+    0%   { transform: translate(0, 0);       opacity: 0; }
+    2%   { opacity: 0.85; }
+    32%  { transform: translate(1px, -22px); opacity: 0; }
+    100% { transform: translate(1px, -22px); opacity: 0; }
+}
+
+/* ===== Auto-Complete toggle (practice.html) — sits under the check button ===== */
+
+.autoToggle {
+    grid-column: 4;
+    grid-row: 5;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: rgba(190, 205, 218, 0.6);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.autoToggle:hover {
+    color: rgba(227, 234, 245, 0.9);
+}
+
+.autoToggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    flex-shrink: 0;
+    position: relative;
+    border: 2px solid rgba(190, 205, 218, 0.35);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.autoToggle input:checked {
+    background: rgb(52, 75, 120);
+    border-color: rgb(90, 130, 200);
+}
+
+.autoToggle input:checked::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 3px;
+    width: 4px;
+    height: 7px;
+    border: 2px solid rgba(200, 220, 255, 0.9);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+}
+
+.autoToggle[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: max-content;
+    max-width: 230px;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    border: 1px solid rgba(90, 130, 200, 0.3);
+    background: rgba(14, 14, 26, 0.97);
+    color: rgba(190, 205, 218, 0.9);
+    font-size: 0.68rem;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    box-shadow: 1px 2px 8px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+
+.autoToggle:hover::after {
+    opacity: 1;
+}
+
+@media (max-width: 480px) {
+    .autoToggle {
+        grid-column: 1 / span 3;
+        grid-row: 6;
+        justify-content: flex-end;
+    }
+}
+
+/* ===== Check button: centre the tick (the SVG is a block child, so flex it) ===== */
+
+.checkButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== practice.html: tighter vertical rhythm so the whole page fits a 720px-tall screen ===== */
+
+.practice-page br {
+    display: none;
+}
+
+.practice-page .questionsCorrect {
+    font-size: 1.6rem;
+}
+
+.practice-page .previousQuestionNums {
+    font-size: 1.5rem;
+}
+
+.practice-page .problem {
+    font-size: 3.4rem;
+    margin: 0.5rem 0 0.8rem;
+}
+
+.practice-page .numButtons {
+    padding: 10px 15px;
+    font-size: 1.7rem;
+}
+
+.practice-page .checkButton {
+    font-size: 1.7rem;
+}
+
+.practice-page .numberbuttons {
+    margin-bottom: 0.6rem;
+}
+
+.practice-page .displayedAnswerHolder {
+    font-size: 2.2rem;
+}
+
+.practice-page .deleteButton {
+    margin-top: 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .practice-page .problem {
+        font-size: 2.8rem;
+    }
+
+    .practice-page .numButtons {
+        padding: 8px 12px;
+        font-size: 1.5rem;
+    }
+
+    .practice-page .checkButton {
+        font-size: 1.5rem;
+    }
+}
+
+/* practice.html: its lowest control (Delete) sits far left of the Finish button,
+   so it only needs a small bottom reserve — enough to fit a 720px screen unscrolled. */
+body.practice-page {
+    padding-bottom: 16px;
+}
+
+.practicePointsRow {
+    white-space: nowrap;
+}
+
+/* Restore the phone sizes that the scoped desktop rules above would otherwise override */
+@media (max-width: 480px) {
+    .practice-page .questionsCorrect {
+        font-size: 1.1rem;
+    }
+
+    .practice-page .previousQuestionNums {
+        font-size: 1.2rem;
+    }
+
+    .practice-page .problem {
+        font-size: 2.5rem;
+    }
+
+    .practice-page .numButtons {
+        padding: 8px;
+        font-size: 1.3rem;
+    }
+
+    .practice-page .checkButton {
+        font-size: 1.3rem;
+    }
+
+    .practice-page .displayedAnswerHolder {
+        font-size: 1.6rem;
     }
 }

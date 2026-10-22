@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="theme.js"></script>
     <script src="version.js"></script>
     <script src="mix.js"></script>
     <title>Math Practice</title>
@@ -17,7 +18,7 @@
         .prev-area {
             min-height: 2rem;
             font-size: 1rem;
-            color: rgba(190, 205, 218, 0.35);
+            color: rgba(var(--text-rgb), 0.35);
             margin-top: 0.5rem;
         }
         .prev-area.correct-result { color: rgba(100, 190, 100, 0.65); }
@@ -30,7 +31,7 @@
 
         .question-text {
             font-size: 1.05rem;
-            color: rgba(190, 205, 218, 0.8);
+            color: rgba(var(--text-rgb), 0.8);
             margin: 0.5rem 0 0.9rem;
             min-height: 1.4rem;
         }
@@ -48,8 +49,8 @@
             padding: 14px 8px;
             font-size: 1.15rem;
             font-family: Roboto Mono;
-            background-color: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background-color: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
             cursor: pointer;
@@ -57,7 +58,7 @@
         }
 
         @media (hover: hover) {
-            .choice-btn:hover { background-color: rgb(52, 75, 120); }
+            .choice-btn:hover { background-color: var(--btn-hover); }
         }
 
         .choice-btn.correct-flash { background-color: rgb(55, 130, 55) !important; color: #fff; }

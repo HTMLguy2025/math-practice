@@ -26,7 +26,7 @@
 
 .problem-line {
     grid-column: 1 / span 2;
-    border-top: 3px solid rgba(190, 205, 218, 0.55);
+    border-top: 3px solid rgba(var(--text-rgb), 0.55);
     margin-top: 0.1em;
 }
 
@@ -79,14 +79,14 @@
 }
 
 .displayedAnswerHolder {
-    background-color: rgb(10, 10, 20);
+    background-color: var(--field-outer);
     font-size: 2.5rem;
     padding: 2px;
 }
 
 .displayedAnswer {
-    background-color: rgb(28, 30, 50);
-    color: #e0e8ff;
+    background-color: var(--field-inner);
+    color: rgb(var(--text-hi-rgb));
 }
 
 .modeButtons {
@@ -141,7 +141,7 @@
 
 .modeIndicator {
     font-size: 0.85rem;
-    color: rgba(190, 205, 218, 0.55);
+    color: rgba(var(--text-rgb), 0.55);
     margin-top: 2px;
 }
 
@@ -155,7 +155,7 @@
 }
 
 .finishButton {
-    background-color: rgb(60, 100, 170);
+    background-color: var(--primary);
     color: rgb(255, 255, 255);
     padding: 5px 12px;
     font-size: 1.4rem;
@@ -165,15 +165,15 @@
 }
 
 .finishButton:active {
-    background-color: rgb(30, 58, 110);
+    background-color: var(--primary-active);
     box-shadow: none;
 }
 
 /* Dark theme */
 
 .darkTheme {
-    background-color: #12121f;
-    color: #b0bcd4;
+    background-color: var(--bg);
+    color: var(--text-body);
 }
 
 .darkTheme a {
@@ -181,24 +181,24 @@
 }
 
 .darkTheme .numButtons {
-    background-color: rgb(35, 50, 85);
-    color: rgba(227, 234, 245, 0.9);
+    background-color: var(--btn);
+    color: rgba(var(--text-hi-rgb), 0.9);
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
 .darkTheme .numButtons:active {
-    background-color: rgb(20, 32, 60);
+    background-color: var(--btn-active);
     box-shadow: none;
 }
 
 .darkTheme .modeButtons {
-    background-color: rgb(35, 50, 85);
-    color: rgba(227, 234, 245, 0.9);
+    background-color: var(--btn);
+    color: rgba(var(--text-hi-rgb), 0.9);
     box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
 .darkTheme .modeButtons:active {
-    background-color: rgb(20, 32, 60);
+    background-color: var(--btn-active);
     box-shadow: none;
 }
 
@@ -242,18 +242,18 @@
     }
 
     .finishButton:hover {
-        background-color: rgb(45, 80, 145);
+        background-color: var(--primary-hover);
         box-shadow: 3.5px 3.5px 4px 0px #535353;
         cursor: pointer;
     }
 
     .darkTheme .numButtons:hover {
-        background-color: rgb(52, 75, 120);
+        background-color: var(--btn-hover);
         box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
     }
 
     .darkTheme .modeButtons:hover {
-        background-color: rgb(52, 75, 120);
+        background-color: var(--btn-hover);
         box-shadow: 3.5px 3.5px 4px 0px rgba(0, 0, 0, 0.5);
     }
 
@@ -437,12 +437,12 @@
 /* ===== 2.4 visual refresh ===== */
 
 body.darkTheme {
-    background-color: #12121f;
+    background-color: var(--bg);
     background-image:
-        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(60, 100, 170, 0.20), transparent 60%),
-        radial-gradient(ellipse 60% 45% at 100% 100%, rgba(124, 108, 240, 0.09), transparent 60%),
-        linear-gradient(rgba(190, 205, 218, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(190, 205, 218, 0.035) 1px, transparent 1px);
+        radial-gradient(ellipse 70% 50% at 15% 0%, rgba(var(--primary-rgb), 0.20), transparent 60%),
+        radial-gradient(ellipse 60% 45% at 100% 100%, rgba(var(--grad-b-rgb), 0.09), transparent 60%),
+        linear-gradient(rgba(var(--text-rgb), 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--text-rgb), 0.035) 1px, transparent 1px);
     background-size: auto, auto, 28px 28px, 28px 28px;
     background-attachment: fixed;
     /* Reserve room so nothing can sit underneath the fixed Finish bar */
@@ -452,12 +452,12 @@ body.darkTheme {
 .darkTheme .header {
     padding-bottom: 10px;
     margin-bottom: 4px;
-    border-bottom: 1px solid rgba(190, 205, 218, 0.12);
+    border-bottom: 1px solid rgba(var(--trim-rgb), 0.35);
 }
 
 .darkTheme .title1 {
     letter-spacing: 0.02em;
-    text-shadow: 0 0 22px rgba(90, 130, 200, 0.35);
+    text-shadow: 0 0 22px rgba(var(--accent-rgb), 0.35);
 }
 
 .darkTheme .numButtons,
@@ -479,7 +479,7 @@ body.darkTheme {
 
 .darkTheme .displayedAnswerHolder {
     border-radius: 6px;
-    border: 1px solid rgba(90, 130, 200, 0.35);
+    border: 1px solid rgba(var(--accent-rgb), 0.35);
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
@@ -493,7 +493,7 @@ body.darkTheme {
     }
 
     .darkTheme .finishButton:hover {
-        box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(60, 100, 170, 0.45);
+        box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(var(--primary-rgb), 0.45);
     }
 }
 
@@ -528,7 +528,7 @@ body.darkTheme {
     bottom: 64px;
     z-index: 51;
     font-size: 0.68rem;
-    color: rgba(190, 205, 218, 0.45);
+    color: rgba(var(--text-rgb), 0.45);
     text-align: right;
     pointer-events: none;
 }
@@ -567,7 +567,7 @@ html.mix-embedded .textOnTheRight {
 
 .practicePointsRow {
     font-size: 0.85rem;
-    color: rgba(190, 205, 218, 0.55);
+    color: rgba(var(--text-rgb), 0.55);
     margin-top: 2px;
     transition: color 0.3s;
 }
@@ -709,14 +709,14 @@ html.mix-embedded .textOnTheRight {
     gap: 6px;
     margin-top: 4px;
     font-size: 0.72rem;
-    color: rgba(190, 205, 218, 0.6);
+    color: rgba(var(--text-rgb), 0.6);
     cursor: pointer;
     user-select: none;
     transition: color 0.2s;
 }
 
 .autoToggle:hover {
-    color: rgba(227, 234, 245, 0.9);
+    color: rgba(var(--text-hi-rgb), 0.9);
 }
 
 .autoToggle input {
@@ -727,7 +727,7 @@ html.mix-embedded .textOnTheRight {
     margin: 0;
     flex-shrink: 0;
     position: relative;
-    border: 2px solid rgba(190, 205, 218, 0.35);
+    border: 2px solid rgba(var(--text-rgb), 0.35);
     border-radius: 3px;
     background: transparent;
     cursor: pointer;
@@ -735,8 +735,8 @@ html.mix-embedded .textOnTheRight {
 }
 
 .autoToggle input:checked {
-    background: rgb(52, 75, 120);
-    border-color: rgb(90, 130, 200);
+    background: var(--btn-hover);
+    border-color: var(--accent);
 }
 
 .autoToggle input:checked::after {
@@ -761,9 +761,9 @@ html.mix-embedded .textOnTheRight {
     max-width: 230px;
     padding: 0.4rem 0.6rem;
     border-radius: 4px;
-    border: 1px solid rgba(90, 130, 200, 0.3);
-    background: rgba(14, 14, 26, 0.97);
-    color: rgba(190, 205, 218, 0.9);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    background: rgba(var(--panel-deep-rgb), 0.97);
+    color: rgba(var(--text-rgb), 0.9);
     font-size: 0.68rem;
     line-height: 1.35;
     text-align: left;

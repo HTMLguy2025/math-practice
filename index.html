@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="icon" href="newicon.png" type="image/x-icon">
+    <link rel="stylesheet" href="settings.css">
+    <script src="theme.js"></script>
     <script src="version.js"></script>
     <script src="dev-test.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -23,8 +25,8 @@
 
         body {
             position: relative;
-            background-color: #12121f;
-            color: rgb(190, 205, 218);
+            background-color: var(--bg);
+            color: rgb(var(--text-rgb));
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -56,7 +58,7 @@
 
         .section-label {
             font-size: 0.85rem;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             margin-bottom: 1rem;
             letter-spacing: 0.05em;
         }
@@ -90,8 +92,8 @@
             padding: 11px 16px;
             font-size: 1rem;
             font-family: 'Roboto Mono', monospace;
-            background-color: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background-color: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -100,12 +102,12 @@
         }
 
         .level-btn:hover {
-            background-color: rgb(52, 75, 120);
+            background-color: var(--btn-hover);
             box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
         }
 
         .level-btn:active {
-            background-color: rgb(20, 32, 60);
+            background-color: var(--btn-active);
             box-shadow: none;
         }
 
@@ -119,7 +121,7 @@
         .sub-title {
             font-size: 1.1rem;
             font-weight: 600;
-            color: rgba(190, 205, 218, 0.8);
+            color: rgba(var(--text-rgb), 0.8);
         }
 
         .back-btn {
@@ -127,7 +129,7 @@
             font-family: 'Roboto Mono', monospace;
             background: none;
             border: none;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             cursor: pointer;
             align-self: flex-start;
             padding: 0;
@@ -135,7 +137,7 @@
         }
 
         .back-btn:hover {
-            color: rgba(190, 205, 218, 0.9);
+            color: rgba(var(--text-rgb), 0.9);
         }
 
         .mode-grid {
@@ -154,7 +156,7 @@
         .mode-label {
             font-size: 1rem;
             font-weight: 600;
-            color: rgba(190, 205, 218, 0.75);
+            color: rgba(var(--text-rgb), 0.75);
             margin-bottom: 0.2rem;
         }
 
@@ -164,8 +166,8 @@
             padding: 11px 16px;
             font-size: 1rem;
             font-family: 'Roboto Mono', monospace;
-            background-color: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background-color: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -175,12 +177,12 @@
         }
 
         .launch-btn:hover {
-            background-color: rgb(52, 75, 120);
+            background-color: var(--btn-hover);
             box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
         }
 
         .launch-btn:active {
-            background-color: rgb(20, 32, 60);
+            background-color: var(--btn-active);
             box-shadow: none;
         }
 
@@ -197,8 +199,8 @@
             padding: 11px 16px;
             font-size: 1rem;
             font-family: 'Roboto Mono', monospace;
-            background-color: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background-color: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -207,12 +209,12 @@
         }
 
         .group-btn:hover {
-            background-color: rgb(52, 75, 120);
+            background-color: var(--btn-hover);
             box-shadow: 3.5px 3.5px 4px rgba(0, 0, 0, 0.5);
         }
 
         .group-btn:active {
-            background-color: rgb(20, 32, 60);
+            background-color: var(--btn-active);
             box-shadow: none;
         }
 
@@ -233,7 +235,7 @@
         .check-panel-title {
             font-size: 1rem;
             font-weight: 600;
-            color: rgba(190, 205, 218, 0.8);
+            color: rgba(var(--text-rgb), 0.8);
             margin-bottom: 0.15rem;
         }
 
@@ -250,7 +252,7 @@
             -webkit-appearance: none;
             width: 15px;
             height: 15px;
-            border: 2px solid rgba(190, 205, 218, 0.35);
+            border: 2px solid rgba(var(--text-rgb), 0.35);
             background: transparent;
             cursor: pointer;
             flex-shrink: 0;
@@ -259,8 +261,8 @@
         }
 
         .check-item input[type="checkbox"]:checked {
-            background-color: rgb(52, 75, 120);
-            border-color: rgb(90, 130, 200);
+            background-color: var(--btn-hover);
+            border-color: var(--accent);
         }
 
         .check-item input[type="checkbox"]:checked::after {
@@ -278,7 +280,7 @@
 
         .check-item span {
             font-size: 0.95rem;
-            color: rgba(227, 234, 245, 0.9);
+            color: rgba(var(--text-hi-rgb), 0.9);
         }
 
         .check-item.disabled {
@@ -295,7 +297,7 @@
             font-family: 'Roboto Mono', monospace;
             background: none;
             border: none;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             cursor: pointer;
             padding: 0;
             transition: color 0.2s;
@@ -304,12 +306,12 @@
         }
 
         .panel-back-btn:hover {
-            color: rgba(190, 205, 218, 0.9);
+            color: rgba(var(--text-rgb), 0.9);
         }
 
         .panel-sublabel {
             font-size: 0.8rem;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             letter-spacing: 0.04em;
             margin-top: 0.2rem;
         }
@@ -319,7 +321,7 @@
             -webkit-appearance: none;
             width: 15px;
             height: 15px;
-            border: 2px solid rgba(190, 205, 218, 0.35);
+            border: 2px solid rgba(var(--text-rgb), 0.35);
             border-radius: 50%;
             background: transparent;
             cursor: pointer;
@@ -329,7 +331,7 @@
         }
 
         .check-item input[type="radio"]:checked {
-            border-color: rgb(90, 130, 200);
+            border-color: var(--accent);
         }
 
         .check-item input[type="radio"]:checked::after {
@@ -339,7 +341,7 @@
             left: 2px;
             width: 7px;
             height: 7px;
-            background: rgb(90, 130, 200);
+            background: var(--accent);
             border-radius: 50%;
         }
 
@@ -389,7 +391,7 @@
             width: 64px;
             height: 64px;
             border: 6px solid rgba(255, 255, 255, 0.15);
-            border-top-color: rgb(60, 100, 170);
+            border-top-color: var(--primary);
             border-radius: 50%;
             opacity: 0;
             animation: spin 0.8s linear infinite, fadeInOpacity 0.5s ease forwards;
@@ -413,7 +415,7 @@
         .progress-bar-fill {
             height: 100%;
             width: 0%;
-            background-color: rgb(60, 100, 170);
+            background-color: var(--primary);
             border-radius: 3px;
             transition: width 0.3s linear;
         }
@@ -456,6 +458,7 @@
 
         #updateOverlay {
             position: fixed;
+            z-index: 40;
             inset: 0;
             background-color: rgba(0, 0, 0, 0.45);
             opacity: 0;
@@ -470,13 +473,13 @@
         #updateBanner {
             position: fixed;
             inset: 2rem;
-            background-color: #12121f;
-            color: rgb(190, 205, 218);
+            background-color: var(--bg);
+            color: rgb(var(--text-rgb));
             padding: 2rem 2.5rem;
             box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5);
             opacity: 0;
             pointer-events: none;
-            z-index: 1;
+            z-index: 41;
         }
 
         #updateBanner.show {
@@ -487,13 +490,13 @@
         #updateBanner .banner-title {
             font-size: 0.95rem;
             font-weight: 700;
-            color: rgba(227, 234, 245, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
             margin-bottom: 0.3rem;
         }
 
         #updateBanner .banner-text {
             font-size: 0.85rem;
-            color: rgba(190, 205, 218, 0.6);
+            color: rgba(var(--text-rgb), 0.6);
         }
 
         #updateBanner .banner-text > * + * {
@@ -511,7 +514,7 @@
 
         #updateBanner .banner-text h2,
         #updateBanner .banner-text h3 {
-            color: rgba(227, 234, 245, 0.8);
+            color: rgba(var(--text-hi-rgb), 0.8);
             font-size: 0.9rem;
         }
 
@@ -520,7 +523,7 @@
             top: 0.6rem;
             right: 0.85rem;
             font-size: 1.2rem;
-            color: rgba(190, 205, 218, 0.5);
+            color: rgba(var(--text-rgb), 0.5);
             cursor: pointer;
             background: none;
             border: none;
@@ -530,12 +533,12 @@
         }
 
         #updateBanner .banner-close:hover {
-            color: rgba(190, 205, 218, 0.95);
+            color: rgba(var(--text-rgb), 0.95);
         }
 
         .streak-info {
             font-size: 0.75rem;
-            color: rgba(190, 205, 218, 0.6);
+            color: rgba(var(--text-rgb), 0.6);
             margin-top: 0.5rem;
             display: flex;
             align-items: center;
@@ -644,8 +647,8 @@
             bottom: calc(100% + 7px);
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(14, 14, 26, 0.97);
-            color: rgba(190, 205, 218, 0.88);
+            background: rgba(var(--panel-deep-rgb), 0.97);
+            color: rgba(var(--text-rgb), 0.88);
             font-size: 0.63rem;
             font-weight: 400;
             padding: 0.35rem 0.6rem;
@@ -677,7 +680,7 @@
 
         .streak-progress {
             font-size: 0.7rem;
-            color: rgba(190, 205, 218, 0.4);
+            color: rgba(var(--text-rgb), 0.4);
             margin-top: 0.1rem;
         }
 
@@ -766,17 +769,17 @@
 
         body {
             background-image:
-                radial-gradient(ellipse 70% 50% at 15% 0%, rgba(60, 100, 170, 0.22), transparent 60%),
-                radial-gradient(ellipse 60% 45% at 100% 100%, rgba(124, 108, 240, 0.10), transparent 60%),
-                linear-gradient(rgba(190, 205, 218, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(190, 205, 218, 0.035) 1px, transparent 1px);
+                radial-gradient(ellipse 70% 50% at 15% 0%, rgba(var(--primary-rgb), 0.22), transparent 60%),
+                radial-gradient(ellipse 60% 45% at 100% 100%, rgba(var(--grad-b-rgb), 0.10), transparent 60%),
+                linear-gradient(rgba(var(--text-rgb), 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--text-rgb), 0.035) 1px, transparent 1px);
             background-size: auto, auto, 28px 28px, 28px 28px;
             background-attachment: fixed;
         }
 
         .title {
             letter-spacing: 0.02em;
-            text-shadow: 0 0 24px rgba(90, 130, 200, 0.35);
+            text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.35);
         }
 
         .title::after {
@@ -786,7 +789,7 @@
             height: 3px;
             margin: 0.6rem auto 0;
             border-radius: 2px;
-            background: linear-gradient(90deg, #4fc3f7, #7c6cf0);
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
             opacity: 0.85;
         }
 
@@ -797,7 +800,7 @@
             text-transform: uppercase;
             font-size: 0.72rem;
             letter-spacing: 0.12em;
-            color: rgba(190, 205, 218, 0.55);
+            color: rgba(var(--text-rgb), 0.55);
         }
 
         .section-label::before {
@@ -805,12 +808,12 @@
             width: 3px;
             height: 12px;
             border-radius: 2px;
-            background: linear-gradient(180deg, #4fc3f7, #7c6cf0);
+            background: linear-gradient(180deg, var(--grad-a), var(--grad-b));
         }
 
         .mode-section {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(190, 205, 218, 0.09);
+            border: 1px solid rgba(var(--trim-rgb), 0.3);
             border-radius: 10px;
             padding: 0.9rem 0.95rem;
         }
@@ -845,7 +848,7 @@
 
         #updateBanner {
             border-radius: 12px;
-            border: 1px solid rgba(190, 205, 218, 0.1);
+            border: 1px solid rgba(var(--trim-rgb), 0.35);
         }
 
         @media (max-width: 1000px) {
@@ -871,37 +874,37 @@
             padding: 12px 18px;
             font-size: 1rem;
             font-family: 'Roboto Mono', monospace;
-            color: rgba(235, 240, 255, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
             text-align: left;
             cursor: pointer;
             border-radius: 8px;
             border: 1px solid transparent;
             background:
-                linear-gradient(rgb(31, 46, 80), rgb(31, 46, 80)) padding-box,
-                linear-gradient(135deg, #4fc3f7, #7c6cf0) border-box;
-            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 18px rgba(90, 130, 200, 0.15);
+                linear-gradient(var(--btn-2), var(--btn-2)) padding-box,
+                linear-gradient(135deg, var(--grad-a), var(--grad-b)) border-box;
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 18px rgba(var(--accent-rgb), 0.15);
             transition: box-shadow 0.2s, transform 0.15s, background 0.2s;
         }
 
         .mix-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), 0 0 26px rgba(90, 130, 200, 0.3);
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5), 0 0 26px rgba(var(--accent-rgb), 0.3);
             background:
-                linear-gradient(rgb(38, 56, 96), rgb(38, 56, 96)) padding-box,
-                linear-gradient(135deg, #4fc3f7, #7c6cf0) border-box;
+                linear-gradient(var(--btn-2-hover), var(--btn-2-hover)) padding-box,
+                linear-gradient(135deg, var(--grad-a), var(--grad-b)) border-box;
         }
 
         .mix-btn svg {
             width: 20px;
             height: 20px;
             flex-shrink: 0;
-            color: #8ad4ff;
+            color: var(--accent-hi);
         }
 
         .mix-btn small {
             display: block;
             font-size: 0.72rem;
-            color: rgba(190, 205, 218, 0.6);
+            color: rgba(var(--text-rgb), 0.6);
             margin-top: 2px;
         }
 
@@ -909,9 +912,9 @@
             font-size: 0.85rem;
             padding: 10px 14px;
             border-radius: 6px;
-            border: 1px solid rgba(190, 205, 218, 0.15);
+            border: 1px solid rgba(var(--text-rgb), 0.15);
             background: rgba(255, 255, 255, 0.03);
-            color: rgba(190, 205, 218, 0.85);
+            color: rgba(var(--text-rgb), 0.85);
             cursor: pointer;
             font-family: 'Roboto Mono', monospace;
             transition: background 0.2s, color 0.2s;
@@ -919,7 +922,7 @@
 
         .mix-replay:hover {
             background: rgba(255, 255, 255, 0.07);
-            color: rgba(235, 240, 255, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
         }
 
         /* Mix & Match — builder view */
@@ -943,7 +946,7 @@
 
         .mix-hint {
             font-size: 0.8rem;
-            color: rgba(190, 205, 218, 0.5);
+            color: rgba(var(--text-rgb), 0.5);
             margin-top: 0.2rem;
         }
 
@@ -956,18 +959,18 @@
 
         .mix-count {
             font-size: 0.85rem;
-            color: rgba(190, 205, 218, 0.75);
+            color: rgba(var(--text-rgb), 0.75);
         }
 
         .mix-count strong {
-            color: rgba(235, 240, 255, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
         }
 
         .mix-clear {
             background: none;
             border: none;
             padding: 0;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             cursor: pointer;
             font-family: 'Roboto Mono', monospace;
             font-size: 0.8rem;
@@ -975,7 +978,7 @@
         }
 
         .mix-clear:hover {
-            color: rgba(190, 205, 218, 0.9);
+            color: rgba(var(--text-rgb), 0.9);
         }
 
         .mix-start {
@@ -992,7 +995,7 @@
 
         .mix-group {
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(190, 205, 218, 0.09);
+            border: 1px solid rgba(var(--trim-rgb), 0.3);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -1015,8 +1018,8 @@
             height: 9px;
             margin-left: 2px;
             flex-shrink: 0;
-            border-right: 2px solid rgba(190, 205, 218, 0.6);
-            border-bottom: 2px solid rgba(190, 205, 218, 0.6);
+            border-right: 2px solid rgba(var(--text-rgb), 0.6);
+            border-bottom: 2px solid rgba(var(--text-rgb), 0.6);
             transform: rotate(-45deg);
             transition: transform 0.2s;
         }
@@ -1036,22 +1039,22 @@
             flex: 1;
             font-weight: 600;
             font-size: 0.95rem;
-            color: rgba(227, 234, 245, 0.9);
+            color: rgba(var(--text-hi-rgb), 0.9);
         }
 
         .mix-badge {
             font-size: 0.72rem;
             padding: 2px 8px;
             border-radius: 999px;
-            border: 1px solid rgba(190, 205, 218, 0.15);
-            color: rgba(190, 205, 218, 0.55);
+            border: 1px solid rgba(var(--text-rgb), 0.15);
+            color: rgba(var(--text-rgb), 0.55);
             text-align: center;
         }
 
         .mix-badge.has {
-            color: rgba(140, 220, 255, 0.95);
-            border-color: rgba(90, 130, 200, 0.5);
-            background: rgba(60, 100, 170, 0.15);
+            color: rgba(var(--accent-hi-rgb), 0.95);
+            border-color: rgba(var(--accent-rgb), 0.5);
+            background: rgba(var(--primary-rgb), 0.15);
         }
 
         .mix-group-actions {
@@ -1063,7 +1066,7 @@
             background: none;
             border: none;
             padding: 2px 4px;
-            color: rgba(190, 205, 218, 0.5);
+            color: rgba(var(--text-rgb), 0.5);
             cursor: pointer;
             font-family: 'Roboto Mono', monospace;
             font-size: 0.75rem;
@@ -1071,7 +1074,7 @@
         }
 
         .mix-group-actions button:hover {
-            color: rgba(235, 240, 255, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
         }
 
         .mix-group-body {
@@ -1079,7 +1082,7 @@
             grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
             gap: 0.9rem 1.25rem;
             padding: 0.25rem 0.9rem 0.9rem;
-            border-top: 1px solid rgba(190, 205, 218, 0.07);
+            border-top: 1px solid rgba(var(--trim-rgb), 0.2);
         }
 
         .mix-group.open .mix-group-body {
@@ -1097,7 +1100,7 @@
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
         }
 
         .mix-sec .check-item span {
@@ -1125,8 +1128,8 @@
             position: relative;
             z-index: 21;
             background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(90, 130, 200, 0.55);
-            box-shadow: 0 0 0 1px rgba(90, 130, 200, 0.25), 0 8px 30px rgba(0, 0, 0, 0.6);
+            border-color: rgba(var(--accent-rgb), 0.55);
+            box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25), 0 8px 30px rgba(0, 0, 0, 0.6);
         }
 
         #opMenu {
@@ -1134,8 +1137,8 @@
             z-index: 22;
             width: 270px;
             padding: 0.9rem 1rem 1rem;
-            background: #161628;
-            border: 1px solid rgba(90, 130, 200, 0.4);
+            background: rgb(var(--panel-rgb));
+            border: 1px solid rgba(var(--trim-rgb), 0.55);
             border-radius: 10px;
             box-shadow: 0 10px 34px rgba(0, 0, 0, 0.65);
             display: none;
@@ -1164,7 +1167,7 @@
         .op-menu-title {
             font-weight: 600;
             font-size: 1rem;
-            color: rgba(227, 234, 245, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
         }
 
         .op-menu-close {
@@ -1173,19 +1176,19 @@
             padding: 2px 4px;
             font-size: 1rem;
             line-height: 1;
-            color: rgba(190, 205, 218, 0.5);
+            color: rgba(var(--text-rgb), 0.5);
             cursor: pointer;
             transition: color 0.2s;
         }
 
         .op-menu-close:hover {
-            color: rgba(235, 240, 255, 0.95);
+            color: rgba(var(--text-hi-rgb), 0.95);
         }
 
         .op-hint {
             font-size: 0.68rem;
             line-height: 1.35;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             margin: -0.2rem 0 0 1.55rem;
         }
 
@@ -1969,6 +1972,7 @@
         }
 
         function launchMode(href) {
+            document.body.classList.add('launching');
             const selectionArea = document.getElementById('selectionArea');
             selectionArea.classList.add('fade-out-down');
             setTimeout(() => {
@@ -2395,5 +2399,6 @@
             });
         });
     </script>
+    <script src="settings.js"></script>
 </body>
 </html>

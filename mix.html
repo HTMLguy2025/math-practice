@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="theme.js"></script>
     <script src="version.js"></script>
     <title>Math Practice</title>
     <style>
@@ -26,7 +27,7 @@
 
         .mix-meta {
             font-size: 0.75rem;
-            color: rgba(190, 205, 218, 0.45);
+            color: rgba(var(--text-rgb), 0.45);
             margin-top: 2px;
         }
 
@@ -68,7 +69,7 @@
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            background: rgba(18, 18, 31, 0.6);
+            background: rgba(var(--bg-rgb), 0.6);
             backdrop-filter: blur(2px);
             opacity: 0;
             pointer-events: none;
@@ -85,7 +86,7 @@
             font-size: 0.75rem;
             letter-spacing: 0.14em;
             text-transform: uppercase;
-            color: rgba(190, 205, 218, 0.6);
+            color: rgba(var(--text-rgb), 0.6);
         }
 
         .mix-next-title {
@@ -93,8 +94,8 @@
             font-weight: 600;
             text-align: center;
             padding: 0 1rem;
-            color: rgba(235, 240, 255, 0.95);
-            text-shadow: 0 0 18px rgba(90, 130, 200, 0.35);
+            color: rgba(var(--text-hi-rgb), 0.95);
+            text-shadow: 0 0 18px rgba(var(--accent-rgb), 0.35);
         }
 
         .mix-sweep {
@@ -110,7 +111,7 @@
             height: 100%;
             width: 0;
             border-radius: 2px;
-            background: linear-gradient(90deg, #4fc3f7, #7c6cf0);
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
         }
 
         .mix-interstitial.show .mix-sweep-fill {

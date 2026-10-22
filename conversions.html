@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="theme.js"></script>
     <script src="version.js"></script>
     <script src="mix.js"></script>
     <title>Math Practice</title>
@@ -17,7 +18,7 @@
         .prev-area {
             min-height: 2rem;
             font-size: 1.1rem;
-            color: rgba(190, 205, 218, 0.35);
+            color: rgba(var(--text-rgb), 0.35);
             margin-top: 0.5rem;
             opacity: 0;
             animation: prevFadeIn 0.4s ease forwards;
@@ -38,7 +39,7 @@
 
         .question-sub {
             font-size: 0.9rem;
-            color: rgba(190, 205, 218, 0.4);
+            color: rgba(var(--text-rgb), 0.4);
         }
 
         .question-display {
@@ -47,7 +48,7 @@
             justify-content: center;
             gap: 0.6rem;
             font-size: 2rem;
-            color: rgba(220, 230, 245, 0.92);
+            color: rgba(var(--text-hi-rgb), 0.92);
             flex-wrap: wrap;
         }
 
@@ -62,7 +63,7 @@
             gap: 0;
         }
         .frac-num, .frac-den { font-size: 1.5rem; padding: 0 3px; }
-        .frac-bar { width: 100%; height: 2px; background: rgba(220,230,245,0.7); min-width: 1.2em; }
+        .frac-bar { width: 100%; height: 2px; background: rgba(var(--text-hi-rgb),0.7); min-width: 1.2em; }
 
         /* Answer input */
 
@@ -75,7 +76,7 @@
 
         .answer-hint {
             font-size: 0.85rem;
-            color: rgba(190, 205, 218, 0.4);
+            color: rgba(var(--text-rgb), 0.4);
         }
 
         .answer-row {
@@ -87,19 +88,19 @@
         #answerInput {
             font-family: 'Roboto Mono', monospace;
             font-size: 1.6rem;
-            background: rgba(35, 50, 85, 0.8);
-            color: rgba(227, 234, 245, 0.95);
-            border: 2px solid rgba(190, 205, 218, 0.2);
+            background: rgba(var(--btn-rgb), 0.8);
+            color: rgba(var(--text-hi-rgb), 0.95);
+            border: 2px solid rgba(var(--text-rgb), 0.2);
             padding: 10px 16px;
             width: 160px;
             text-align: center;
             outline: none;
             transition: border-color 0.2s;
-            caret-color: rgba(190, 205, 218, 0.8);
+            caret-color: rgba(var(--text-rgb), 0.8);
         }
 
         #answerInput:focus {
-            border-color: rgba(90, 130, 200, 0.6);
+            border-color: rgba(var(--accent-rgb), 0.6);
         }
 
         #answerInput.flash-correct {
@@ -118,15 +119,15 @@
             font-family: 'Roboto Mono', monospace;
             font-size: 1rem;
             padding: 10px 20px;
-            background: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             transition: background-color 0.15s;
         }
-        .check-btn:hover { background: rgb(52, 75, 120); }
-        .check-btn:active { background: rgb(20, 32, 60); box-shadow: none; }
+        .check-btn:hover { background: var(--btn-hover); }
+        .check-btn:active { background: var(--btn-active); box-shadow: none; }
 
         /* Numpad */
 
@@ -141,16 +142,16 @@
             font-family: 'Roboto Mono', monospace;
             font-size: 1.1rem;
             padding: 12px 0;
-            background: rgb(35, 50, 85);
-            color: rgba(227, 234, 245, 0.9);
+            background: var(--btn);
+            color: rgba(var(--text-hi-rgb), 0.9);
             border: none;
             cursor: pointer;
             box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
             transition: background-color 0.15s;
             text-align: center;
         }
-        .np-btn:hover  { background: rgb(52, 75, 120); }
-        .np-btn:active { background: rgb(20, 32, 60); box-shadow: none; }
+        .np-btn:hover  { background: var(--btn-hover); }
+        .np-btn:active { background: var(--btn-active); box-shadow: none; }
         .np-btn.wide   { grid-column: span 2; }
 
         @media (max-width: 480px) {

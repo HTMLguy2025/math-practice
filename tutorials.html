@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+    <link rel="icon" href="newicon.png" type="image/x-icon">
+    <script src="theme.js"></script>
+    <script src="version.js"></script>
+    <script src="activities.js"></script>
+    <script src="tutorials.js"></script>
+    <title>Tutorials</title>
+    <style>
+        * {
+            font-family: 'Roboto Mono', monospace;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(ellipse 70% 50% at 15% 0%, rgba(var(--primary-rgb), 0.22), transparent 60%),
+                radial-gradient(ellipse 60% 45% at 100% 100%, rgba(var(--grad-b-rgb), 0.10), transparent 60%),
+                linear-gradient(rgba(var(--text-rgb), 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--text-rgb), 0.035) 1px, transparent 1px);
+            background-size: auto, auto, 28px 28px, 28px 28px;
+            background-attachment: fixed;
+            color: var(--text-body);
+            min-height: 100vh;
+            padding: 1.2rem 1.2rem 3rem;
+        }
+
+        .wrap { max-width: 900px; margin: 0 auto; }
+
+        .back {
+            display: inline-block;
+            font-size: 0.9rem;
+            color: rgba(var(--text-rgb), 0.55);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back:hover { color: rgba(var(--text-hi-rgb), 0.95); }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0.8rem 0 0.4rem;
+            color: rgba(var(--text-hi-rgb), 0.97);
+            text-shadow: 0 0 22px rgba(var(--accent-rgb), 0.35);
+        }
+        h1::after {
+            content: '';
+            display: block;
+            width: 72px;
+            height: 3px;
+            margin-top: 0.6rem;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
+        }
+
+        .intro { font-size: 0.9rem; color: rgba(var(--text-rgb), 0.7); margin: 0.9rem 0 1.4rem; line-height: 1.5; }
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: rgba(var(--text-rgb), 0.6);
+            margin: 1.6rem 0 0.7rem;
+        }
+        h2::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            border-radius: 2px;
+            background: linear-gradient(180deg, var(--grad-a), var(--grad-b));
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+
+        .card {
+            position: relative;
+            display: block;
+            padding: 0.9rem 1rem 0.95rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(var(--trim-rgb), 0.3);
+            text-decoration: none;
+            transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+        }
+        .card:hover { background: rgba(255, 255, 255, 0.07); border-color: rgba(var(--accent-rgb), 0.7); transform: translateY(-1px); }
+        .card:focus-visible { outline: 2px solid var(--accent-hi); outline-offset: 2px; }
+
+        .card-title { font-size: 0.98rem; font-weight: 600; color: rgba(var(--text-hi-rgb), 0.97); padding-right: 1.6rem; }
+        .card-blurb { font-size: 0.78rem; color: rgba(var(--text-rgb), 0.65); margin-top: 0.3rem; line-height: 1.4; }
+        .card.seen::after {
+            content: '\2713';
+            position: absolute;
+            top: 0.7rem;
+            right: 0.85rem;
+            font-size: 1rem;
+            color: rgba(140, 225, 160, 0.98);
+        }
+
+        .empty { font-size: 0.9rem; color: rgba(var(--text-rgb), 0.6); }
+
+        @media (max-width: 560px) {
+            body { padding: 0.9rem 0.8rem 2.5rem; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <a class="back" href="index.html">&larr; Back</a>
+        <h1>Tutorials</h1>
+        <p class="intro">Short, animated lessons that show you how to do each kind of problem, step by step. Each one ends with a few quick questions. A check mark means you have watched it.</p>
+        <div id="list"></div>
+    </div>
+    <script>
+        (() => {
+            const list = document.getElementById('list');
+            const groups = [];
+            MPTutorials.TOPICS.forEach(t => {
+                if (!MPTutorials.ready(t.id)) return;
+                let g = groups.find(x => x.name === t.group);
+                if (!g) { g = { name: t.group, topics: [] }; groups.push(g); }
+                g.topics.push(t);
+            });
+            if (!groups.length) {
+                const p = document.createElement('p');
+                p.className = 'empty';
+                p.textContent = 'Tutorials are on their way.';
+                list.appendChild(p);
+                return;
+            }
+            groups.forEach(g => {
+                const h = document.createElement('h2');
+                h.textContent = g.name;
+                list.appendChild(h);
+                const grid = document.createElement('div');
+                grid.className = 'grid';
+                g.topics.forEach(t => {
+                    const a = document.createElement('a');
+                    a.className = 'card' + (MPTutorials.isSeen(t.id) ? ' seen' : '');
+                    a.href = MPTutorials.url(t.id);
+                    const title = document.createElement('div');
+                    title.className = 'card-title';
+                    title.textContent = t.title;
+                    const blurb = document.createElement('div');
+                    blurb.className = 'card-blurb';
+                    blurb.textContent = t.blurb;
+                    a.appendChild(title);
+                    a.appendChild(blurb);
+                    grid.appendChild(a);
+                });
+                list.appendChild(grid);
+            });
+        })();
+    </script>
+</body>
+</html>

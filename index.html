@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="settings.css">
     <script src="theme.js"></script>
     <script src="activities.js"></script>
+    <script src="tutorials.js"></script>
     <script src="points.js"></script>
     <script src="version.js"></script>
     <script src="dev-test.js"></script>
@@ -723,6 +724,12 @@
                 width: 100%;
             }
 
+            .launch-wrap {
+                width: auto;
+                flex: 1;
+                min-width: 100px;
+            }
+
             .launch-btn {
                 width: auto;
                 flex: 1;
@@ -861,6 +868,50 @@
         }
 
         a.mix-btn { text-decoration: none; }
+
+        .launch-wrap {
+            position: relative;
+            display: block;
+            width: 180px;
+        }
+
+        .launch-wrap .launch-btn {
+            width: 100%;
+            padding-right: 42px;
+        }
+
+        .help-dot {
+            position: absolute;
+            right: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            line-height: 20px;
+            text-align: center;
+            font-size: 0.78rem;
+            border-radius: 50%;
+            border: 1px solid rgba(var(--accent-rgb), 0.6);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(var(--text-hi-rgb), 0.85);
+            text-decoration: none;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .help-dot:hover {
+            background: rgba(var(--accent-rgb), 0.35);
+            border-color: var(--accent-hi);
+            color: #fff;
+        }
+
+        .op-howto {
+            font-size: 0.78rem;
+            color: rgba(var(--accent-hi-rgb), 0.95);
+            text-decoration: none;
+            margin: -0.2rem 0 0.1rem;
+        }
+
+        .op-howto:hover { text-decoration: underline; }
 
         .mix-btn:hover {
             transform: translateY(-1px);
@@ -1306,6 +1357,14 @@
                 </a>
             </div>
 
+            <p class="section-label levels-label">Tutorials</p>
+            <div class="mix-entry">
+                <a class="mix-btn" href="tutorials.html" id="tutorialsLink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5z"/></svg>
+                    <span>Tutorials<small>Short animated lessons on how to do each activity</small></span>
+                </a>
+            </div>
+
         </div>
 
         <div id="subOptions">
@@ -1465,6 +1524,28 @@
                  <a class="sb-link" href="progress.html">Calendar &rarr;</a>`;
         }
 
+        // A small "?" beside an activity button when its tutorial is ready.
+        function addLaunchButton(parent, btn, href) {
+            let topic = null;
+            if (href) {
+                const u = new URL(href, location.href);
+                topic = MPTutorials.readyTopicsFor(MPActivities.pageOf(u.pathname), u.searchParams)[0];
+            }
+            if (!topic) { parent.appendChild(btn); return; }
+            const wrap = document.createElement('div');
+            wrap.className = 'launch-wrap';
+            wrap.appendChild(btn);
+            const t = MPTutorials.topic(topic);
+            const help = document.createElement('a');
+            help.className = 'help-dot';
+            help.href = MPTutorials.url(topic);
+            help.textContent = '?';
+            help.title = 'How to: ' + t.title;
+            help.setAttribute('aria-label', 'Tutorial: ' + t.title);
+            wrap.appendChild(help);
+            parent.appendChild(wrap);
+        }
+
         function buildSimpleGrid(containerEl, levelKey) {
             containerEl.innerHTML = '';
             LEVELS[levelKey].sections.forEach(section => {
@@ -1486,7 +1567,7 @@
                             openOpMenu(div, simpleModeKey[section.label], digit);
                         });
                     }
-                    div.appendChild(btn);
+                    addLaunchButton(div, btn, opt.href);
                 });
 
 
@@ -1535,7 +1616,7 @@
                         if (opt.href) {
                             btn.addEventListener('click', e => { e.preventDefault(); launchMode(opt.href); });
                         }
-                        div.appendChild(btn);
+                        addLaunchButton(div, btn, opt.href);
                     });
                 }
 
@@ -1938,6 +2019,15 @@
                 '<button type="button" class="op-menu-close" aria-label="Close">&#x2715;</button>';
             head.querySelector('.op-menu-close').addEventListener('click', closeOpMenu);
             menu.appendChild(head);
+
+            const topicId = MPTutorials.readyTopicsFor('practice', new URLSearchParams({ mode: s.mode, digits: [...s.digits][0] }))[0];
+            if (topicId) {
+                const how = document.createElement('a');
+                how.className = 'op-howto';
+                how.href = MPTutorials.url(topicId);
+                how.textContent = '? How does this work?';
+                menu.appendChild(how);
+            }
 
             const optLabel = document.createElement('p');
             optLabel.className = 'panel-sublabel';

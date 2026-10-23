@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Lesson smoke test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Dev only: draws the finished picture of every step and try-it scene of one lesson
+     (?topic=ID) or of all lessons, and lists any scene that throws.
+     Open http://localhost:3001/dev/lesson-smoke.html?topic=add-big -->
+<script src="../theme.js"></script>
+<script src="../version.js"></script>
+<script src="../activities.js"></script>
+<script src="../tutorials.js"></script>
+<script src="../tutorial-player.js"></script>
+<script src="../tutorial-scenes.js"></script>
+<script src="../tutorial-content-1.js"></script>
+<script src="../tutorial-content-2.js"></script>
+<script src="../tutorial-content-3.js"></script>
+<script src="../tutorial-content-4.js"></script>
+<script src="../tutorial-content-5.js"></script>
+<style id="host-style"></style>
+<style>
+    body { margin: 0; padding: 12px; font-family: system-ui, sans-serif; }
+    h2 { margin: 18px 0 6px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+    .cell { font-size: 11px; }
+    .cell .tp-stage { width: 100% !important; }
+    .cell p { margin: 2px 0 8px; opacity: 0.8; }
+    #report { position: sticky; top: 0; z-index: 5; padding: 8px 12px; background: #200; color: #fff; font: 13px monospace; white-space: pre-wrap; }
+    #report.ok { background: #020; }
+</style>
+</head>
+<body>
+<div id="report">running…</div>
+<div id="out"></div>
+<script>
+(async () => {
+    // reuse the real page's stage styling
+    const html = await (await fetch('../tutorial.html')).text();
+    const css = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+    document.getElementById('host-style').textContent = css;
+
+    const scenes = MPTutorialPlayer.scenes();
+    const only = new URLSearchParams(location.search).get('topic');
+    if (new URLSearchParams(location.search).has('big')) document.getElementById('host-style').textContent += '.grid{grid-template-columns:repeat(auto-fill,minmax(520px,1fr))!important}';
+    const topics = MPTutorials.TOPICS.filter(t => !only || t.id === only);
+    const out = document.getElementById('out');
+    const errors = [];
+    let count = 0;
+    const ctx = { instant: true, speed: 1, alive: () => true, wait: () => Promise.resolve() };
+
+    for (const t of topics) {
+        const lesson = MPTutorials.lesson(t.id);
+        const h = document.createElement('h2');
+        h.textContent = t.id + ' (' + (lesson ? lesson.steps.length + ' steps' : 'MISSING') + ')';
+        out.appendChild(h);
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        out.appendChild(grid);
+        if (!lesson) { errors.push(t.id + ': no lesson'); continue; }
+        const items = lesson.steps.map((s, i) => ({ label: 'step ' + (i + 1), say: s.say, scene: s.scene }))
+            .concat((lesson.tryIt || []).map((q, i) => ({ label: 'try ' + (i + 1), say: q.prompt, scene: q.scene })));
+        for (const it of items) {
+            if (!it.scene) continue;
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            const stage = document.createElement('div');
+            stage.className = 'tp-stage';
+            cell.appendChild(stage);
+            const p = document.createElement('p');
+            p.textContent = it.label + ': ' + it.say.slice(0, 70);
+            cell.appendChild(p);
+            grid.appendChild(cell);
+            count++;
+            try {
+                if (!scenes[it.scene.kind]) throw new Error('unknown kind ' + it.scene.kind);
+                await scenes[it.scene.kind](stage, it.scene, ctx);
+                if (!stage.children.length) throw new Error('empty stage');
+                const bad = stage.textContent.match(/undefined|NaN|\[object/);
+                if (bad) throw new Error('bad text: ' + bad[0]);
+            } catch (e) {
+                errors.push(t.id + ' ' + it.label + ': ' + e.message);
+                cell.style.outline = '3px solid red';
+            }
+        }
+    }
+    const r = document.getElementById('report');
+    r.textContent = count + ' scenes drawn, ' + errors.length + ' problems' + (errors.length ? '\n' + errors.join('\n') : '');
+    r.className = errors.length ? '' : 'ok';
+    window.SMOKE = { count, errors };
+})();
+</script>
+</body>
+</html>

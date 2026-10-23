@@ -1,6 +1,6 @@
 # Upgrade Plan: Daily Points, My Progress, Tutorials, Coaching
 
-**Status: Phases 1 and 2 built (4.0.0, uncommitted). Decisions taken: weekends optional, wrong = 0 points, no migration of old streaks, hints (Phase 4) wanted. Next: Phase 3 (tutorials).**
+**Status: Phases 1 and 2 committed (4.0.0, local only). Phase 3 built (uncommitted): engine, hub, links, and all 43 lessons, with manual stepping (Next glows when the animation finishes). Phase 4 (coaching hints) next. Final version after Phases 3 and 4: 4.2.0.**
 
 Target: **4.0.0** (the streak change is breaking). Ship in phases; each phase is a working release.
 
@@ -77,7 +77,7 @@ Target: **4.0.0** (the streak change is breaking). Ship in phases; each phase is
 - Launcher: a small "?" on every activity button, a link inside the operation menu, and a **Tutorials** hub grouped by level, with a watched check mark per topic.
 - In Mix & Match the host header shows the link for whichever exercise is on screen.
 
-**Order of work.** Build the engine and 4 representative tutorials first (addition with a ten-frame, counting on a number line, telling time, adding fractions). Review those with you before writing the other ~30. Writing the tutorials is the largest part of the whole upgrade.
+**Order of work (done).** The engine and 4 sample lessons were reviewed first, then the other 39 were written. Lessons advance only when the learner presses Next; the button glows once the animation (and read-aloud) finishes. Check them all at once with `dev/lesson-smoke.html` (draws every step and try-it scene; the banner lists any scene that throws).
 
 ## Phase 4: Coaching hints (in the moment)
 

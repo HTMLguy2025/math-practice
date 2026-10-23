@@ -12,6 +12,8 @@
     <script src="version.js"></script>
     <script src="activities.js"></script>
     <script src="points.js"></script>
+    <script src="tutorials.js"></script>
+    <script src="help.js"></script>
     <title>Math Practice</title>
     <style>
         body.mix-host {
@@ -256,6 +258,7 @@
                 active  = idx;
                 current = item;
                 modeIndicator.textContent = item.label;
+                if (window.MPHelp) MPHelp.forHref(item.href);
                 focusActive();
             };
 

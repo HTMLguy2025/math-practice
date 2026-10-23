@@ -15,6 +15,9 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-arith.js"></script>
+    <script src="coach-money.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -253,6 +256,7 @@
         let activeBox     = 'dollars';   // 'dollars' | 'cents'
         let currentCents  = 0;
         let currentPrevSummary = '';
+        let currentCoach   = null;
         let currentMode   = 'counting';  // 'counting' | 'arithmetic'
         let questionsCorrect  = 0;
         let questionsAnswered = 0;
@@ -321,6 +325,7 @@
 
             currentCents = totalCents;
             currentPrevSummary = formatDollarAmount(totalCents);
+            currentCoach = { kind: 'money-count', pieces: pieces.slice() };
 
             document.getElementById('coinsArea').style.display = '';
             document.getElementById('arithmeticArea').style.display = 'none';
@@ -349,6 +354,7 @@
             }
 
             currentCents = answer;
+            currentCoach = { kind: 'money-arith', op: cfg.op, a, b };
             currentPrevSummary = formatDollarAmount(a) + ' ' + cfg.op + ' ' + formatDollarAmount(b) + ' = ' + formatDollarAmount(answer);
 
             document.getElementById('coinsArea').style.display = 'none';
@@ -373,6 +379,7 @@
             centsInput   = '';
             activeBox    = 'dollars';
             renderAnswer();
+            MPCoach.question(currentCoach);
         }
 
         // --- Answer display ---
@@ -429,6 +436,7 @@
             const cents      = parseInt(centsInput   || '0');
             const wasCorrect = !isNaN(dollars) && !isNaN(cents) && dollars * 100 + cents === currentCents;
 
+            MPCoach.answered(currentCoach, wasCorrect);
             if (wasCorrect) {
                 setTimeout(() => spawnParticles(checkBtn), 325);
                 questionsCorrect++;

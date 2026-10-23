@@ -85,6 +85,8 @@
     // ---------- public data API ----------
     // Record one answered question. `points` is what a correct answer earns (0 when wrong).
     const record = ({ points = 0, correct = false, key = 'unknown' } = {}) => {
+        // a hint (coach.js) halves what a correct answer earns
+        if (correct && window.MPCoach) points = MPCoach.applyPenalty(points, correct);
         const ledger = load();
         const today = todayDate();
         const day = dayRecord(ledger, today);

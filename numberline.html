@@ -15,6 +15,8 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-numberline.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -143,6 +145,7 @@
         let questionsCorrect = 0;
         let questionsAnswered = 0;
         let prevSummary = '';
+        let currentCoach = null;
         let choicesLocked = false;
         let enterCooldown = false;
 
@@ -371,6 +374,7 @@
             const btn = document.getElementById('nlCheckmark');
             animateCheck(btn);
             const wasCorrect = parseInt(numericInput) === currentAnswer;
+            MPCoach.answered(currentCoach, wasCorrect);
             if (wasCorrect) { setTimeout(() => spawnParticles(btn), 325); questionsCorrect++; }
             questionsAnswered++;
             updateScore();
@@ -391,6 +395,7 @@
                     if (choicesLocked) return;
                     choicesLocked = true;
                     const wasCorrect = ch.correct;
+                    MPCoach.answered(currentCoach, wasCorrect);
                     [...container.children].forEach((b, j) => {
                         if (choices[j].correct) b.classList.add('correct-flash');
                         else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
@@ -411,6 +416,7 @@
             const dot = ri(1, 19);
             currentAnswer = dot;
             prevSummary = `Number line: ${dot}`;
+            currentCoach = { kind: 'nl-read', v: dot, min: 0, max: 20, label: 5 };
             switchMode('numeric');
             document.getElementById('svgArea').innerHTML = buildOrderingSVG(dot);
             document.getElementById('questionText').textContent = 'What number is marked on the number line?';
@@ -421,6 +427,7 @@
             const seq = [0, 1, 2, 3, 4].map(i => start + i);
             const missingIdx = ri(0, 4);
             currentAnswer = seq[missingIdx];
+            currentCoach = { kind: 'nl-seq', seq, missing: missingIdx };
             prevSummary = `Missing: ${currentAnswer}`;
             switchMode('numeric');
             document.getElementById('svgArea').innerHTML = buildSequenceSVG(seq, missingIdx);
@@ -432,6 +439,7 @@
             const seq = [0, 1, 2, 3, 4].map(i => start - i);
             const missingIdx = ri(0, 4);
             currentAnswer = seq[missingIdx];
+            currentCoach = { kind: 'nl-seq', seq, missing: missingIdx };
             prevSummary = `Missing: ${currentAnswer}`;
             switchMode('numeric');
             document.getElementById('svgArea').innerHTML = buildSequenceSVG(seq, missingIdx);
@@ -445,6 +453,7 @@
             if (dir === -1 && start - steps < 0) dir = 1;
             currentAnswer = start + steps * dir;
             prevSummary = `${start} + ${steps * dir} = ${currentAnswer}`;
+            currentCoach = { kind: 'nl-countfrom', start, steps, dir };
             switchMode('numeric');
             document.getElementById('svgArea').innerHTML = buildCountFromSVG(start, steps, dir);
             const dirText = dir === 1 ? 'forward' : 'backward';
@@ -458,6 +467,7 @@
             const numr = ri(1, denom - 1);
             const correct = fracStr(numr, denom);
             prevSummary = `Fraction: ${correct}`;
+            currentCoach = { kind: 'nl-fraction', denom, numr };
 
             const pool = [];
             for (let n = 1; n < denom; n++) {
@@ -481,6 +491,7 @@
             do { dot = ri(-10, 10); } while (dot === 0);
             currentAnswer = dot;
             prevSummary = `Number line: ${dot}`;
+            currentCoach = { kind: 'nl-read', v: dot, min: -10, max: 10, label: 5 };
             switchMode('numeric', true);
             document.getElementById('svgArea').innerHTML = buildNegativeSVG(dot);
             document.getElementById('questionText').textContent = 'What number is marked on the number line?';
@@ -499,6 +510,7 @@
                 case 'negative':        loadNegative();      break;
             }
             if (currentMode === 'numeric') renderNumeric();
+            MPCoach.question(currentCoach);
         }
 
         // --- Keyboard ---

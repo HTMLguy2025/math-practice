@@ -229,7 +229,7 @@
         const total = items.length * W + (items.length - 1) * GAP;
         const x0 = (640 - total) / 2;
         const nums = items.filter(v => typeof v === 'number');
-        const diff = nums.length > 1 ? nums[1] - nums[0] : 1;
+        const diff = spec.step !== undefined ? spec.step : (nums.length > 1 ? nums[1] - nums[0] : 1);
         let qBox = null, qText = null;
         items.forEach((v, i) => {
             const x = x0 + i * (W + GAP);
@@ -242,7 +242,7 @@
             if (missing) { qBox = box; qText = t; }
             if (i < items.length - 1) {
                 const sx = x + W + GAP / 2;
-                const step = svgText(svg, sx, 100, '+' + diff, 22, COLORS.a);
+                const step = svgText(svg, sx, 100, (diff < 0 ? '\u2212' : '+') + Math.abs(diff), 22, COLORS.a);
                 anim(step, 'tp-fade', 400, 500 + i * 160, ctx);
             }
         });
@@ -417,8 +417,9 @@
     const start = (root, topicId, opts) => {
         opts = opts || {};
         const SCENES = Object.assign({}, CORE, window.MPTutorialScenes);
-        const topic = MPTutorials.topic(topicId);
-        const lesson = MPTutorials.lesson(topicId);
+        // `opts.lesson` / `opts.topic` let the coach hand over a worked example made on the fly
+        const topic = opts.topic || MPTutorials.topic(topicId);
+        const lesson = opts.lesson || MPTutorials.lesson(topicId);
         root.innerHTML = '';
         if (!topic || !lesson) {
             el('p', 'tp-missing', 'That tutorial is not available yet.', root);
@@ -464,7 +465,7 @@
         if (!canSpeak) bVoice.hidden = true;
 
         const turnBar = el('div', 'tp-turnbar', undefined, root);
-        const bTurn = el('button', 'tp-btn tp-primary', 'Your turn ›', turnBar);
+        const bTurn = el('button', 'tp-btn tp-primary', opts.coach ? 'Got it' : 'Your turn ›', turnBar);
         bTurn.type = 'button';
         turnBar.hidden = true;
 
@@ -497,7 +498,7 @@
             bVoice.setAttribute('aria-pressed', String(state.voice));
             bSpeed.textContent = 'Speed: ' + (state.speed === 1 ? 'normal' : 'slow');
             dotBtns.forEach((d, i) => { d.classList.toggle('on', i === state.step); d.classList.toggle('done', i < state.step); });
-            turnBar.hidden = !(isLast() && hasTry);
+            turnBar.hidden = !(isLast() && (hasTry || opts.coach));
         };
 
         // ---- playing a step ----
@@ -524,7 +525,7 @@
             await spoken;
             if (!ctx.alive()) return;
             state.done = true;
-            if (isLast()) MPTutorials.markSeen(topicId);
+            if (isLast() && !opts.coach) MPTutorials.markSeen(topicId);
             syncUi();
         };
 
@@ -611,7 +612,7 @@
             };
             ask();
         };
-        bTurn.addEventListener('click', runTryIt);
+        bTurn.addEventListener('click', () => { if (opts.coach) { opts.onClose && opts.onClose(); } else runTryIt(); });
 
         // keyboard: arrows move between steps; Space or Enter takes the highlighted next action
         root.ownerDocument.addEventListener('keydown', (e) => {
@@ -622,7 +623,9 @@
             else if (e.key === 'ArrowLeft') { if (state.step > 0) goto(state.step - 1); }
             else if (e.key === ' ' || e.key === 'Enter') {
                 e.preventDefault();
-                if (!isLast()) goto(state.step + 1); else if (hasTry && state.done) runTryIt();
+                if (!isLast()) goto(state.step + 1);
+                else if (state.done && opts.coach) opts.onClose && opts.onClose();
+                else if (hasTry && state.done) runTryIt();
             }
         });
 

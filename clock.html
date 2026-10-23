@@ -15,6 +15,8 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-clock.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -227,7 +229,8 @@
                 if (w !== correct) wrongs.add(w);
             }
 
-            return { h, m, choices: shuffle([correct, ...[...wrongs]]), correct, summary: correct };
+            return { h, m, choices: shuffle([correct, ...[...wrongs]]), correct, summary: correct,
+                     coach: { kind: 'clock-read', h, m, precision } };
         }
 
         function generateElapsedQuestion() {
@@ -251,6 +254,7 @@
                 startH, startM, endH, endM,
                 choices: shuffle([correct, ...[...wrongs]]),
                 correct,
+                coach: { kind: 'clock-elapsed', startH, startM, endH, endM, elapsed, answer: correct },
                 summary: `${formatTime(startH, startM)} → ${formatTime(endH, endM)} = ${correct}`
             };
         }
@@ -278,6 +282,7 @@
             currentQuestion = mode === 'elapsed'
                 ? generateElapsedQuestion()
                 : generateReadQuestion();
+            MPCoach.question(currentQuestion.coach);
 
             const row = document.getElementById('clocksRow');
             row.innerHTML = '';
@@ -332,6 +337,7 @@
 
             const allBtns   = document.querySelectorAll('.choice-btn');
             const wasCorrect = choice === currentQuestion.correct;
+            MPCoach.answered(currentQuestion.coach, wasCorrect);
 
             questionsAnswered++;
             if (wasCorrect) questionsCorrect++;

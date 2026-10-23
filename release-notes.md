@@ -1,4 +1,17 @@
-# Version 4.0.0
+# Version 4.2.0
+
+## Learn how, then practice
+
+- **Every activity now has a short lesson.** Tap **? How to** at the top of any exercise, or the **?** beside an activity on the home page, to watch it worked out step by step. There are 43 lessons, from counting to nested fractions, and a **Tutorials** page on the home page lists them all.
+- Lessons never rush you. Press **Next** when you are ready (it glows once the picture has finished), and finish with a few quick questions to try it yourself.
+- Sums are shown the way you write them on paper: numbers stacked, carrying and borrowing, long multiplication, and long division.
+- You can have a lesson read aloud, and slow it down. The lesson opens on top of your practice, so you never lose your place or your score.
+
+## Help with the question in front of you
+
+- **Not quite? Tap Show me how.** After a wrong answer, a worked example of that exact question is waiting for you.
+- **Stuck? Tap Hint** at the bottom of the screen to see the working before you answer. A hint halves the points for that question.
+- Exercises that might need some scratch paper say so.
 
 ## One daily point balance
 

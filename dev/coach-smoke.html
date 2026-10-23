@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coach smoke test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Dev only. For each exercise page, loads the page in a hidden frame, asks its own
+     generator for many real questions, builds the coach's worked example for each, and
+     draws every step. The banner lists questions that throw, have no example, show
+     "undefined"/"NaN", or never mention the right answer.
+       dev/coach-smoke.html            every page
+       dev/coach-smoke.html?only=frac  only suites whose name contains "frac"
+       add &show=1 to draw one example per suite so you can look at it -->
+<script src="../theme.js"></script>
+<script src="../version.js"></script>
+<script src="../activities.js"></script>
+<script src="../tutorials.js"></script>
+<script src="../tutorial-player.js"></script>
+<script src="../tutorial-scenes.js"></script>
+<script src="../help.js"></script>
+<script src="../coach.js"></script>
+<script src="../coach-arith.js"></script>
+<script src="../coach-fractions.js"></script>
+<script src="../coach-geometry.js"></script>
+<script src="../coach-money.js"></script>
+<script src="../coach-numberline.js"></script>
+<script src="../coach-graphs.js"></script>
+<script src="../coach-choice.js"></script>
+<script src="../coach-conversions.js"></script>
+<script src="../coach-clock.js"></script>
+<script src="../coach-rounding.js"></script>
+<script src="../coach-placevalue.js"></script>
+<script src="../coach-pemdas.js"></script>
+<style id="host-style"></style>
+<style>
+    body { margin: 0; padding: 12px; font-family: system-ui, sans-serif; }
+    h2 { margin: 18px 0 6px; font-size: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+    .cell { font-size: 11px; }
+    .cell .tp-stage { width: 100% !important; }
+    .cell p { margin: 2px 0 8px; opacity: 0.85; }
+    #report { position: sticky; top: 0; z-index: 5; padding: 8px 12px; background: #200; color: #fff; font: 13px monospace; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
+    #report.ok { background: #020; }
+</style>
+</head>
+<body>
+<div id="report">running…</div>
+<div id="out"></div>
+<script>
+// name, page url, and the JavaScript (run inside that page) that returns a list of coach questions.
+const N = 40;
+const many = (expr) => '(() => { const out = []; for (let i = 0; i < ' + N + '; i++) out.push(' + expr + '); return out; })()';
+const frac = (key) => ({ name: 'frac ' + key, url: '../fractions.html?exercise=' + key, js: many("EXERCISES['" + key + "'].generate().coach") });
+const FRAC = ['add-like', 'subtract-like', 'simplify', 'multiply', 'divide', 'add-unlike', 'subtract-unlike', 'mixed-to-improper', 'improper-to-mixed',
+    'add-like-negative', 'subtract-like-negative', 'multiply-negative', 'divide-negative', 'simple-fractions', 'simple-fractions-negative', 'simple-fractions-exponent',
+    'nested', 'nested-negative', 'nested-exponent', 'add-nested', 'subtract-nested', 'multiply-nested', 'divide-nested',
+    'add-equation', 'subtract-equation', 'multiply-equation', 'divide-equation'];
+const practice = (mode, digits, extra) => ({ name: 'practice ' + mode + ' ' + digits + (extra ? ' ' + extra : ''), url: '../practice.html?mode=' + mode + '&digits=' + digits + (extra ? '&' + extra.replace(/ /g, '&') : ''), js: many('getPair().coach') });
+const SUITES = [];
+['add', 'subtract', 'multiply', 'divide'].forEach(m => [1, 2, 3].forEach(d => {
+    SUITES.push(practice(m, d));
+    SUITES.push(practice(m, d, 'negatives=1'));
+    SUITES.push(practice(m, d, 'decimals=1'));
+}));
+FRAC.forEach(k => SUITES.push(frac(k)));
+['standard', 'bills', 'large', 'add-small', 'add-medium', 'add-large', 'subtract-small', 'subtract-medium', 'subtract-large'].forEach(k =>
+    SUITES.push({ name: 'money ' + k, url: '../money.html?exercise=' + k, js: many('(loadQuestion(), currentCoach)') }));
+['ordering', 'count-forward', 'count-backward', 'count-from', 'fractions', 'negative'].forEach(k =>
+    SUITES.push({ name: 'numberline ' + k, url: '../numberline.html?exercise=' + k, js: many('(loadQuestion(), currentCoach)') }));
+['bar', 'picture', 'pie'].forEach(t => [false, true].forEach(sc => { if (t === 'pie' && sc) return;
+    SUITES.push({ name: 'graphs ' + t + (sc ? ' scaled' : ''), url: '../graphs.html?type=' + t + (sc ? '&scaled=true' : ''), js: many('(loadQuestion(), currentCoach)') }); }));
+['oddeven', 'prime', 'compare&digits=1', 'compare&digits=2', 'compare&digits=3', 'skipcount'].forEach(k =>
+    SUITES.push({ name: 'choice ' + k, url: '../choice.html?exercise=' + k, js: many('EXERCISES[exercise].generate().coach') }));
+['frac-to-decimal', 'decimal-to-frac', 'frac-to-percent', 'percent-to-frac', 'decimal-to-percent', 'percent-to-decimal'].forEach(k =>
+    SUITES.push({ name: 'conv ' + k, url: '../conversions.html?exercise=' + k, js: many('EXERCISES["' + k + '"].generate().coach') }));
+[['read', 'hour'], ['read', '5min'], ['elapsed', 'hour']].forEach(([m, p]) =>
+    SUITES.push({ name: 'clock ' + m + ' ' + p, url: '../clock.html?mode=' + m + '&precision=' + p, js: many('(mode === "elapsed" ? generateElapsedQuestion() : generateReadQuestion()).coach') }));
+[10, 100].forEach(p => SUITES.push({ name: 'rounding ' + p, url: '../rounding.html?precision=' + p, js: many('generateQuestion().coach') }));
+['tens-ones', 'multiples-of-10', 'hundreds-tens-ones'].forEach(k =>
+    SUITES.push({ name: 'placevalue ' + k, url: '../placevalue.html?exercise=' + k, js: many('(loadQuestion(), currentCoach)') }));
+SUITES.push({ name: 'pemdas', url: '../pemdas.html', js: many('(loadQuestion(), currentCoach)') });
+// geometry keeps its question in a global, so ask the page to load a question and read it back
+const GEO = ['area-triangle', 'area-square', 'area-rectangle', 'area-circle', 'perimeter-triangle', 'perimeter-square', 'perimeter-rectangle', 'perimeter-circle', 'volume', 'symmetry', 'classify-shapes', 'angles', 'coordinates'];
+GEO.forEach(k => SUITES.push({ name: 'geo ' + k, url: '../geometry.html?exercise=' + k, js: many('(loadQuestion(), currentCoach)') }));
+window.SUITES = SUITES;
+</script>
+<script>
+(async () => {
+    const html = await (await fetch('../tutorial.html')).text();
+    document.getElementById('host-style').textContent = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+
+    const qs = new URLSearchParams(location.search);
+    const only = qs.get('only'), show = qs.has('show');
+    const scenes = MPTutorialPlayer.scenes();
+    const ctx = { instant: true, speed: 1, alive: () => true, wait: () => Promise.resolve() };
+    const out = document.getElementById('out'), report = document.getElementById('report');
+    const errors = [];
+    let total = 0, scenesDrawn = 0;
+
+    const flat = (L) => L.steps.map(s => s.say + ' ' + ((s.scene && s.scene.lines) || []).join(' ')).join(' ').replace(/\{[abcdy]:|[{}\[\]]/g, ' ');
+    const strip = (t) => String(t).replace(/−/g, '-');
+    const r2 = (x) => String(Math.round(x * 100) / 100);
+    // what the final answer must look like somewhere in the example
+    const expectOf = (q) => {
+        if (q.kind === 'arith') return r2(q.op === 'add' ? q.a + q.b : q.op === 'subtract' ? q.a - q.b : q.op === 'multiply' ? q.a * q.b : q.a / q.b);
+        if (q.ans && q.ans.n !== undefined) return q.ans.n + '/' + q.ans.d;
+        const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+        const term = (d) => { while (d % 2 === 0) d /= 2; while (d % 5 === 0) d /= 5; return d === 1; };
+        if (q.kind === 'geo-area') {
+            if (q.shape === 'rectangle') return String(q.w * q.h);
+            if (q.shape === 'square') return String(q.s * q.s);
+            if (q.shape === 'triangle') return String(q.b * q.h / 2);
+            if (q.shape === 'right-triangle') return String(q.a * q.b / 2);
+            return String(parseFloat((3.14 * q.r * q.r).toFixed(2)));
+        }
+        if (q.kind === 'geo-perimeter') {
+            if (q.shape === 'rectangle') return String(2 * (q.w + q.h));
+            if (q.shape === 'square') return String(4 * q.s);
+            if (q.shape === 'triangle') return String(q.a + q.b + q.c);
+            return String(Math.round(2 * 3.14 * q.r));
+        }
+        if (q.kind === 'money-count') { const c = q.pieces.reduce((s, x) => s + x, 0); return '$' + Math.floor(c / 100) + '.' + String(c % 100).padStart(2, '0'); }
+        if (q.kind === 'money-arith') { const c = q.op === '+' ? q.a + q.b : q.a - q.b; return '$' + Math.floor(c / 100) + '.' + String(c % 100).padStart(2, '0'); }
+        if (q.kind === 'nl-read') return String(q.v).replace('-', '');
+        if (q.kind === 'nl-seq') return String(q.seq[q.missing]);
+        if (q.kind === 'nl-countfrom') return String(q.start + q.steps * q.dir);
+        if (q.kind === 'graph') return String(q.answer).replace(/%/, '');
+        if (q.kind === 'choice-skip') return String(q.correct);
+        if (q.kind === 'choice-oddeven') return q.n % 2 ? 'odd' : 'even';
+        if (q.kind === 'choice-prime') { let p = q.n > 1; for (let d = 2; d * d <= q.n; d++) if (q.n % d === 0) p = false; return p ? 'prime' : 'composite'; }
+        if (q.kind === 'conv') {
+            if (q.dir.endsWith('to-frac')) return q.n + '/' + q.d;
+            if (q.dir.endsWith('to-decimal')) return String(q.decimal);
+            return String(q.pct);
+        }
+        if (q.kind === 'clock-read') return q.h + ':' + String(q.m).padStart(2, '0');
+        if (q.kind === 'clock-elapsed') return q.answer;
+        if (q.kind === 'round') return String(q.answer);
+        if (q.kind === 'pv-digit') return String(q.digit);
+        if (q.kind === 'pv-tens') return String(q.tens * 10);
+        if (q.kind === 'pemdas') return String(q.ans).replace('-', '');
+        if (q.kind === 'geo-volume') return String(q.l * q.w * q.h);
+        if (q.kind === 'geo-angle') return q.deg + '°';
+        if (q.kind === 'frac-decimal') { const e = q.exp || 1; return String(parseFloat((Math.pow(q.n, e) / Math.pow(q.d, e)).toFixed(10))); }
+        if (q.kind === 'frac-nested') {
+            const e = q.exp || 1, pn = Math.pow(q.n, e), pd = Math.pow(q.d, e) * q.w, val = pn / pd;
+            return term(pd / gcd(pn, pd)) ? String(parseFloat(val.toFixed(10))) : (Math.trunc(val * 1000) / 1000).toFixed(3);
+        }
+        if (q.kind === 'frac-convert') return q.dir === 'improper' ? (q.whole * q.d + q.n) + '/' + q.d : String(q.whole);
+        return null;
+    };
+
+    const holder = document.createElement('div');
+    holder.style.cssText = 'position:fixed;left:-9999px;top:0;width:640px';
+    document.body.appendChild(holder);
+
+    for (const suite of SUITES) {
+        if (only && !suite.name.includes(only)) continue;
+        const frame = document.createElement('iframe');
+        frame.style.cssText = 'position:fixed;left:-9999px;width:800px;height:600px';
+        frame.src = suite.url;
+        document.body.appendChild(frame);
+        await new Promise(r => { frame.onload = r; });
+        await new Promise(r => setTimeout(r, 150));
+        let qsList;
+        try { qsList = frame.contentWindow.eval(suite.js); }
+        catch (e) { errors.push(suite.name + ': could not generate: ' + e.message); frame.remove(); continue; }
+        frame.remove();
+
+        let shown = 0;
+        const h = document.createElement('h2');
+        h.textContent = suite.name;
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        for (const q of qsList) {
+            total++;
+            const tag = suite.name + ' ' + JSON.stringify(q).slice(0, 120);
+            let L;
+            try { L = MPCoach.lessonFor(q); } catch (e) { errors.push(tag + ': ' + e.message); continue; }
+            if (!L) { errors.push(tag + ': no example'); continue; }
+            const text = flat(L);
+            if (/undefined|NaN|\[object|Infinity/.test(text)) { errors.push(tag + ': bad text'); continue; }
+            const want = expectOf(q);
+            if (want && !strip(text).includes(want)) errors.push(tag + ': never says ' + want);
+            for (let i = 0; i < L.steps.length; i++) {
+                const st = L.steps[i];
+                const stage = document.createElement('div');
+                stage.className = 'tp-stage';
+                holder.appendChild(stage);
+                try {
+                    if (!scenes[st.scene.kind]) throw new Error('unknown scene ' + st.scene.kind);
+                    await scenes[st.scene.kind](stage, st.scene, ctx);
+                    scenesDrawn++;
+                    if (/undefined|NaN/.test(stage.textContent)) throw new Error('bad scene text');
+                } catch (e) { errors.push(tag + ' step ' + (i + 1) + ': ' + e.message); }
+                if (show && shown === 0) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.appendChild(stage);
+                    const p = document.createElement('p');
+                    p.textContent = (i === 0 ? L.title + ' | ' : '') + (i + 1) + '/' + L.steps.length + ': ' + st.say.slice(0, 160);
+                    cell.appendChild(p);
+                    grid.appendChild(cell);
+                } else stage.remove();
+            }
+            if (show) shown++;
+        }
+        if (show) { out.appendChild(h); out.appendChild(grid); }
+    }
+    report.textContent = total + ' questions, ' + scenesDrawn + ' scenes drawn, ' + errors.length + ' problems' + (errors.length ? '\n' + errors.slice(0, 60).join('\n') : '');
+    report.className = errors.length ? '' : 'ok';
+    window.SMOKE = { total, scenesDrawn, errors };
+})();
+</script>
+</body>
+</html>

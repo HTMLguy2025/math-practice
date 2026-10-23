@@ -251,7 +251,8 @@
         let r = 0, started = false;
         digits.forEach((d, k) => {
             const cur = r * 10 + d, q = Math.floor(cur / D);
-            if (!started && q === 0 && k < digits.length - 1) { r = cur; return; }
+            // leading zeros in the whole-number part are skipped; zeros after the point are real digits
+            if (!started && q === 0 && k < (extra ? nI : nI - 1)) { r = cur; return; }
             started = true;
             all.push({ k, cur, q, prod: q * D, rem: cur - q * D });
             r = cur - q * D;

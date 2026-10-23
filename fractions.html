@@ -15,6 +15,8 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-fractions.js"></script>
     <title>Math Practice</title>
     <style>
         body {
@@ -392,6 +394,7 @@
                         equationHTML: fracHTML(n1, d) + '<span>&thinsp;+&thinsp;</span>' + fracHTML(n2, d) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'add', terms: [{ n: n1, d: d }, { n: n2, d: d }], ans: r },
                         summary: `${n1}/${d} + ${n2}/${d} = ${r.n}/${r.d}`
                     };
                 }
@@ -410,6 +413,7 @@
                         equationHTML: fracHTML(n1, d) + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n2, d) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'subtract', terms: [{ n: n1, d: d }, { n: n2, d: d }], ans: r },
                         summary: `${n1}/${d} − ${n2}/${d} = ${r.n}/${r.d}`
                     };
                 }
@@ -427,6 +431,7 @@
                         equationHTML: fracHTML(n, d) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: base.n, answerD: base.d,
                         requireReduced: true,
+                        coach: { kind: 'frac-simplify', n, d, ans: base },
                         summary: `${n}/${d} = ${base.n}/${base.d}`
                     };
                 }
@@ -444,6 +449,7 @@
                         equationHTML: fracHTML(n1, d1) + '<span>&thinsp;&times;&thinsp;</span>' + fracHTML(n2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'multiply', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }], ans: r },
                         summary: `${n1}/${d1} × ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -462,6 +468,7 @@
                         equationHTML: fracHTML(n1, d1) + '<span>&thinsp;&divide;&thinsp;</span>' + fracHTML(n2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'divide', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }], ans: r },
                         summary: `${n1}/${d1} ÷ ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -484,6 +491,7 @@
                         equationHTML: fracHTML(n1, d1) + '<span>&thinsp;+&thinsp;</span>' + fracHTML(n2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'add', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }], ans: r },
                         summary: `${n1}/${d1} + ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -507,6 +515,7 @@
                         equationHTML: fracHTML(n1, d1) + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'subtract', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }], ans: r },
                         summary: `${n1}/${d1} − ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -537,6 +546,7 @@
                         answerN: improperN, answerD: d,
                         answerType: 'frac',
                         requireReduced: false,
+                        coach: { kind: 'frac-convert', dir: 'improper', whole, n, d },
                         summary: `${whole} ${n}/${d} = ${improperN}/${d}`
                     };
                 }
@@ -555,6 +565,7 @@
                         answerN: improperN, answerD: d,
                         answerType: 'mixed',
                         requireReduced: false,
+                        coach: { kind: 'frac-convert', dir: 'mixed', whole, n, d },
                         summary: `${improperN}/${d} = ${whole} ${n}/${d}`
                     };
                 }
@@ -576,6 +587,7 @@
                         equationHTML: signedFracHTML(n1, d) + '<span>&thinsp;+&thinsp;</span>' + signedFracHTML(n2, d) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'add', terms: [{ n: n1, d: d }, { n: n2, d: d }], ans: r },
                         summary: `${n1}/${d} + ${n2}/${d} = ${r.n}/${r.d}`
                     };
                 }
@@ -594,6 +606,7 @@
                         equationHTML: fracHTML(n1, d) + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n2, d) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'subtract', terms: [{ n: n1, d: d }, { n: n2, d: d }], ans: r },
                         summary: `${n1}/${d} − ${n2}/${d} = ${r.n}/${r.d}`
                     };
                 }
@@ -613,6 +626,7 @@
                         equationHTML: signedFracHTML(sn1, d1) + '<span>&thinsp;&times;&thinsp;</span>' + signedFracHTML(sn2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'multiply', terms: [{ n: sn1, d: d1 }, { n: sn2, d: d2 }], ans: r },
                         summary: `${sn1}/${d1} × ${sn2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -634,6 +648,7 @@
                         equationHTML: signedFracHTML(sn1, d1) + '<span>&thinsp;&divide;&thinsp;</span>' + signedFracHTML(sn2, d2) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'divide', terms: [{ n: sn1, d: d1 }, { n: sn2, d: d2 }], ans: r },
                         summary: `${sn1}/${d1} ÷ ${sn2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -656,6 +671,7 @@
                         equationHTML: fracHTML(n, d) + '<span>&thinsp;=&thinsp;</span>' + answerDecimalHTML,
                         answerDecimal: dec,
                         answerType: 'decimal',
+                        coach: { kind: 'frac-decimal', n, d },
                         summary: `${n}/${d} = ${decStr}`
                     };
                 }
@@ -678,6 +694,7 @@
                         equationHTML: '<span>−</span>' + fracHTML(n, d) + '<span>&thinsp;=&thinsp;</span>' + answerDecimalHTML,
                         answerDecimal: dec,
                         answerType: 'decimal-neg',
+                        coach: { kind: 'frac-decimal', n, d, neg: true },
                         summary: `−${n}/${d} = ${decStr}`
                     };
                 }
@@ -705,6 +722,7 @@
                         hint: terminates
                             ? 'Raise the fraction to the power, then write as a decimal.'
                             : 'Raise the fraction to the power, then write as a decimal (first 2 decimal places).',
+                        coach: { kind: 'frac-decimal', n, d, exp },
                         summary: `(${n}/${d})^${exp} = ${decStr}`
                     };
                 }
@@ -733,6 +751,7 @@
                         hint: terminates
                             ? 'Convert the nested fraction to a decimal.'
                             : 'Convert the nested fraction to a decimal (enter the first 3 decimal places).',
+                        coach: { kind: 'frac-nested', n, d, w },
                         summary: `(${n}/${d})/${w} = ${decStr}`
                     };
                 }
@@ -757,6 +776,7 @@
                         hint: terminates
                             ? 'Convert the nested fraction to a decimal.'
                             : 'Convert the nested fraction to a decimal (first 3 decimal places).',
+                        coach: { kind: 'frac-nested', n, d, w, neg: true },
                         summary: `(−${n}/${d})/${w} = ${decStr}`
                     };
                 }
@@ -787,6 +807,7 @@
                         hint: terminates
                             ? 'Raise the fraction to the power, then divide by the whole number. Write as a decimal.'
                             : 'Raise the fraction to the power, divide by the whole number, then write the first 3 decimal places.',
+                        coach: { kind: 'frac-nested', n, d, w, exp },
                         summary: `(${n}/${d})^${exp}/${w} = ${decStr}`
                     };
                 }
@@ -810,6 +831,7 @@
                         equationHTML: fracHTML(n1,d1) + '<span>&thinsp;+&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;+&thinsp;</span>' + fracHTML(n3,d3) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'add', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }, { n: n3, d: d3 }], ans: r },
                         summary: `${n1}/${d1} + ${n2}/${d2} + ${n3}/${d3} = ${r.n}/${r.d}`
                     };
                 }
@@ -834,6 +856,7 @@
                         equationHTML: fracHTML(n1,d1) + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n3,d3) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'subtract', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }, { n: n3, d: d3 }], ans: r },
                         summary: `${n1}/${d1} - ${n2}/${d2} - ${n3}/${d3} = ${r.n}/${r.d}`
                     };
                 }
@@ -851,6 +874,7 @@
                         equationHTML: fracHTML(n1,d1) + '<span>&thinsp;&times;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;&times;&thinsp;</span>' + fracHTML(n3,d3) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'multiply', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }, { n: n3, d: d3 }], ans: r },
                         summary: `${n1}/${d1} × ${n2}/${d2} × ${n3}/${d3} = ${r.n}/${r.d}`
                     };
                 }
@@ -869,6 +893,7 @@
                         equationHTML: fracHTML(n1,d1) + '<span>&thinsp;&divide;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;&divide;&thinsp;</span>' + fracHTML(n3,d3) + '<span>&thinsp;=&thinsp;</span>' + answerFracHTML,
                         answerN: r.n, answerD: r.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-op', op: 'divide', terms: [{ n: n1, d: d1 }, { n: n2, d: d2 }, { n: n3, d: d3 }], ans: r },
                         summary: `${n1}/${d1} ÷ ${n2}/${d2} ÷ ${n3}/${d3} = ${r.n}/${r.d}`
                     };
                 }
@@ -892,6 +917,7 @@
                         equationHTML: answerFracHTML + '<span>&thinsp;+&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;=&thinsp;</span>' + fracHTML(r.n,r.d),
                         answerN: ans.n, answerD: ans.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-eq', op: 'add', known: { n: n2, d: d2 }, result: r, ans },
                         summary: `? + ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -914,6 +940,7 @@
                         equationHTML: answerFracHTML + '<span>&thinsp;&minus;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;=&thinsp;</span>' + fracHTML(r.n,r.d),
                         answerN: ans.n, answerD: ans.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-eq', op: 'subtract', known: { n: n2, d: d2 }, result: r, ans },
                         summary: `? - ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -931,6 +958,7 @@
                         equationHTML: answerFracHTML + '<span>&thinsp;&times;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;=&thinsp;</span>' + fracHTML(r.n,r.d),
                         answerN: ans.n, answerD: ans.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-eq', op: 'multiply', known: { n: n2, d: d2 }, result: r, ans },
                         summary: `? × ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -949,6 +977,7 @@
                         equationHTML: answerFracHTML + '<span>&thinsp;&divide;&thinsp;</span>' + fracHTML(n2,d2) + '<span>&thinsp;=&thinsp;</span>' + fracHTML(r.n,r.d),
                         answerN: ans.n, answerD: ans.d,
                         requireReduced: false,
+                        coach: { kind: 'frac-eq', op: 'divide', known: { n: n2, d: d2 }, result: r, ans },
                         summary: `? ÷ ${n2}/${d2} = ${r.n}/${r.d}`
                     };
                 }
@@ -1030,6 +1059,7 @@
             const key = exerciseList[Math.floor(Math.random() * exerciseList.length)];
             const def = EXERCISES[key] || EXERCISES['add-like'];
             currentQ  = def.generate();
+            MPCoach.question(currentQ.coach);
 
             document.getElementById('hintText').textContent = currentQ.hint || def.hint || '';
             document.getElementById('equationArea').innerHTML = currentQ.equationHTML;
@@ -1099,6 +1129,8 @@
                     correct = fracEqual(userN, userD, q.answerN, q.answerD);
                 }
             }
+
+            MPCoach.answered(q.coach, correct);
 
             if (correct) {
                 locked = true;

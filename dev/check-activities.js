@@ -64,10 +64,25 @@ MPTutorials.TOPICS.forEach(t => {
     }
 });
 
+// every exercise page must load the coach, announce each question and report each answer
+const fs = require('fs'), path = require('path');
+let coachProblems = 0;
+[...new Set(hrefs.map(h => MPActivities.pageOf(new URL(h, 'http://local/').pathname)))].forEach(page => {
+    const file = path.join(__dirname, '..', page + '.html');
+    if (!fs.existsSync(file)) return;
+    // practice.html keeps its logic in practice.js
+    const js = path.join(__dirname, '..', page + '.js');
+    const src = fs.readFileSync(file, 'utf8') + (fs.existsSync(js) ? fs.readFileSync(js, 'utf8') : '');
+    ['coach.js', 'MPCoach.question(', 'MPCoach.answered('].forEach(needle => {
+        if (!src.includes(needle)) { coachProblems++; console.log('COACH     ', page + '.html is missing', needle); }
+    });
+});
+
 const written = MPTutorials.TOPICS.filter(t => MPTutorials.lesson(t.id));
 const missing = MPTutorials.TOPICS.filter(t => !MPTutorials.lesson(t.id));
 console.log(hrefs.length + ' launchable activities checked,', problems ? problems + ' tier problem(s)' : 'all have tiers');
+console.log('Coach: ' + (coachProblems ? coachProblems + ' problem(s)' : 'every exercise page offers hints and worked examples'));
 console.log('Tutorials: ' + written.length + ' of ' + MPTutorials.TOPICS.length + ' topics written,', topicProblems ? topicProblems + ' problem(s)' : 'every activity maps to a topic');
 if (process.argv.includes('--list-missing')) console.log('Still to write: ' + missing.map(t => t.id).join(', '));
 const strict = process.argv.includes('--strict');
-process.exit(problems || topicProblems || (strict && missing.length) ? 1 : 0);
+process.exit(problems || topicProblems || coachProblems || (strict && missing.length) ? 1 : 0);

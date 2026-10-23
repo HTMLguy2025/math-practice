@@ -15,6 +15,9 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-arith.js"></script>
+    <script src="coach-geometry.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -204,6 +207,7 @@
         let questionsCorrect  = 0;
         let questionsAnswered = 0;
         let prevSummary    = '';
+        let currentCoach   = null;
         let choicesLocked  = false;
         let enterCooldown  = false;
 
@@ -362,6 +366,7 @@
                 wasCorrect = parseInt(xInput) === coordAnswer.x && parseInt(yInput) === coordAnswer.y;
             }
 
+            MPCoach.answered(currentCoach, wasCorrect);
             if (wasCorrect) { setTimeout(() => spawnParticles(btn), 325); questionsCorrect++; }
             questionsAnswered++;
             updateScore();
@@ -398,6 +403,7 @@
                         if (choices[j].correct) b.classList.add('correct-flash');
                         else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
                     });
+                    MPCoach.answered(currentCoach, wasCorrect);
                     if (wasCorrect) { spawnParticles(btn); questionsCorrect++; }
                     questionsAnswered++;
                     updateScore();
@@ -442,6 +448,7 @@
                 case 'angles':             loadAngles();           break;
                 case 'coordinates':        loadCoordinates();      break;
             }
+            MPCoach.question(currentCoach);
         }
 
         // --- Area exercises ---
@@ -453,6 +460,7 @@
                 const h = ri(5, 14);
                 currentAnswer = (b * h) / 2;
                 prevSummary = `Area of triangle b=${b}, h=${h} = ${currentAnswer}`;
+                currentCoach = { kind: 'geo-area', shape: 'triangle', b, h };
                 document.getElementById('svgArea').innerHTML = buildTriangleAreaSVG(b, h);
                 document.getElementById('questionText').textContent = 'What is the area of this triangle?';
             } else {
@@ -460,6 +468,7 @@
                 const b = ri(2, 12);
                 currentAnswer = (a * b) / 2;
                 prevSummary = `Area of right triangle a=${a}, b=${b} = ${currentAnswer}`;
+                currentCoach = { kind: 'geo-area', shape: 'right-triangle', a, b };
                 document.getElementById('svgArea').innerHTML = buildRightTriangleSVG(a, b);
                 document.getElementById('questionText').textContent = 'What is the area of this right triangle?';
             }
@@ -469,6 +478,7 @@
             const w = ri(2, 14), h = ri(2, 14);
             currentAnswer = w * h;
             prevSummary = `Area of rectangle ${w}×${h} = ${w*h}`;
+            currentCoach = { kind: 'geo-area', shape: 'rectangle', w, h };
             switchMode('numeric');
             renderNumeric();
             const useBaseHeight = Math.random() < 0.5;
@@ -482,6 +492,7 @@
             const s = ri(2, 14);
             currentAnswer = s * s;
             prevSummary = `Area of square s=${s} = ${s*s}`;
+            currentCoach = { kind: 'geo-area', shape: 'square', s };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildSquareSVG(s);
@@ -498,11 +509,13 @@
             negBtn.textContent = '.';
             if (Math.random() < 0.5) {
                 prevSummary = `Area of circle r=${r} = ${currentAnswer}`;
+                currentCoach = { kind: 'geo-area', shape: 'circle', r };
                 document.getElementById('svgArea').innerHTML = buildCircleSVG(r);
                 document.getElementById('questionText').textContent = 'What is the area? (A = π × r², use π ≈ 3.14, round to nearest hundredth)';
             } else {
                 const d = r * 2;
                 prevSummary = `Area of circle d=${d} = ${currentAnswer}`;
+                currentCoach = { kind: 'geo-area', shape: 'circle', r, fromD: d };
                 document.getElementById('svgArea').innerHTML = buildCircleDiameterSVG(d);
                 document.getElementById('questionText').textContent = 'What is the area? (A = π × (d÷2)², use π ≈ 3.14, round to nearest hundredth)';
             }
@@ -513,6 +526,7 @@
             const a = ri(5, 14), b = ri(5, 14), c = ri(5, 14);
             currentAnswer = a + b + c;
             prevSummary = `Perimeter of triangle = ${a+b+c}`;
+            currentCoach = { kind: 'geo-perimeter', shape: 'triangle', a, b, c };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildTrianglePerimeterSVG(a, b, c);
@@ -523,6 +537,7 @@
             const s = ri(2, 14);
             currentAnswer = 4 * s;
             prevSummary = `Perimeter of square s=${s} = ${4*s}`;
+            currentCoach = { kind: 'geo-perimeter', shape: 'square', s };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildSquareSVG(s);
@@ -533,6 +548,7 @@
             const w = ri(2, 14), h = ri(2, 14);
             currentAnswer = 2 * (w + h);
             prevSummary = `Perimeter of rectangle ${w}×${h} = ${2*(w+h)}`;
+            currentCoach = { kind: 'geo-perimeter', shape: 'rectangle', w, h };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildRectSVG(w, h);
@@ -543,6 +559,7 @@
             const r = ri(1, 10);
             currentAnswer = Math.round(2 * 3.14 * r);
             prevSummary = `Circumference r=${r} = ${currentAnswer}`;
+            currentCoach = { kind: 'geo-perimeter', shape: 'circle', r };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildCircleSVG(r);
@@ -656,6 +673,7 @@
             const l = ri(2, 10), w = ri(2, 10), h = ri(2, 10);
             currentAnswer = l * w * h;
             prevSummary   = `Volume ${l}×${w}×${h} = ${l*w*h}`;
+            currentCoach = { kind: 'geo-volume', l, w, h };
             switchMode('numeric');
             renderNumeric();
             document.getElementById('svgArea').innerHTML = buildPrismSVG(l, w, h);
@@ -782,6 +800,7 @@
             const key = pick(Object.keys(SHAPES));
             const shape = SHAPES[key];
             const sym = shape.symmetry;
+            currentCoach = { kind: 'geo-symmetry', shape: key, count: sym };
             const pool = [0,1,2,3,4];
             const decoys = shuffle(pool.filter(n => n !== sym)).slice(0, 3);
             const choices = shuffle([sym, ...decoys]).map(n => ({ label: String(n), correct: n === sym }));
@@ -808,6 +827,7 @@
                 question = 'What type of polygon is this?';
             }
 
+            currentCoach = { kind: 'geo-classify', shape: key, mode: useClassify ? 'triangle' : 'polygon', answer: correct };
             switchMode('choice');
             buildChoiceButtons(makeChoices(correct, pool, []));
             document.getElementById('svgArea').innerHTML = buildPolygonSVG(shape.makePoints(), shape);
@@ -818,6 +838,7 @@
         function loadAngles() {
             let deg;
             do { deg = ri(15, 165); } while (deg >= 83 && deg <= 97);
+            currentCoach = { kind: 'geo-angle', deg };
 
             switchMode('choice');
             const offsets = shuffle([-30, -15, 15, 30]);
@@ -862,6 +883,7 @@
             do { px = ri(-range, range); py = ri(-range, range); } while (px === 0 && py === 0);
             coordAnswer = { x: px, y: py };
             prevSummary = `Point (${px}, ${py})`;
+            currentCoach = { kind: 'geo-coord', x: px, y: py };
             switchMode('coord');
             renderCoord();
             document.getElementById('svgArea').innerHTML = buildCoordSVG(px, py, range);

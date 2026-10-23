@@ -126,7 +126,7 @@ const getPair = () => {
     }
 
     if (neg) ({ n1, n2 } = applySigns(n1, n2));
-    return { n1, n2, digits: d, neg, dec };
+    return { n1, n2, digits: d, neg, dec, coach: { kind: 'arith', op: urlMode, a: n1, b: n2, digits: d } };
 };
 
 const computeAnswer = (n1, n2, op) => {
@@ -238,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     registerEventListeners();
+    MPCoach.question(current.coach);
 });
 
 const registerEventListeners = () => {
@@ -275,6 +276,8 @@ const registerEventListeners = () => {
         factNumberTwo.innerHTML = fmtBottom(current.n2);
 
         questionsAnswered++;
+        MPCoach.question(current.coach);
+        MPCoach.answered(answered.coach, wasCorrect);
         if (wasCorrect) {
             setTimeout(() => spawnParticles(checkButton), 325);
             questionsCorrect++;

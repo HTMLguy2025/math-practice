@@ -15,6 +15,8 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-graphs.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -120,6 +122,8 @@
         let choicesLocked     = false;
 
         // --- Helpers ---
+        let currentCoach = null;
+        let coachBase = null;     // what every question about the current graph shares
         function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
         function pick(arr)    { return arr[ri(0, arr.length - 1)]; }
         function shuffle(arr) {
@@ -180,6 +184,7 @@
                     if (choicesLocked) return;
                     choicesLocked = true;
                     const wasCorrect = ch.correct;
+                    MPCoach.answered(currentCoach, wasCorrect);
                     [...container.children].forEach((b, j) => {
                         if (choices[j].correct) b.classList.add('correct-flash');
                         else if (j === i && !wasCorrect) b.classList.add('wrong-flash');
@@ -614,6 +619,7 @@
                 .map(d => vals[i] + d).filter(v => v > 0).map(String);
             const pool    = [...new Set([...others, ...nearby])].filter(v => v !== correct);
             prevSummary   = `${fullName(cats[i])}: ${correct}`;
+            currentCoach = Object.assign({}, coachBase, { qType: 'howmany', answer: correct });
             document.getElementById('questionText').textContent = scenario.q.howMany(cats[i]);
             document.getElementById('graphArea').innerHTML = graphSVG;
             buildChoiceButtons(makeChoices(correct, pool));
@@ -624,6 +630,7 @@
             const correct = fullName(cats[winIdx]);
             const pool    = cats.filter((_, i) => i !== winIdx).map(fullName);
             prevSummary   = `${mostMode ? 'Most' : 'Least'}: ${correct}`;
+            currentCoach = Object.assign({}, coachBase, { qType: 'mostleast', answer: correct });
             document.getElementById('questionText').textContent = mostMode ? scenario.q.most() : scenario.q.least();
             document.getElementById('graphArea').innerHTML = graphSVG;
             buildChoiceButtons(makeChoices(correct, pool));
@@ -637,6 +644,7 @@
                 .map(d => diff + d).filter(v => v > 0).map(String);
             const pool    = [...new Set(nearby)].filter(v => v !== correct);
             prevSummary   = `${fullName(cats[bigIdx])} − ${fullName(cats[smIdx])} = ${correct}`;
+            currentCoach = Object.assign({}, coachBase, { qType: 'diff', answer: correct });
             document.getElementById('questionText').textContent = scenario.q.diff(cats[bigIdx], cats[smIdx]);
             document.getElementById('graphArea').innerHTML = graphSVG;
             buildChoiceButtons(makeChoices(correct, pool));
@@ -649,6 +657,7 @@
                 .map(d => total + d).filter(v => v > 0).map(String);
             const pool    = [...new Set(nearby)].filter(v => v !== correct);
             prevSummary   = `${fullName(cats[i])} + ${fullName(cats[j])} = ${correct}`;
+            currentCoach = Object.assign({}, coachBase, { qType: 'total', answer: correct });
             document.getElementById('questionText').textContent = scenario.q.total(cats[i], cats[j]);
             document.getElementById('graphArea').innerHTML = graphSVG;
             buildChoiceButtons(makeChoices(correct, pool));
@@ -670,6 +679,7 @@
                            : -1;
 
             const graphSVG = buildPieSVG(cats, vals, scenario, hiFor);
+            coachBase = { kind: 'graph', type: 'pie', cats: cats.map(fullName), vals, scale: 1, hl: hlIdx, i: i2, j: j2, most: mostMode, title: scenario.yLabel };
 
             const pctPool = (base) => [-20, -15, -10, -5, 5, 10, 15, 20]
                 .map(d => base + d).filter(v => v > 0 && v <= 100).map(v => v + '%');
@@ -683,6 +693,7 @@
                     const pool    = [...pctPool(pct(vals[hlIdx])), ...vals.filter((_, j) => j !== hlIdx).map(v => pct(v) + '%')]
                         .filter(v => v !== correct);
                     prevSummary = `${fullName(cats[hlIdx])}: ${correct}`;
+                    currentCoach = Object.assign({}, coachBase, { qType: 'howmany', answer: correct });
                     document.getElementById('questionText').textContent = pq.howMany(cats[hlIdx]);
                     document.getElementById('graphArea').innerHTML = graphSVG;
                     buildChoiceButtons(makeChoices(correct, pool));
@@ -693,6 +704,7 @@
                     const correct = fullName(cats[winIdx]);
                     const pool    = cats.filter((_, i) => i !== winIdx).map(fullName);
                     prevSummary   = `${mostMode ? 'Most' : 'Least'}: ${correct}`;
+                    currentCoach = Object.assign({}, coachBase, { qType: 'mostleast', answer: correct });
                     document.getElementById('questionText').textContent = mostMode ? pq.most() : pq.least();
                     document.getElementById('graphArea').innerHTML = graphSVG;
                     buildChoiceButtons(makeChoices(correct, pool));
@@ -704,6 +716,7 @@
                     const correct = diff + '%';
                     const pool    = pctPool(diff).filter(v => v !== correct);
                     prevSummary   = `${fullName(cats[bigIdx])} − ${fullName(cats[smIdx])} = ${correct}`;
+                    currentCoach = Object.assign({}, coachBase, { qType: 'diff', answer: correct });
                     document.getElementById('questionText').textContent = pq.diff(cats[bigIdx], cats[smIdx]);
                     document.getElementById('graphArea').innerHTML = graphSVG;
                     buildChoiceButtons(makeChoices(correct, pool));
@@ -714,6 +727,7 @@
                     const correct = sum + '%';
                     const pool    = pctPool(sum).filter(v => v !== correct);
                     prevSummary   = `${fullName(cats[i2])} + ${fullName(cats[j2])} = ${correct}`;
+                    currentCoach = Object.assign({}, coachBase, { qType: 'total', answer: correct });
                     document.getElementById('questionText').textContent = pq.total(cats[i2], cats[j2]);
                     document.getElementById('graphArea').innerHTML = graphSVG;
                     buildChoiceButtons(makeChoices(correct, pool));
@@ -724,6 +738,11 @@
 
         // --- Load question ---
         function loadQuestion() {
+            loadQuestionInner();
+            MPCoach.question(currentCoach);
+        }
+
+        function loadQuestionInner() {
             const type     = pick(typeList);
             const scenario = pick(SCENARIOS);
             const count    = ri(3, 5);
@@ -751,6 +770,8 @@
                 ? buildBarSVG(cats, vals, scaleVal, hiFor, scenario.yLabel, scenario.xLabel)
                 : buildPictureSVG(cats, vals, scaleVal, scenario, hiFor);
 
+            const unitName = scenario.yLabel.replace(/^Number of /, '').split(' ')[0].toLowerCase();
+            coachBase = { kind: 'graph', type, cats: cats.map(fullName), vals, scale: scaleVal, hl: hlIdx, i: i2, j: j2, most: mostMode, title: scenario.yLabel, unit: unitName };
             switch (qType) {
                 case 'howmany':   questionHowMany(cats, vals, scaleVal, hlIdx, scenario, graphSVG);      break;
                 case 'mostleast': questionMostLeast(cats, vals, mostMode, scenario, graphSVG);            break;

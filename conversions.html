@@ -15,6 +15,9 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+<script src="coach.js"></script>
+<script src="coach-fractions.js"></script>
+<script src="coach-conversions.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -245,6 +248,7 @@
                 return {
                     display: fracHTML(r.n, r.d),
                     answer: String(decimal),
+                    coach: { kind: 'conv', dir: 'frac-to-decimal', n: r.n, d: r.d, decimal },
                     summary: `${r.n}/${r.d} = ${decimal}`
                 };
             }
@@ -263,6 +267,7 @@
                 return {
                     display: `<span>${decimal}</span>`,
                     answerN: r.n, answerD: r.d,
+                    coach: { kind: 'conv', dir: 'decimal-to-frac', n: r.n, d: r.d, decimal },
                     summary: `${decimal} = ${r.n}/${r.d}`
                 };
             }
@@ -281,6 +286,7 @@
                 return {
                     display: fracHTML(r.n, r.d),
                     answer: String(pct),
+                    coach: { kind: 'conv', dir: 'frac-to-percent', n: r.n, d: r.d, pct },
                     summary: `${r.n}/${r.d} = ${pct}%`
                 };
             }
@@ -299,6 +305,7 @@
                 return {
                     display: `<span>${pct}%</span>`,
                     answerN: r.n, answerD: r.d,
+                    coach: { kind: 'conv', dir: 'percent-to-frac', n: r.n, d: r.d, pct },
                     summary: `${pct}% = ${r.n}/${r.d}`
                 };
             }
@@ -318,6 +325,7 @@
                 return {
                     display: `<span>${decimal}</span>`,
                     answer: String(pct),
+                    coach: { kind: 'conv', dir: 'decimal-to-percent', n: r.n, d: r.d, decimal, pct },
                     summary: `${decimal} = ${pct}%`
                 };
             }
@@ -337,6 +345,7 @@
                 return {
                     display: `<span>${pct}%</span>`,
                     answer: String(decimal),
+                    coach: { kind: 'conv', dir: 'percent-to-decimal', n: r.n, d: r.d, decimal, pct },
                     summary: `${pct}% = ${decimal}`
                 };
             }
@@ -380,6 +389,7 @@
         const key = exerciseList[Math.floor(Math.random() * exerciseList.length)];
         currentDef_ = EXERCISES[key] || EXERCISES['frac-to-decimal'];
         currentQ = currentDef_.generate();
+        MPCoach.question(currentQ.coach);
 
         document.getElementById('questionSub').textContent = currentDef_.sub;
         document.getElementById('questionDisplay').innerHTML = currentQ.display;
@@ -429,6 +439,7 @@
         const raw = document.getElementById('answerInput').value;
         const parsed = parseUserAnswer(raw, currentDef_.answerType);
         const correct = answersMatch(parsed, currentQ);
+        MPCoach.answered(currentQ.coach, correct);
         locked = true;
         questionsAnswered++;
 

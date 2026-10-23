@@ -1,6 +1,6 @@
 # Upgrade Plan: Daily Points, My Progress, Tutorials, Coaching
 
-**Status: Phases 1 and 2 committed (4.0.0, local only). Phase 3 built (uncommitted): engine, hub, links, and all 43 lessons, with manual stepping (Next glows when the animation finishes). Phase 4 (coaching hints) next. Final version after Phases 3 and 4: 4.2.0.**
+**Status: all four phases built. Phases 1-3 are committed locally (nothing pushed, by request: one big release). Phase 4 (coaching) is built and version.js is 4.2.0 with combined release notes. Not pushed.**
 
 Target: **4.0.0** (the streak change is breaking). Ship in phases; each phase is a working release.
 
@@ -83,7 +83,7 @@ Target: **4.0.0** (the streak change is breaking). Ship in phases; each phase is
 
 - After a wrong answer, and from an optional Hint button, show a short worked explanation of **that exact question**, in kid-friendly words: "8 + 5: start at 8 and count up 5: 9, 10, 11, 12, 13." It reuses the tutorial visuals.
 - Shared `coach.js`; each of the 12 pages calls it from its wrong-answer branch. Tone: encouraging, no red-heavy "wrong" messaging.
-- Optional: using a hint halves that question's points.
+- Using a hint halves that question's points (minimum 1). Built as: `coach.js` (offer + hint button + penalty), `coach-*.js` (one explainer file per page group), shown in the tutorial overlay (`tutorial.html?coach=1`). `dev/coach-smoke.html` asks every page's own generator for many real questions, builds the example for each, draws every step and checks the right answer is stated; `dev/check-activities.js` fails if an exercise page is not wired.
 
 ## Releases
 

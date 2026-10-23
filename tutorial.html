@@ -249,12 +249,26 @@
             const topic = params.get('topic');
             const embed = params.get('embed') === '1' && window.self !== window.top;
             if (embed) document.body.classList.add('embed');
+            const onClose = () => { try { window.parent.postMessage({ type: 'tutorial:close' }, '*'); } catch (e) {} };
+            const app = document.getElementById('app');
+
+            // The coach (hints and "show me how") hands over a worked example for one question.
+            if (params.get('coach') === '1' && embed && window.parent.MPCoach) {
+                const L = window.parent.MPCoach.frameLesson();
+                if (L) {
+                    document.title = L.title;
+                    MPTutorialPlayer.start(app, 'coach', {
+                        embed, coach: true, onClose,
+                        topic: { id: 'coach', group: 'Let’s work it out', title: L.title },
+                        lesson: { steps: L.steps },
+                    });
+                    return;
+                }
+            }
+
             const t = MPTutorials.topic(topic);
             if (t) document.title = t.title;
-            MPTutorialPlayer.start(document.getElementById('app'), topic, {
-                embed,
-                onClose: () => { try { window.parent.postMessage({ type: 'tutorial:close' }, '*'); } catch (e) {} },
-            });
+            MPTutorialPlayer.start(app, topic, { embed, onClose });
         })();
     </script>
 </body>

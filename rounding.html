@@ -15,6 +15,8 @@
     <script src="points.js"></script>
     <script src="tutorials.js"></script>
     <script src="help.js"></script>
+    <script src="coach.js"></script>
+    <script src="coach-rounding.js"></script>
     <title>Math Practice</title>
     <style>
         body { padding: 16px; }
@@ -124,6 +126,7 @@
         let currentNum        = 0;
         let currentPrecision  = 10;
         let currentAnswer     = 0;
+        let currentCoach = null;
         let questionsCorrect  = 0;
         let questionsAnswered = 0;
         let enterCooldown     = false;
@@ -171,7 +174,7 @@
                 // 3-digit numbers, tens+ones never both 0 (non-trivial)
                 do { num = randInt(100, 999); } while (num % 100 === 0);
             }
-            return { num, precision, answer: roundTo(num, precision) };
+            return { num, precision, answer: roundTo(num, precision), coach: { kind: 'round', num, precision, answer: roundTo(num, precision) } };
         }
 
         // --- Render number with hint digit highlighted ---
@@ -191,6 +194,8 @@
             currentNum       = q.num;
             currentPrecision = q.precision;
             currentAnswer    = q.answer;
+            currentCoach     = q.coach;
+            MPCoach.question(q.coach);
 
             document.getElementById('questionSub').textContent =
                 'Round to the nearest ' + (q.precision === 10 ? '10' : '100');
@@ -229,6 +234,7 @@
             ], { duration: 325 });
 
             const wasCorrect = parseInt(selectedAnswer) === currentAnswer;
+            MPCoach.answered(currentCoach, wasCorrect);
 
             if (wasCorrect) {
                 setTimeout(() => spawnParticles(checkBtn), 325);

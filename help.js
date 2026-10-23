@@ -27,7 +27,7 @@
         if (overlay && e.data && e.data.type === 'tutorial:close') close();
     };
 
-    const open = (topicId, fromButton) => {
+    const open = (topicId, fromButton, src) => {
         close();
         opener = fromButton || null;
         overlay = document.createElement('div');
@@ -39,7 +39,7 @@
         panel.className = 'help-panel';
         const frame = document.createElement('iframe');
         frame.title = 'Tutorial';
-        frame.src = MPTutorials.url(topicId, true);
+        frame.src = src || MPTutorials.url(topicId, true);
         panel.appendChild(frame);
         overlay.appendChild(panel);
         overlay.addEventListener('mousedown', (e) => { if (e.target === overlay) close(); });
@@ -111,6 +111,8 @@
 
     window.MPHelp = {
         open,
+        // The coach's worked example for one question (see coach.js).
+        openCoach: (fromButton) => open(null, fromButton, 'tutorial.html?coach=1&embed=1'),
         close,
         forHref: (href) => {
             const anchor = document.querySelector('.header .title1');

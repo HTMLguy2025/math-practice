@@ -565,18 +565,18 @@ html.mix-embedded .textOnTheRight {
 
 /* ===== Practice points + Finish button states (practice.html) ===== */
 
-.practicePointsRow {
+.dailyPointsRow {
     font-size: 0.85rem;
     color: rgba(var(--text-rgb), 0.55);
     margin-top: 2px;
     transition: color 0.3s;
 }
 
-.practicePointsRow.goal-met {
+.dailyPointsRow.goal-met {
     color: rgba(130, 210, 140, 0.95);
 }
 
-.practicePointsRow.bonus-ready {
+.dailyPointsRow.bonus-ready {
     color: rgba(255, 200, 90, 0.95);
 }
 
@@ -856,7 +856,7 @@ body.practice-page {
     padding-bottom: 16px;
 }
 
-.practicePointsRow {
+.dailyPointsRow {
     white-space: nowrap;
 }
 

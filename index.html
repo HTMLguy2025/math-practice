@@ -11,6 +11,8 @@
     <link rel="icon" href="newicon.png" type="image/x-icon">
     <link rel="stylesheet" href="settings.css">
     <script src="theme.js"></script>
+    <script src="activities.js"></script>
+    <script src="points.js"></script>
     <script src="version.js"></script>
     <script src="dev-test.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -536,16 +538,6 @@
             color: rgba(var(--text-rgb), 0.95);
         }
 
-        .streak-info {
-            font-size: 0.75rem;
-            color: rgba(var(--text-rgb), 0.6);
-            margin-top: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-            min-height: 16px;
-        }
-
         @keyframes flame-flicker {
             0%   { transform: scaleX(1)    scaleY(1)    rotate(0deg); }
             8%   { transform: scaleX(0.91) scaleY(1.09) rotate(-2deg); }
@@ -677,24 +669,6 @@
         .te-1 { left: 15%; background: #ff9800; animation: ember-rise-1 3.5s ease-out infinite; animation-delay: 0.2s; }
         .te-2 { left: 55%; background: #ffcc02; animation: ember-rise-2 3.0s ease-out infinite; animation-delay: 1.2s; }
         .te-3 { left: 80%; background: #ff6d00; animation: ember-rise-3 4.0s ease-out infinite; animation-delay: 0.7s; }
-
-        .streak-progress {
-            font-size: 0.7rem;
-            color: rgba(var(--text-rgb), 0.4);
-            margin-top: 0.1rem;
-        }
-
-        .streak-progress.goal-met {
-            color: rgba(130, 210, 140, 0.85);
-        }
-
-        .bonus-info {
-            font-size: 0.7rem;
-            margin-top: 0.1rem;
-            display: flex;
-            align-items: center;
-            min-height: 14px;
-        }
 
         .bonus-label-wrap {
             position: relative;
@@ -885,6 +859,8 @@
             box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5), 0 0 18px rgba(var(--accent-rgb), 0.15);
             transition: box-shadow 0.2s, transform 0.15s, background 0.2s;
         }
+
+        a.mix-btn { text-decoration: none; }
 
         .mix-btn:hover {
             transform: translateY(-1px);
@@ -1207,6 +1183,94 @@
                 width: min(320px, calc(100vw - 24px));
             }
         }
+
+        /* Streak banner — one streak and one daily balance for everything */
+
+        .streak-banner {
+            align-self: stretch;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.8rem 2rem;
+            margin-bottom: 1.8rem;
+            padding: 0.9rem 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(var(--trim-rgb), 0.3);
+            border-radius: 10px;
+        }
+
+        .sb-streak {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 170px;
+            font-size: 1rem;
+        }
+
+        .sb-streak .streak-label,
+        .sb-streak .streak-label-low {
+            font-size: 1.05rem;
+        }
+
+        .sb-nostreak {
+            color: rgba(var(--text-rgb), 0.6);
+        }
+
+        .sb-link {
+            font-size: 0.78rem;
+            color: rgba(var(--text-rgb), 0.6);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+
+        .sb-link:hover { color: rgba(var(--text-hi-rgb), 0.95); }
+
+        .sb-bonus {
+            font-size: 0.8rem;
+            margin-left: 0.4rem;
+        }
+
+        .sb-progress {
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .sb-line {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.2rem 1rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.78rem;
+            color: rgba(var(--text-rgb), 0.6);
+        }
+
+        .sb-points {
+            color: rgba(var(--text-hi-rgb), 0.9);
+            font-weight: 600;
+        }
+
+        .sb-points.goal-met { color: rgba(130, 210, 140, 0.95); }
+        .sb-points.bonus    { color: rgba(255, 210, 90, 0.98); }
+
+        .sb-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .sb-bar i {
+            display: block;
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--grad-a), var(--grad-b));
+            transition: width 0.4s ease;
+        }
+
+        .sb-bar.goal-met i { background: linear-gradient(90deg, #4caf6a, #8fe3a0); }
+        .sb-bar.bonus i    { background: linear-gradient(90deg, #ffb300, #ffe082); }
     </style>
 </head>
 <body>
@@ -1214,6 +1278,7 @@
 
     <div id="selectionArea">
         <div id="mainView">
+            <div id="streakBanner" class="streak-banner"></div>
             <p class="section-label">Simple Operations</p>
             <div id="simpleGrid"></div>
             <p class="section-label levels-label">Levels</p>
@@ -1231,6 +1296,14 @@
                     <span>Build a Mix<small>Pick simple operations and practice them shuffled</small></span>
                 </button>
                 <button class="mix-replay" id="mixReplayBtn" style="display:none;"></button>
+            </div>
+
+            <p class="section-label levels-label">My Progress</p>
+            <div class="mix-entry">
+                <a class="mix-btn" href="progress.html" id="progressLink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+                    <span>My progress<small>A calendar of how you did each day</small></span>
+                </a>
             </div>
 
         </div>
@@ -1319,249 +1392,78 @@
             }, 150);
         });
 
-        const LEVELS = {
-            1: {
-                label: 'Level 1',
-                sections: [
-                    { label: 'Counting & Number Sense', options: [
-                        { text: 'Forward / Backward', href: 'numberline.html?exercise=count-forward,count-backward' },
-                        { text: 'Count From Any Number', href: 'numberline.html?exercise=count-from' },
-                        { text: 'Number Line', href: 'numberline.html?exercise=ordering' },
-                        { text: '2D Shapes', href: null },
-                        { text: 'Odd & Even', href: 'choice.html?exercise=oddeven' },
-                    ]},
-                    { label: 'Place Value', options: [
-                        { text: 'Tens & Ones', href: 'placevalue.html?exercise=tens-ones' },
-                    ]},
-                    { label: 'Comparison', options: [
-                        { text: 'Two-Digit Numbers', href: 'choice.html?exercise=compare&digits=2' },
-                    ]},
-                    { label: 'Measurement & Time', options: [
-                        { text: 'Time to Hour / Half Hour', href: 'clock.html?mode=read&precision=hour' },
-                    ]},
-                ]
-            },
-            2: {
-                label: 'Level 2',
-                sections: [
-                    { label: 'Counting & Number Sense', options: [
-                        { text: 'Skip Counting', href: 'choice.html?exercise=skipcount' },
-                        { text: 'Odd & Even', href: 'choice.html?exercise=oddeven' },
-                        { text: 'Compare 3-Digit Numbers', href: 'choice.html?exercise=compare&digits=3' },
-                    ]},
-                    { label: 'Place Value', options: [
-                        { text: 'Hundreds, Tens, Ones', href: 'placevalue.html?exercise=hundreds-tens-ones' },
-                    ]},
-                    { label: 'Early Multiplication', options: [
-                        { text: 'Arrays', href: null },
-                    ]},
-                    { label: 'Measurement & Time', options: [
-                        { text: 'Time to 5 Minutes', href: 'clock.html?mode=read&precision=5min' },
-                    ]},
-                    { label: 'Counting Money', type: 'operation-group', operations: [
-                        { text: 'Count', options: [
-                            { text: 'Coins Only', href: 'money.html?exercise=standard' },
-                            { text: 'Include Bills ($1, $5)', href: 'money.html?exercise=bills' },
-                            { text: 'Large Bills ($10, $20)', href: 'money.html?exercise=large' },
-                        ]},
-                        { text: 'Add', radio: true, options: [
-                            { text: 'Up to $9.99', href: 'money.html?exercise=add-small' },
-                            { text: 'Up to $99.99', href: 'money.html?exercise=add-medium' },
-                            { text: 'Up to $999.99', href: 'money.html?exercise=add-large' },
-                        ]},
-                        { text: 'Subtract', radio: true, options: [
-                            { text: 'Up to $9.99', href: 'money.html?exercise=subtract-small' },
-                            { text: 'Up to $99.99', href: 'money.html?exercise=subtract-medium' },
-                            { text: 'Up to $999.99', href: 'money.html?exercise=subtract-large' },
-                        ]},
-                    ]},
-                    { label: 'Data', options: [
-                        { text: 'Bar Graphs', href: 'graphs.html?type=bar' },
-                        { text: 'Picture Graphs', href: 'graphs.html?type=picture' },
-                    ]},
-                ]
-            },
-            3: {
-                label: 'Level 3',
-                sections: [
-                    { label: 'Fractions', type: 'operation-group', operations: [
-                        { text: 'Add', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
-                        ]},
-                        { text: 'Subtract', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
-                        ]},
-                    ]},
-                    { label: 'Fraction Skills', options: [
-                        { text: 'Simplify', href: 'fractions.html?exercise=simplify' },
-                        { text: 'On a Number Line', href: 'numberline.html?exercise=fractions' },
-                    ]},
-                    { label: 'Rounding', options: [
-                        { text: 'To Nearest 10', href: 'rounding.html?precision=10' },
-                        { text: 'To Nearest 100', href: 'rounding.html?precision=100' },
-                    ]},
-                    { label: 'Measurement & Time', options: [
-                        { text: 'Elapsed Time', href: 'clock.html?mode=elapsed' },
-                        { text: 'Mass & Liquid Volume', href: null },
-                    ]},
-                    { label: 'Data', options: [
-                        { text: 'Scaled Bar Graphs', href: 'graphs.html?type=bar&scaled=true' },
-                        { text: 'Scaled Picture Graphs', href: 'graphs.html?type=picture&scaled=true' },
-                    ]},
-                ]
-            },
-            4: {
-                label: 'Level 4',
-                sections: [
-                    { label: 'Fractions', type: 'operation-group', operations: [
-                        { text: 'Add', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
-                        ]},
-                        { text: 'Subtract', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
-                        ]},
-                    ]},
-                    { label: 'Fraction Skills', options: [
-                        { text: 'Equivalent', href: null },
-                        { text: 'Comparing', href: null },
-                        { text: 'Simplify', href: 'fractions.html?exercise=simplify' },
-                        { text: 'Converting Fractions', href: 'fractions.html?exercise=convert' },
-                    ]},
-                    { label: 'Solving Fractions', type: 'operation-group', operations: [
-                        { text: 'Simple Fractions', options: [
-                            { text: 'Standard', href: 'fractions.html?exercise=simple-fractions' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=simple-fractions-negative' },
-                            { text: 'Exponents', href: 'fractions.html?exercise=simple-fractions-exponent' },
-                        ]},
-                    ]},
-                    { label: 'Decimals', options: [
-                        { text: 'Tenths & Hundredths', href: null },
-                        { text: 'Comparing Decimals', href: null },
-                    ]},
-                    { label: 'Number Theory', options: [
-                        { text: 'Factors & Multiples', href: null },
-                        { text: 'Prime & Composite', href: 'choice.html?exercise=prime' },
-                    ]},
-                    { label: 'Area & Perimeter', type: 'operation-group', operations: [
-                        { text: 'Area', radio: true, options: [
-                            { text: 'Triangle', href: 'geometry.html?exercise=area-triangle' },
-                            { text: 'Square', href: 'geometry.html?exercise=area-square' },
-                            { text: 'Rectangle', href: 'geometry.html?exercise=area-rectangle' },
-                            { text: 'Circle', href: 'geometry.html?exercise=area-circle' },
-                        ]},
-                        { text: 'Perimeter', radio: true, options: [
-                            { text: 'Triangle', href: 'geometry.html?exercise=perimeter-triangle' },
-                            { text: 'Square', href: 'geometry.html?exercise=perimeter-square' },
-                            { text: 'Rectangle', href: 'geometry.html?exercise=perimeter-rectangle' },
-                            { text: 'Circle (Circumference)', href: 'geometry.html?exercise=perimeter-circle' },
-                        ]},
-                    ]},
-                    { label: 'Geometry', options: [
-                        { text: 'Angle Measurement', href: 'geometry.html?exercise=angles' },
-                        { text: 'Symmetry', href: 'geometry.html?exercise=symmetry' },
-                    ]},
-                    { label: 'Data', options: [
-                        { text: 'Pie Graphs', href: 'graphs.html?type=pie' },
-                    ]},
-                ]
-            },
-            5: {
-                label: 'Level 5',
-                sections: [
-                    { label: 'Fractions', type: 'operation-group', operations: [
-                        { text: 'Add', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=add-like' },
-                            { text: 'Unlike Denominators', href: 'fractions.html?exercise=add-unlike' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=add-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=add-equation' },
-                        ]},
-                        { text: 'Subtract', options: [
-                            { text: 'Like Denominators', href: 'fractions.html?exercise=subtract-like' },
-                            { text: 'Unlike Denominators', href: 'fractions.html?exercise=subtract-unlike' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=subtract-like-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=subtract-equation' },
-                        ]},
-                        { text: 'Multiply', options: [
-                            { text: 'Standard', href: 'fractions.html?exercise=multiply' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=multiply-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=multiply-equation' },
-                        ]},
-                        { text: 'Divide', options: [
-                            { text: 'Standard', href: 'fractions.html?exercise=divide' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=divide-negative' },
-                            { text: 'Equations', href: 'fractions.html?exercise=divide-equation' },
-                        ]},
-                    ]},
-                    { label: 'Solving Fractions', type: 'operation-group', operations: [
-                        { text: 'Nested Fractions', options: [
-                            { text: 'Standard', href: 'fractions.html?exercise=nested' },
-                            { text: 'Negatives', href: 'fractions.html?exercise=nested-negative' },
-                            { text: 'Exponents', href: 'fractions.html?exercise=nested-exponent' },
-                        ]},
-                    ]},
-                    { label: 'Decimals', options: [
-                        { text: 'All Operations', href: null },
-                        { text: 'Powers of 10', href: null },
-                    ]},
-                    { label: 'Order of Operations', options: [
-                        { text: 'Long Equations', href: 'pemdas.html' },
-                    ]},
-                    { label: 'Number Sense', options: [
-                        { text: 'Negative Numbers', href: 'numberline.html?exercise=negative' },
-                        { text: 'Numerical Patterns', href: null },
-                    ]},
-                    { label: 'Geometry & Graphing', options: [
-                        { text: 'Coordinate Planes', href: 'geometry.html?exercise=coordinates' },
-                        { text: 'Volume', href: 'geometry.html?exercise=volume' },
-                    ]},
-                    { label: 'Measurement', options: [
-                        { text: 'Converting Units', href: null },
-                    ]},
-                    { label: 'Number Conversion', type: 'conversion',
-                      conversionTypes: [
-                        { text: 'Fractions ↔ Decimals', href: 'conversions.html?exercise=frac-to-decimal,decimal-to-frac' },
-                        { text: 'Fractions ↔ Percents', href: 'conversions.html?exercise=frac-to-percent,percent-to-frac' },
-                        { text: 'Decimals ↔ Percents', href: 'conversions.html?exercise=decimal-to-percent,percent-to-decimal' },
-                      ],
-                      options: [
-                        { text: 'Negatives', href: null },
-                        { text: 'Nested Fractions', href: null },
-                        { text: 'Equations', href: null },
-                      ]
-                    },
-                ]
-            },
-            simple: {
-                label: 'Simple Operations',
-                sections: [
-                    { label: 'Multiplication', options: [{ text: '1-Digit', href: 'practice.html?mode=multiply&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=multiply&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=multiply&digits=3' }] },
-                    { label: 'Addition',       options: [{ text: '1-Digit', href: 'practice.html?mode=add&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=add&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=add&digits=3' }] },
-                    { label: 'Subtraction',    options: [{ text: '1-Digit', href: 'practice.html?mode=subtract&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=subtract&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=subtract&digits=3' }] },
-                    { label: 'Division',       options: [{ text: '1-Digit', href: 'practice.html?mode=divide&digits=1' }, { text: '2-Digit', href: 'practice.html?mode=divide&digits=2' }, { text: '3-Digit', href: 'practice.html?mode=divide&digits=3' }] },
-                ]
-            }
-        };
-
         const simpleModeKey = { 'Multiplication': 'multiply', 'Addition': 'add', 'Subtraction': 'subtract', 'Division': 'divide' };
 
-        const toDateStr = (d) =>
-            d.getFullYear() + '-' +
-            String(d.getMonth() + 1).padStart(2, '0') + '-' +
-            String(d.getDate()).padStart(2, '0');
+        // ===== Streak banner =====
+        // One streak and one point balance for the whole app (see points.js).
+        function renderStreakBanner() {
+            const el = document.getElementById('streakBanner');
+            if (!el || typeof MPPoints === 'undefined') return;
+            const s = MPPoints.summary();
+            const streak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : s.streak;
+            const bonuses = streak > 0 ? (BONUS_OVERRIDE ? BONUS_OVERRIDE_VALUE : s.bonuses) : 0;
+            const pct = Math.max(0, Math.min(100, Math.round((s.points / s.goal) * 100)));
 
-        const prevWeekday = (date) => {
-            const d = new Date(date);
-            do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
-            return d;
-        };
+            const tip = 'Reach your daily goal on a weekday to keep the streak going. The goal grows as your streak does.';
+            let streakHTML;
+            if (streak > 0) {
+                const label = streak >= 31
+                    ? `<span class="streak-label-wrap" data-tooltip="${tip}"><span class="streak-label">${streak}-day streak</span><span class="text-ember te-1"></span><span class="text-ember te-2"></span><span class="text-ember te-3"></span></span>`
+                    : streak >= 15
+                    ? `<span class="streak-label-wrap" data-tooltip="${tip}"><span class="streak-label">${streak}-day streak</span></span>`
+                    : `<span class="streak-label-wrap" data-tooltip="${tip}"><span class="streak-label-low">${streak}-day streak</span></span>`;
+                streakHTML =
+                    `<svg class="streak-flame" viewBox="0 0 22 30" width="18" height="25" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+                        <circle class="ember-1" cx="9"  cy="5" r="1.2" fill="#ff9800"/>
+                        <circle class="ember-2" cx="13" cy="3" r="1.0" fill="#ffcc02"/>
+                        <circle class="ember-3" cx="8"  cy="7" r="0.9" fill="#ff6d00"/>
+                        <g class="flame-body">
+                            <path d="M11,30 C4,25 1,18 4,11 C6,6 9,2 11,-1 C13,2 16,6 18,11 C21,18 18,25 11,30Z" fill="#ff4500"/>
+                            <path d="M11,27 C6,22 4,17 7,11 C9,7 11,4 11,1 C11,4 13,7 15,11 C18,17 16,22 11,27Z" fill="#ff6d00"/>
+                            <g class="flame-inner"><path d="M11,24 C8,20 7,16 9,12 C10,10 11,8 11,8 C11,8 12,10 13,12 C15,16 14,20 11,24Z" fill="#ffd600"/></g>
+                            <path d="M11,9 C10,6 10,3 11,0 C12,3 12,6 11,9Z" fill="#fff9c4" opacity="0.85"/>
+                        </g>
+                    </svg>${label}`;
+            } else {
+                streakHTML =
+                    '<svg class="streak-ashes" viewBox="0 0 22 12" width="22" height="12" xmlns="http://www.w3.org/2000/svg">' +
+                        '<ellipse cx="11" cy="9" rx="9" ry="3" fill="#3a3a52"/>' +
+                        '<ellipse cx="11" cy="8" rx="5.5" ry="2" fill="#4a4a62"/>' +
+                        '<circle cx="7" cy="5" r="1.2" fill="#3a3a52" opacity="0.8"/>' +
+                        '<circle cx="14" cy="4" r="0.9" fill="#3a3a52" opacity="0.6"/>' +
+                        '<circle cx="11" cy="3" r="1" fill="#3a3a52" opacity="0.7"/>' +
+                    '</svg><span class="sb-nostreak">No streak</span>';
+            }
+
+            let bonusHTML = '';
+            if (bonuses > 0) {
+                const text = bonuses === 1 ? '1 bonus' : bonuses + ' bonuses';
+                const cls = 'bonus-label' + (bonuses >= 10 ? ' bonus-label-elite' : '');
+                bonusHTML = `<span class="bonus-label-wrap sb-bonus" data-tooltip="Earned by scoring 20+ points past the daily goal. One bonus per day."><span class="${cls}">${text}</span><span class="bonus-ember be-1"></span><span class="bonus-ember be-2"></span><span class="bonus-ember be-3"></span></span>`;
+            }
+
+            let note;
+            if (!s.weekday) {
+                note = s.points > 0 ? 'Rest day: extra practice counts toward bonuses' : 'Rest day: practice is optional';
+            } else if (s.bonusReady) {
+                note = 'Bonus earned!';
+            } else if (s.goalMet) {
+                note = s.extendedToday ? 'Goal reached: streak extended' : 'Goal reached';
+            } else if (streak > 0) {
+                note = (s.goal - s.points) + ' points to keep your streak';
+            } else {
+                note = (s.goal - s.points) + ' points to start a streak';
+            }
+
+            const state = s.bonusReady ? ' bonus' : (s.goalMet ? ' goal-met' : '');
+            el.innerHTML =
+                `<div class="sb-streak">${streakHTML}${bonusHTML}</div>
+                 <div class="sb-progress">
+                    <div class="sb-line"><span class="sb-points${state}">Today: ${s.points} / ${s.goal} pts</span><span class="sb-note">${note}</span></div>
+                    <div class="sb-bar${state}"><i style="width:${pct}%"></i></div>
+                 </div>
+                 <a class="sb-link" href="progress.html">Calendar &rarr;</a>`;
+        }
 
         function buildSimpleGrid(containerEl, levelKey) {
             containerEl.innerHTML = '';
@@ -1587,81 +1489,6 @@
                     div.appendChild(btn);
                 });
 
-                const modeKey = simpleModeKey[section.label];
-                if (modeKey) {
-                    const today = getToday();
-                    const todayStr = toDateStr(today);
-
-                    // A streak is still running only if it was last extended
-                    // today or on the previous weekday; older means it lapsed.
-                    const lastStr = getCookie('streakLastDate_' + modeKey);
-                    const alive = lastStr === todayStr || lastStr === toDateStr(prevWeekday(today));
-                    const storedStreak = alive ? parseInt(getCookie('streakCount_' + modeKey) || '0') : 0;
-
-                    const currentStreak = STREAK_OVERRIDE ? STREAK_OVERRIDE_VALUE : storedStreak;
-                    // If the streak was already extended today, show the goal that was in force this morning.
-                    const baseStreak = (lastStr === todayStr && !STREAK_OVERRIDE) ? Math.max(0, currentStreak - 1) : currentStreak;
-                    const goal = Math.min(50 + baseStreak, 120);
-                    const dpDate = getCookie('dailyPointsDate_' + modeKey);
-                    const dailyPts = (dpDate === todayStr)
-                        ? parseInt(getCookie('dailyPoints_' + modeKey) || '0')
-                        : 0;
-
-                    const info = document.createElement('div');
-                    info.className = 'streak-info';
-                    if (currentStreak > 0) {
-                        const streakTip = 'Practice each weekday to keep your streak going. The daily goal increases as your streak grows.';
-                        const labelHTML = currentStreak >= 31
-                            ? `<span class="streak-label-wrap" data-tooltip="${streakTip}"><span class="streak-label">${currentStreak}-day streak</span><span class="text-ember te-1"></span><span class="text-ember te-2"></span><span class="text-ember te-3"></span></span>`
-                            : currentStreak >= 15
-                            ? `<span class="streak-label-wrap" data-tooltip="${streakTip}"><span class="streak-label">${currentStreak}-day streak</span></span>`
-                            : `<span class="streak-label-wrap" data-tooltip="${streakTip}"><span class="streak-label-low">${currentStreak}-day streak</span></span>`;
-                        info.innerHTML = `
-                            <svg class="streak-flame" viewBox="0 0 22 30" width="14" height="19" xmlns="http://www.w3.org/2000/svg" overflow="visible">
-                                <circle class="ember-1" cx="9"  cy="5" r="1.2" fill="#ff9800"/>
-                                <circle class="ember-2" cx="13" cy="3" r="1.0" fill="#ffcc02"/>
-                                <circle class="ember-3" cx="8"  cy="7" r="0.9" fill="#ff6d00"/>
-<g class="flame-body">
-                                    <path d="M11,30 C4,25 1,18 4,11 C6,6 9,2 11,-1 C13,2 16,6 18,11 C21,18 18,25 11,30Z" fill="#ff4500"/>
-                                    <path d="M11,27 C6,22 4,17 7,11 C9,7 11,4 11,1 C11,4 13,7 15,11 C18,17 16,22 11,27Z" fill="#ff6d00"/>
-                                    <g class="flame-inner">
-                                        <path d="M11,24 C8,20 7,16 9,12 C10,10 11,8 11,8 C11,8 12,10 13,12 C15,16 14,20 11,24Z" fill="#ffd600"/>
-                                    </g>
-                                    <path d="M11,9 C10,6 10,3 11,0 C12,3 12,6 11,9Z" fill="#fff9c4" opacity="0.85"/>
-                                </g>
-                            </svg>
-                            ${labelHTML}`;
-                    } else {
-                        info.innerHTML =
-                            '<svg class="streak-ashes" viewBox="0 0 22 12" width="18" height="10" xmlns="http://www.w3.org/2000/svg">' +
-                                '<ellipse cx="11" cy="9" rx="9" ry="3" fill="#3a3a52"/>' +
-                                '<ellipse cx="11" cy="8" rx="5.5" ry="2" fill="#4a4a62"/>' +
-                                '<circle cx="7" cy="5" r="1.2" fill="#3a3a52" opacity="0.8"/>' +
-                                '<circle cx="14" cy="4" r="0.9" fill="#3a3a52" opacity="0.6"/>' +
-                                '<circle cx="11" cy="3" r="1" fill="#3a3a52" opacity="0.7"/>' +
-                            '</svg>' +
-                            '<span>No streak</span>';
-                    }
-
-                    const progress = document.createElement('div');
-                    progress.className = 'streak-progress' + (dailyPts >= goal ? ' goal-met' : '');
-                    progress.textContent = 'Today: ' + dailyPts + ' / ' + goal + ' pts';
-
-                    div.appendChild(info);
-
-                    const bonusCount = currentStreak > 0 ? (BONUS_OVERRIDE ? BONUS_OVERRIDE_VALUE : parseInt(getCookie('bonusCount_' + modeKey) || '0')) : 0;
-                    if (bonusCount > 0) {
-                        const bonusText = bonusCount === 1 ? '1 bonus' : bonusCount + ' bonuses';
-                        const labelClass = 'bonus-label' + (bonusCount >= 10 ? ' bonus-label-elite' : '');
-                        const bonusDiv = document.createElement('div');
-                        bonusDiv.className = 'bonus-info';
-                        const bonusTip = 'Earned by scoring 20+ points past the daily goal. One bonus per day.';
-                        bonusDiv.innerHTML = `<span class="bonus-label-wrap" data-tooltip="${bonusTip}"><span class="${labelClass}">${bonusText}</span><span class="bonus-ember be-1"></span><span class="bonus-ember be-2"></span><span class="bonus-ember be-3"></span></span>`;
-                        div.appendChild(bonusDiv);
-                    }
-
-                    div.appendChild(progress);
-                }
 
                 containerEl.appendChild(div);
             });
@@ -2372,6 +2199,8 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             buildSimpleGrid(document.getElementById('simpleGrid'), 'simple');
+            renderStreakBanner();
+            window.addEventListener('storage', (e) => { if (e.key === 'mpLedger') renderStreakBanner(); });
             initMixView();
 
             document.querySelectorAll('.level-btn').forEach(btn => {
@@ -2387,9 +2216,10 @@
                 fadeSwap(document.getElementById('subOptions'), document.getElementById('mainView'), 'flex');
             });
 
-            // Ctrl+Shift+X — clear all cookies (testing)
+            // Ctrl+Shift+X — clear all cookies and the points ledger (testing)
             document.addEventListener('keydown', (e) => {
                 if (e.ctrlKey && e.shiftKey && e.key === 'X') {
+                    try { localStorage.removeItem('mpLedger'); } catch (err) {}
                     document.cookie.split(';').forEach(cookie => {
                         const name = cookie.split('=')[0].trim();
                         document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';

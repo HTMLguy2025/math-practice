@@ -1,3 +1,7 @@
+// This page scores each question itself (by digits and modifiers) rather than
+// letting points.js watch the counters.
+window.MP_POINTS_MANUAL = true;
+
 const LastQuesNum1 = document.querySelector('#previousQuestionNum1');
 const LastQuesNum2 = document.querySelector('#previousQuestionNum2');
 const LastQuesAnswer = document.querySelector('#previousQuestionAnswer');
@@ -14,30 +18,7 @@ const QuestionsAnswered = document.querySelector("#questionsAnswered");
 const QuestionsCorrect = document.querySelector("#questionscorrect");
 const TopScore = document.querySelector("#topScore");
 const FinishButton = document.querySelector("#finishButton");
-const PracticePoints = document.querySelector("#practicePoints");
-const PracticePointsRow = document.querySelector("#practicePointsRow");
 const AutoCompleteCheck = document.querySelector("#autoCompleteCheck");
-
-const getCookie = (name) => {
-    const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-    return match ? decodeURIComponent(match[1]) : null;
-};
-const setCookie = (name, value) => {
-    const expires = new Date();
-    expires.setFullYear(expires.getFullYear() + 1);
-    document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires.toUTCString() + '; path=/';
-};
-
-const toLocalDateStr = (d) =>
-    d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0');
-
-const prevWeekday = (date) => {
-    const d = new Date(date);
-    do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
-    return d;
-};
 
 // --- URL options ---
 const params = new URLSearchParams(window.location.search);
@@ -72,6 +53,16 @@ const isBetterScore = (correct, answered, saved) => {
     const rhs = savedCorrect * answered;
     if (lhs !== rhs) return lhs > rhs;
     return answered > savedAnswered;
+};
+
+// Saves this session's score as the top score the moment it beats the saved one.
+// Called after every answer, so the display never lags behind the player.
+const saveTopScoreIfBetter = () => {
+    if (questionsAnswered > 0 && isBetterScore(questionsCorrect, questionsAnswered, getTopScore())) {
+        const newTopScore = questionsCorrect + '/' + questionsAnswered;
+        setTopScore(newTopScore);
+        TopScore.innerHTML = newTopScore;
+    }
 };
 
 // --- Question generation ---
@@ -161,7 +152,6 @@ var previousQuestionOperator = currentQuestionOperator;
 var previousQuestionAnswer = computeAnswer(previous.n1, previous.n2, previousQuestionOperator);
 var questionsCorrect = 0;
 var questionsAnswered = 0;
-var sessionPoints = 0;
 
 const renderAnswer = () => {
     DisplayedSelectedAnswer.innerHTML = selectedAnswer + '<span class="cursor"></span>';
@@ -210,67 +200,6 @@ const autoCheck = () => {
     }
 }
 
-// --- Streak / daily-goal context (shared by the live display and Finish) ---
-// A stored streak only stands if it was last extended today or on the previous
-// weekday. The goal shown is the one in force at the start of today, so if the
-// streak was already extended today we look at the count before that extension.
-const getStreakContext = () => {
-    const today = getToday();
-    const dow = today.getDay();
-    const isWeekday = dow !== 0 && dow !== 6;
-    const todayStr = toLocalDateStr(today);
-
-    const dpDate = getCookie('dailyPointsDate_' + urlMode);
-    const savedDaily = dpDate === todayStr ? parseInt(getCookie('dailyPoints_' + urlMode) || '0') : 0;
-
-    const lastStr = getCookie('streakLastDate_' + urlMode);
-    let streak = parseInt(getCookie('streakCount_' + urlMode) || '0');
-    const extendedToday = lastStr === todayStr;
-    const lapsed = !extendedToday && lastStr !== toLocalDateStr(prevWeekday(today));
-    if (lapsed) streak = 0;
-
-    const baseStreak = extendedToday ? Math.max(0, streak - 1) : streak;
-    const goal = Math.min(50 + baseStreak, 120);
-
-    return { todayStr, isWeekday, savedDaily, streak, extendedToday, lapsed, goal, bonusAt: goal + 20 };
-};
-
-const FLAME_HTML =
-    '<span class="finish-flame" aria-hidden="true">' +
-        '<svg viewBox="0 0 22 30" xmlns="http://www.w3.org/2000/svg" overflow="visible">' +
-            '<circle class="ember-1" cx="9"  cy="5" r="1.2" fill="#ff9800"/>' +
-            '<circle class="ember-2" cx="13" cy="3" r="1.0" fill="#ffcc02"/>' +
-            '<circle class="ember-3" cx="8"  cy="7" r="0.9" fill="#ff6d00"/>' +
-            '<g class="flame-body">' +
-                '<path d="M11,30 C4,25 1,18 4,11 C6,6 9,2 11,-1 C13,2 16,6 18,11 C21,18 18,25 11,30Z" fill="#ff4500"/>' +
-                '<path d="M11,27 C6,22 4,17 7,11 C9,7 11,4 11,1 C11,4 13,7 15,11 C18,17 16,22 11,27Z" fill="#ff6d00"/>' +
-                '<g class="flame-inner"><path d="M11,24 C8,20 7,16 9,12 C10,10 11,8 11,8 C11,8 12,10 13,12 C15,16 14,20 11,24Z" fill="#ffd600"/></g>' +
-                '<path d="M11,9 C10,6 10,3 11,0 C12,3 12,6 11,9Z" fill="#fff9c4" opacity="0.85"/>' +
-            '</g>' +
-        '</svg>' +
-        '<span class="text-ember te-1"></span><span class="text-ember te-2"></span><span class="text-ember te-3"></span>' +
-    '</span>';
-
-const updatePracticePoints = () => {
-    if (!PracticePoints) return;
-    const ctx = getStreakContext();
-    const total = ctx.savedDaily + sessionPoints;
-    const goalMet  = ctx.isWeekday && total >= ctx.goal;
-    const bonusHit = ctx.isWeekday && total >= ctx.bonusAt;
-
-    PracticePoints.textContent = ctx.isWeekday ? total + ' / ' + ctx.goal : String(total);
-    if (PracticePointsRow) {
-        PracticePointsRow.classList.toggle('goal-met', goalMet && !bonusHit);
-        PracticePointsRow.classList.toggle('bonus-ready', bonusHit);
-    }
-
-    FinishButton.classList.toggle('goal-met', goalMet && !bonusHit);
-    FinishButton.classList.toggle('bonus-ready', bonusHit);
-    const flame = FinishButton.querySelector('.finish-flame');
-    if (bonusHit && !flame) FinishButton.insertAdjacentHTML('beforeend', FLAME_HTML);
-    if (!bonusHit && flame) flame.remove();
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     const saved = getTopScore();
     if (saved) {
@@ -308,7 +237,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    updatePracticePoints();
     registerEventListeners();
 });
 
@@ -346,24 +274,22 @@ const registerEventListeners = () => {
         factNumberOne.innerHTML = fmtTop(current.n1);
         factNumberTwo.innerHTML = fmtBottom(current.n2);
 
+        questionsAnswered++;
         if (wasCorrect) {
             setTimeout(() => spawnParticles(checkButton), 325);
             questionsCorrect++;
-            questionsAnswered++;
-            // Harder questions are worth more: by digit count, plus a bonus per
-            // modifier applied — decimals take more work than a sign flip.
-            const digitPoints = { 1: 1, 2: 3, 3: 5 };
-            const NEGATIVE_BONUS = 1, DECIMAL_BONUS = 2;
-            sessionPoints += (digitPoints[answered.digits] || answered.digits)
-                + (answered.neg ? NEGATIVE_BONUS : 0)
-                + (answered.dec ? DECIMAL_BONUS : 0);
-        } else {
-            questionsAnswered++;
         }
+        // Every question is saved to the daily balance: worth its own digit size,
+        // plus a bonus for negatives and for decimals (see activities.js).
+        MPPoints.record({
+            points: MPActivities.practicePoints(urlMode, answered.digits, { neg: answered.neg, dec: answered.dec }),
+            correct: wasCorrect,
+            key: 'practice?digits=' + answered.digits + '&mode=' + urlMode,
+        });
 
         QuestionsAnswered.innerHTML = questionsAnswered;
         QuestionsCorrect.innerHTML = questionsCorrect;
-        updatePracticePoints();
+        saveTopScoreIfBetter();
         selectedAnswer = "";
         renderAnswer();
     });
@@ -384,45 +310,7 @@ const registerEventListeners = () => {
     });
 
     FinishButton.addEventListener('click', () => {
-        if (questionsAnswered > 0) {
-            if (isBetterScore(questionsCorrect, questionsAnswered, getTopScore())) {
-                const newTopScore = questionsCorrect + '/' + questionsAnswered;
-                setTopScore(newTopScore);
-                TopScore.innerHTML = newTopScore;
-            }
-
-            const ctx = getStreakContext();
-            if (ctx.isWeekday) {
-                const dailyPts = ctx.savedDaily + sessionPoints;
-                setCookie('dailyPoints_' + urlMode,     String(dailyPts));
-                setCookie('dailyPointsDate_' + urlMode, ctx.todayStr);
-
-                if (!ctx.extendedToday && dailyPts >= ctx.goal) {
-                    let streak;
-                    if (ctx.lapsed) {
-                        streak = 1;
-                        setCookie('bonusCount_' + urlMode, '0');
-                    } else {
-                        streak = ctx.streak + 1;
-                    }
-
-                    let best = parseInt(getCookie('streakBest_' + urlMode) || '0');
-                    if (streak > best) best = streak;
-
-                    setCookie('streakCount_'    + urlMode, String(streak));
-                    setCookie('streakLastDate_' + urlMode, ctx.todayStr);
-                    setCookie('streakBest_'     + urlMode, String(best));
-                }
-
-                const bonusEarnedDate = getCookie('bonusEarnedDate_' + urlMode);
-                if (bonusEarnedDate !== ctx.todayStr && dailyPts >= ctx.bonusAt) {
-                    let bonuses = parseInt(getCookie('bonusCount_' + urlMode) || '0');
-                    bonuses++;
-                    setCookie('bonusCount_'      + urlMode, String(bonuses));
-                    setCookie('bonusEarnedDate_' + urlMode, ctx.todayStr);
-                }
-            }
-        }
+        saveTopScoreIfBetter();
 
         spawnParticles(FinishButton);
         setTimeout(() => { window.location.href = 'index.html'; }, 1000);

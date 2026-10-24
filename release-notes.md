@@ -7,11 +7,6 @@
 - Sums are shown the way you write them on paper: numbers stacked, carrying and borrowing, long multiplication, and long division. Carrying and borrowing are explained step by step, including where the carried number comes from.
 - You can have a lesson read aloud, and slow it down. The lesson opens on top of your practice, so you never lose your place or your score.
 
-## Points that fit your grade
-
-- The first time you visit, pick your **grade**. Points then fit you: easy activities earn fewer points as your grade goes up, and harder ones earn more. A 3rd grader earns full points for simple multiplication, while a 9th grader earns most for the tougher activities.
-- You can change your grade any time in **Settings**.
-
 ## Help with the question in front of you
 
 - **Not quite? Tap Show me how.** After a wrong answer, a worked example of that exact question is waiting for you.

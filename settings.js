@@ -96,28 +96,12 @@
     const contrastEl = el('div', 'sp-contrast');
     panel.appendChild(contrastEl);
 
-    // Grade level (changes how many points each activity earns)
-    panel.appendChild(el('p', 'sp-label sp-label-gap', 'Grade level'));
-    const gradeSel = el('select', 'sp-select');
-    gradeSel.setAttribute('aria-label', 'Grade level');
-    const P = window.MPPoints;
-    if (P) {
-        const none = el('option', '', 'Not set (no adjustment)');
-        none.value = 'skip';
-        gradeSel.appendChild(none);
-        P.GRADES.forEach(g => { const o = el('option', '', g.label); o.value = g.id; gradeSel.appendChild(o); });
-        gradeSel.addEventListener('change', () => P.setGrade(gradeSel.value));
-        panel.appendChild(gradeSel);
-        panel.appendChild(el('p', 'sp-note', 'Easier activities earn fewer points as the grade goes up, and harder ones earn more.'));
-    }
-
     const resetBtn = el('button', 'sp-reset', 'Reset to default');
     resetBtn.type = 'button';
     panel.appendChild(resetBtn);
 
     // Reflect the current theme in the controls.
     const sync = () => {
-        if (P) gradeSel.value = P.getGrade() || 'skip';
         const theme = T.current();
         presetBtns.forEach(b => {
             b.setAttribute('aria-checked', String(theme.type === 'preset' && theme.id === b.dataset.id));

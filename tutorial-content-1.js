@@ -23,7 +23,7 @@ MPTutorials.define('add-small', {
           scene: { kind: 'numberline', min: 6, max: 13, start: 7, hops: 5, dir: 1, counts: true } },
         { say: 'On paper we write one number under the other, with the plus sign after the bottom number, and draw a line underneath.',
           scene: { kind: 'columns', op: '+', a: '7', b: '5', upto: 0 } },
-        { say: '7 + 5 = 12. We write the 2 under the line, and the 1 goes in the tens place, like the full ten-frame.',
+        { say: '7 + 5 = 12. We write the 2 under the line. The 1 from the 12 is a ten, so it goes in the tens place, like the full ten-frame.',
           scene: { kind: 'columns', op: '+', a: '7', b: '5', upto: 1, done: true } },
     ],
     tryIt: [

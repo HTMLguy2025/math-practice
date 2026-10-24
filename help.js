@@ -24,7 +24,15 @@
     };
     const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     const onMessage = (e) => {
-        if (overlay && e.data && e.data.type === 'tutorial:close') close();
+        if (!overlay || !e.data) return;
+        if (e.data.type === 'tutorial:close') close();
+        // the worked example (coach.js) asks for its lesson once its page has loaded
+        if (e.data.type === 'coach:ready') {
+            const frame = overlay.querySelector('iframe');
+            if (frame && e.source === frame.contentWindow && window.MPCoach) {
+                try { frame.contentWindow.postMessage({ type: 'coach:lesson', lesson: MPCoach.frameLesson() }, '*'); } catch (err) {}
+            }
+        }
     };
 
     const open = (topicId, fromButton, src) => {

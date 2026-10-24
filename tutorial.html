@@ -18,7 +18,7 @@
     <script src="tutorial-content-3.js"></script>
     <script src="tutorial-content-4.js"></script>
     <script src="tutorial-content-5.js"></script>
-    <title>Tutorial</title>
+    <title>MP Launcher</title>
     <style>
         * {
             font-family: 'Roboto Mono', monospace;
@@ -252,22 +252,27 @@
             const onClose = () => { try { window.parent.postMessage({ type: 'tutorial:close' }, '*'); } catch (e) {} };
             const app = document.getElementById('app');
 
-            // The coach (hints and "show me how") hands over a worked example for one question.
-            if (params.get('coach') === '1' && embed && window.parent.MPCoach) {
-                const L = window.parent.MPCoach.frameLesson();
-                if (L) {
-                    document.title = L.title;
+            // The coach (hints and "show me how") sends a worked example for one question.
+            // It arrives as a message, so this works however the site is served.
+            if (params.get('coach') === '1' && embed) {
+                let started = false;
+                window.addEventListener('message', (e) => {
+                    if (started || e.source !== window.parent || !e.data || e.data.type !== 'coach:lesson' || !e.data.lesson) return;
+                    started = true;
+                    const L = e.data.lesson;
                     MPTutorialPlayer.start(app, 'coach', {
                         embed, coach: true, onClose,
                         topic: { id: 'coach', group: 'Let’s work it out', title: L.title },
                         lesson: { steps: L.steps },
                     });
-                    return;
-                }
+                });
+                window.parent.postMessage({ type: 'coach:ready' }, '*');
+                setTimeout(() => {
+                    if (!started) app.textContent = 'Sorry, the worked example could not be loaded. Close this and try again.';
+                }, 4000);
+                return;
             }
 
-            const t = MPTutorials.topic(topic);
-            if (t) document.title = t.title;
             MPTutorialPlayer.start(app, topic, { embed, onClose });
         })();
     </script>

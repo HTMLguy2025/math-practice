@@ -63,7 +63,7 @@
 
         const first = new Date(y, m, 1);
         const daysInMonth = new Date(y, m + 1, 0).getDate();
-        const lead = (first.getDay() + 6) % 7;            // Monday-first grid
+        const lead = first.getDay();                      // Sunday-first grid
 
         const grid = document.getElementById('grid');
         grid.innerHTML = '';

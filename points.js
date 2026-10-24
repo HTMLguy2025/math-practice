@@ -14,6 +14,11 @@
 //     weekday; otherwise it has lapsed and counts as zero.
 //   - Reaching goal + 20 earns one bonus for the day (while a streak is alive).
 //
+// Grade level: what a correct answer earns depends on the player's grade. Each grade
+// has a "comfortable" difficulty (see GRADES). Easier activities than that earn fewer
+// points, harder ones earn more, so a 3rd grader gets full credit for simple
+// multiplication and a 9th grader gets little for it but plenty for nested fractions.
+//
 // Pages: records answers on exercise pages, shows "Today: N / goal" and lights
 // up the Finish button; the Mix & Match host only displays; the launcher uses
 // the data API (MPPoints.summary) to draw the streak banner.
@@ -82,9 +87,56 @@
         }
     };
 
+    // ---------- grade level ----------
+    // base = the difficulty tier (1-10, see activities.js) that earns exactly its own value.
+    const GRADES = [
+        { id: 'K',  label: 'Kindergarten', base: 1 },
+        { id: '1',  label: '1st grade',    base: 1.5 },
+        { id: '2',  label: '2nd grade',    base: 2 },
+        { id: '3',  label: '3rd grade',    base: 2.5 },
+        { id: '4',  label: '4th grade',    base: 3.5 },
+        { id: '5',  label: '5th grade',    base: 4.5 },
+        { id: '6',  label: '6th grade',    base: 5.5 },
+        { id: '7',  label: '7th grade',    base: 6.5 },
+        { id: '8',  label: '8th grade',    base: 7 },
+        { id: '9',  label: '9th grade',    base: 8 },
+        { id: '10', label: '10th grade',   base: 8.5 },
+        { id: '11', label: '11th grade',   base: 9 },
+        { id: '12', label: '12th grade',   base: 9.5 },
+        { id: 'adult', label: 'Adult / not in school', base: 8 },
+    ];
+    const GRADE_KEY = 'mpGrade';
+    const SLOPE = 0.5, MAX_POINTS = 15;
+
+    const readCookie = (name) => {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+    };
+    // Saved in a cookie, with a copy in localStorage for browsers that drop cookies.
+    // null = never chosen; 'skip' = chose not to say (points are not adjusted).
+    const getGrade = () => {
+        let g = readCookie(GRADE_KEY);
+        if (!g) { try { g = localStorage.getItem(GRADE_KEY); } catch (e) {} }
+        return g || null;
+    };
+    const setGrade = (id) => {
+        const expires = new Date();
+        expires.setFullYear(expires.getFullYear() + 5);
+        try { document.cookie = GRADE_KEY + '=' + encodeURIComponent(id) + '; expires=' + expires.toUTCString() + '; path=/'; } catch (e) {}
+        try { localStorage.setItem(GRADE_KEY, id); } catch (e) {}
+        window.dispatchEvent(new CustomEvent('mp:grade', { detail: id }));
+    };
+    // The points a correct answer of this difficulty earns for the player's grade.
+    const adjust = (tier) => {
+        const g = GRADES.find(x => x.id === getGrade());
+        if (!g || !(tier > 0)) return tier;
+        return Math.min(MAX_POINTS, Math.max(1, Math.round(tier + SLOPE * (tier - g.base))));
+    };
+
     // ---------- public data API ----------
     // Record one answered question. `points` is what a correct answer earns (0 when wrong).
     const record = ({ points = 0, correct = false, key = 'unknown' } = {}) => {
+        if (correct) points = adjust(points);      // by grade level
         // a hint (coach.js) halves what a correct answer earns
         if (correct && window.MPCoach) points = MPCoach.applyPenalty(points, correct);
         const ledger = load();
@@ -230,6 +282,7 @@
 
     window.MPPoints = {
         record, summary, render, load, save, KEY,
+        GRADES, getGrade, setGrade, adjust,
         todayDate, dstr, isWeekday,
         BASE_GOAL, GOAL_CAP, BONUS_MARGIN,
     };

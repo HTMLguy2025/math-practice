@@ -14,6 +14,7 @@
     <script src="activities.js"></script>
     <script src="tutorials.js"></script>
     <script src="points.js"></script>
+    <script src="grade.js"></script>
     <script src="version.js"></script>
     <script src="dev-test.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1429,14 +1430,17 @@
                         setCookie('lastSeenVersion', CURRENT_VERSION);
                         return;
                     }
-                    const tokens = marked.lexer(md);
-                    const heading = tokens.find(t => t.type === 'heading');
-                    const rest = tokens.filter(t => t !== heading);
-                    document.getElementById('bannerTitle').textContent = heading ? heading.text : '';
-                    document.getElementById('bannerText').innerHTML = marked.parser(rest);
-                    document.getElementById('updateOverlay').classList.add('show');
-                    document.getElementById('updateBanner').classList.add('show');
-                    setCookie('lastSeenVersion', CURRENT_VERSION);
+                    // a new player picks their grade first; the notes follow
+                    MPGrade.whenChosen(() => {
+                        const tokens = marked.lexer(md);
+                        const heading = tokens.find(t => t.type === 'heading');
+                        const rest = tokens.filter(t => t !== heading);
+                        document.getElementById('bannerTitle').textContent = heading ? heading.text : '';
+                        document.getElementById('bannerText').innerHTML = marked.parser(rest);
+                        document.getElementById('updateOverlay').classList.add('show');
+                        document.getElementById('updateBanner').classList.add('show');
+                        setCookie('lastSeenVersion', CURRENT_VERSION);
+                    });
                 })
                 .catch(err => console.error('Release notes failed to load:', err));
         }

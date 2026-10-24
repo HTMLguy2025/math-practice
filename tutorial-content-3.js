@@ -185,7 +185,7 @@ MPTutorials.define('money-add-subtract', {
         { prompt: 'What is $1.25 + $2.50?', choices: ['$3.25', '$3.75', '$4.75'], answer: '$3.75',
           hint: 'Cents: 25 + 50 = 75. Dollars: 1 + 2 = 3. So $3.75.' },
         { prompt: 'What is $2.80 + $1.45?', choices: ['$4.15', '$4.25', '$3.25'], answer: '$4.25',
-          hint: 'Cents: 80 + 45 = 125, so write 25 and carry 1 dollar. Dollars: 2 + 1 + 1 = 4.' },
+          hint: 'Cents: 80 + 45 = 125, so write the 25 and carry the 1 from the 125 (that is 1 dollar) over to the dollars. Dollars: 2 + 1 + 1 = 4.' },
         { prompt: 'What is $5.00 − $2.35?', choices: ['$2.65', '$3.65', '$2.75'], answer: '$2.65',
           hint: 'Count up from $2.35 to $3.00 is 65¢, then $2 more to $5.00. That is $2.65.' },
     ],

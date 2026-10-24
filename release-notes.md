@@ -4,8 +4,13 @@
 
 - **Every activity now has a short lesson.** Tap **? How to** at the top of any exercise, or the **?** beside an activity on the home page, to watch it worked out step by step. There are 43 lessons, from counting to nested fractions, and a **Tutorials** page on the home page lists them all.
 - Lessons never rush you. Press **Next** when you are ready (it glows once the picture has finished), and finish with a few quick questions to try it yourself.
-- Sums are shown the way you write them on paper: numbers stacked, carrying and borrowing, long multiplication, and long division.
+- Sums are shown the way you write them on paper: numbers stacked, carrying and borrowing, long multiplication, and long division. Carrying and borrowing are explained step by step, including where the carried number comes from.
 - You can have a lesson read aloud, and slow it down. The lesson opens on top of your practice, so you never lose your place or your score.
+
+## Points that fit your grade
+
+- The first time you visit, pick your **grade**. Points then fit you: easy activities earn fewer points as your grade goes up, and harder ones earn more. A 3rd grader earns full points for simple multiplication, while a 9th grader earns most for the tougher activities.
+- You can change your grade any time in **Settings**.
 
 ## Help with the question in front of you
 
@@ -24,7 +29,7 @@
 
 ## My progress
 
-- A new **My progress** page on the home page shows a calendar of the month. Days show your points, and a check mark for a reached goal or a star for a bonus.
+- A new **My progress** page on the home page shows a calendar of the month, with Sunday first. Days show your points, and a check mark for a reached goal or a star for a bonus.
 - Tap any day to see how many answers were right and what you practiced.
 - **Save a copy** of your progress to keep it safe, or **Load a copy** on another device.
 

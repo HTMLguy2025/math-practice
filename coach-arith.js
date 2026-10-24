@@ -30,7 +30,7 @@
                 const sum = a[c] + b[c] + carry;
                 d = sum % 10;
                 say = cap(name(c)) + ': ' + a[c] + ' + ' + b[c] + (carry ? ' + ' + carry : '') + ' = ' + sum + '.'
-                    + (sum >= 10 ? (c > 0 ? ' Write ' + d + ' and carry the 1.' : ' Write ' + d + ', and the 1 goes in front.') : ' Write ' + d + '.');
+                    + (sum >= 10 ? ' ' + sum + ' is 1 ten and ' + d + (d === 1 ? ' one' : ' ones') + '. ' + (c > 0 ? 'Write the ' + d + ' under the line, and carry the 1 from the ' + sum + ' up to the top of the next column.' : 'Write the ' + d + ', and the 1 from the ' + sum + ' goes in front.') : ' Write ' + d + '.');
                 carry = sum >= 10 ? 1 : 0;
             } else {
                 const eff = a[c] - carry;
@@ -79,8 +79,8 @@
             for (let i = 0; i < n; i++) {
                 const p = A[i] * B[j] + carry;
                 const last = i === n - 1;
-                parts.push(B[j] + ' × ' + A[i] + (carry ? ' + ' + carry : '') + ' = ' + p
-                    + (last ? (p >= 10 ? ': write ' + p + '.' : ': write ' + p + '.') : (p >= 10 ? ': write ' + (p % 10) + ' and carry ' + Math.floor(p / 10) + '.' : ': write ' + p + '.')));
+                parts.push(B[j] + ' × ' + A[i] + (carry ? ' + ' + carry + ' (carried)' : '') + ' = ' + p
+                    + (last ? ': write ' + p + '.' : (p >= 10 ? ': ' + p + ' is ' + Math.floor(p / 10) + (Math.floor(p / 10) === 1 ? ' ten' : ' tens') + ' and ' + (p % 10) + (p % 10 === 1 ? ' one' : ' ones') + '. Write the ' + (p % 10) + ' and carry the ' + Math.floor(p / 10) + ' from the ' + p + ' up above the next digit.' : ': write ' + p + '.')));
                 carry = Math.floor(p / 10);
             }
             const lead = j > 0 ? 'Start this row with ' + (j === 1 ? 'a 0' : j + ' zeros') + ' to hold the place. ' : '';

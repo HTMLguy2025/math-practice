@@ -1,4 +1,4 @@
-const CURRENT_VERSION = '4.2.1';
+const CURRENT_VERSION = '4.2.2';
 
 document.addEventListener('DOMContentLoaded', () => {
     const footer = document.querySelector('.textOnTheRight');

@@ -1,8 +1,9 @@
-# Version 4.2.1
+# Version 4.2.2
 
-## Fixed
+## Streaks
 
-- **Your streak now starts on the first day you reach your goal**, even if that day is a Saturday or Sunday. (Weekends still never break a streak.)
+- **Your streak starts on the first day you reach your goal**, and reaching your goal on a Saturday or Sunday now counts toward it too.
+- Skipping a weekend still never breaks your streak.
 
 ## Learn how, then practice
 

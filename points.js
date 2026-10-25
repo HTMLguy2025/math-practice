@@ -7,7 +7,8 @@
 // Rules
 //   - A day's goal is 50 + the current streak length, capped at 120. It is fixed
 //     when the day starts, so earning points never moves the goal.
-//   - Reaching the goal on a weekday extends the streak (or starts a new one).
+//   - Reaching the goal on a weekday extends the streak (or starts a new one). On a
+//     weekend it can start a new one, but never extends a running one.
 //   - Weekends are optional: practice is recorded, never breaks the streak, and
 //     can still earn a bonus while a streak is alive.
 //   - A streak is alive if it was last extended today or on the previous
@@ -68,8 +69,11 @@
 
     const evaluate = (ledger, day, today) => {
         const key = dstr(today);
-        if (isWeekday(today) && !day.s && day.p >= day.g) {
-            const alive = streakAlive(ledger, today);
+        // A weekday goal starts or extends the streak. A weekend goal can start one
+        // (so a first day on a Saturday or Sunday counts) but never extends it, which
+        // keeps weekends optional.
+        const alive = streakAlive(ledger, today);
+        if ((isWeekday(today) || !alive) && !day.s && day.p >= day.g) {
             ledger.streak.count = alive ? ledger.streak.count + 1 : 1;
             if (!alive) ledger.bonuses = 0;            // a fresh streak starts with no bonuses
             ledger.streak.last = key;
